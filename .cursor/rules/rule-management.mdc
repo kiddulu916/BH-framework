@@ -1,0 +1,26 @@
+---
+description: 
+globs: .cursor/rules/*.mdc
+alwaysApply: false
+---
+---
+description: Cursor rule file location, format, and update policy
+globs: .cursor/rules/*.mdc
+alwaysApply: true
+---
+# Cursor Rule File Management Rules
+
+## Location
+- All rule files must be located in `.cursor/rules/`.
+- Never create or duplicate rule files outside this directory.
+
+## Metadata
+- Each rule file must start with a YAML metadata block (between `---` lines).
+- Only update content below the metadata block; never modify the metadata except to add new fields.
+
+## Updates
+- When updating a rule, always read the full file and preserve existing metadata.
+- Never duplicate rules in other locations; merge and delete duplicates.
+
+## Validation
+- Use Cursor's rule management interface to validate all rule files after changes.

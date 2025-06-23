@@ -1,0 +1,30 @@
+---
+description: 
+globs: backend/core/api/**/*
+alwaysApply: false
+---
+---
+description: API endpoint design, validation, and error handling standards
+globs: backend/core/api/**/*
+alwaysApply: true
+---
+# API Design & Validation Rules
+
+## RESTful Endpoints
+- All endpoints must be RESTful and versioned under `/api/v1/`.
+- Use resource-based URLs and appropriate HTTP methods.
+
+## Validation
+- Use Pydantic schemas for all request and response validation.
+- All input data must be validated and sanitized before processing.
+
+## Error Handling
+- All errors must be handled by the global exception handler.
+- API responses must use the standardized `APIResponse` model.
+
+## Documentation
+- API documentation must be auto-generated via OpenAPI/Swagger.
+- All endpoints must have summary and description fields for docs.
+
+
+

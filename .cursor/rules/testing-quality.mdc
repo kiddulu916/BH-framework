@@ -1,0 +1,30 @@
+---
+description: 
+globs: backend/tests/**/*.*,frontend/src/**/*.test.js,frontend/src/**/*.test.ts,frontend/src/**/*.test.jsx,frontend/src/**/*.test.tsx
+alwaysApply: false
+---
+---
+description: Testing, coverage, and quality assurance rules
+globs: backend/tests/**/*.*, frontend/src/**/*.test.{js,ts,tsx}
+alwaysApply: true
+---
+# Testing & Quality Assurance Rules
+
+## Test Coverage
+- All new code must have unit and integration tests.
+- Maintain at least 80% test coverage for all code.
+
+## Tools
+- Use Pytest + HTTPX for backend tests.
+- Use Vitest + Testing Library for frontend tests.
+- Use Playwright for E2E tests.
+
+## Requirements
+- All tests must pass before merging to main.
+- All test files must be organized by domain and feature.
+
+## Documentation
+- All test cases must have clear docstrings or comments explaining their purpose.
+
+
+

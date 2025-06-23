@@ -1,0 +1,30 @@
+---
+description: 
+globs: .github/workflows/*,docker-compose.yml,backend/Dockerfile,frontend/Dockerfile
+alwaysApply: false
+---
+---
+description: DevOps, CI/CD, and deployment standards
+globs: .github/workflows/*, docker-compose.yml, backend/Dockerfile, frontend/Dockerfile
+alwaysApply: true
+---
+# DevOps & CI/CD Rules
+
+## Containerization
+- All services must be containerized using Docker.
+- Use Docker Compose for local orchestration and service networking.
+
+## CI/CD
+- CI/CD must run all tests and linters on every PR.
+- Use GitHub Actions for automated pipelines.
+
+## Environment Variables
+- All environment variables must be documented in `.env.example`.
+- Never commit secrets or sensitive values to version control.
+
+## Deployment
+- All deployments must use the latest tested images and configuration.
+- Health checks must be implemented for all critical services.
+
+
+

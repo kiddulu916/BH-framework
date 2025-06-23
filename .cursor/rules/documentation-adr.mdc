@@ -1,0 +1,29 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Documentation, ADR, and code comment standards
+globs: "**/*.*"
+alwaysApply: true
+---
+# Documentation & ADR Rules
+
+## Code Documentation
+- All public functions, classes, and modules must have comprehensive docstrings.
+- Use JSDoc or TypeScript doc comments for frontend code.
+
+## API Documentation
+- API must be documented via OpenAPI/Swagger.
+- All endpoints must have summary and description fields.
+
+## ADRs
+- Major architectural decisions must be recorded as ADRs in `architecture.mdc`.
+- Use the provided ADR template for all new decisions.
+
+## README
+- All major components must have an up-to-date README file describing purpose, usage, and API.
+
+
+

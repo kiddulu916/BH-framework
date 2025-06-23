@@ -1,0 +1,29 @@
+---
+description: 
+globs: backend/core/models/**/*.*,backend/migrations/**/*
+alwaysApply: false
+---
+---
+description: Database schema, migration, and data integrity rules
+globs: backend/core/models/**/*.*, backend/migrations/**/*
+alwaysApply: true
+---
+# Database & Data Integrity Rules
+
+## ORM & Migrations
+- All models must use SQLAlchemy ORM with async support.
+- All schema changes must be managed via Alembic migrations.
+
+## Data Types & Relationships
+- Use JSONB for flexible fields where appropriate.
+- Enforce foreign keys for all relationships between tables.
+
+## Validation & Sanitization
+- All data must be validated and sanitized before being persisted.
+- Use Pydantic schemas for validation at the API layer.
+
+## Documentation
+- All models must have docstrings describing their purpose and fields.
+
+
+

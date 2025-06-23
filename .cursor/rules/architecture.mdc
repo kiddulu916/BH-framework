@@ -1,0 +1,207 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Contains comprehensive high, mid and low level information about our project software and cloud architecture.
+globs: 
+alwaysApply: true
+---
+**Instructions** 
+This rule contains comprehensive overview of our Architecture.
+
+You are always to refer to this file when making any Architectual Decisions or building, tracking and making any plans. 
+You are always to keep expanding this and any referred sub documents with any relevent information or plans about any levels of our architecture.
+
+Contains sections of various high level overviews of our architecture, each section might contain a reference to additional detailed doc, if it's there super important to always refer to it. 
+
+# **Architecture Documentation**
+
+## **AI & User Collaboration Protocol**
+
+### **Update Guidelines**
+- **AI Updates**: AI should update this file during CONSTRUCT phase when implementing architectural changes
+- **User Updates**: Users can update this file directly when making architectural decisions
+- **Conflict Resolution**: Latest timestamp wins; conflicts should be noted in changelog
+- **Version Tracking**: All major changes should be logged with date and reason
+
+### **Change Protocol**
+```
+## Architecture Changelog
+- [YYYY-MM-DD] [AI/USER] [CHANGE_TYPE] - Brief description
+- [YYYY-MM-DD] [AI/USER] [CHANGE_TYPE] - Brief description
+```
+
+---
+
+## **High-Level Architecture**
+
+### **System Overview**
+The Bug Hunting Framework is a modular, full-stack application designed for automated, ethical security testing and comprehensive reporting. It orchestrates a multi-stage workflow (reconnaissance, vulnerability analysis, kill chain, reporting) using containerized stages, a robust backend (Django + Django Ninja), and a modern frontend (Next.js + React). The system is built for scalability, security, and maintainability, supporting both automated and user-driven workflows.
+
+**Key Architectural Principles:**
+- [x] Modular design with clear separation of concerns
+- [x] Scalable and maintainable codebase
+- [x] Security-first approach
+- [x] Performance optimization
+- [x] Code reusability and DRY principles
+
+### **Technology Stack**
+- **Backend:** Django + Django Ninja (async REST API, Pydantic validation, OpenAPI docs)
+- **Database:** PostgreSQL with SQLAlchemy ORM (asyncpg, Alembic migrations, JSONB, full-text search)
+- **Authentication:** JWT (HTTP-only cookies, access/refresh tokens, session management)
+- **Frontend:** Next.js 14+, React, Zustand, React Query, Tailwind CSS, shadcn/ui, Radix UI
+- **Containerization:** Docker, Docker Compose (multi-container orchestration)
+- **Dev Tools:** Black, Flake8, MyPy, Pytest, HTTPX, Sphinx, Prometheus/Grafana, Bandit, Safety, Locust
+- **CI/CD:** GitHub Actions (conventional commits, PR review, test/lint pipeline)
+
+### **Deployment Architecture**
+- **Local Development:** Docker Compose orchestrates `db`, `backend`, `frontend`, and stage containers. Volumes for persistent data and outputs. `.env` for config.
+- **Production:** Containerized deployment, shared bridge network, health checks, monitoring (Prometheus/Grafana), backup and disaster recovery, security hardening.
+
+---
+
+## **Domain Architecture**
+
+### **Application Domains**
+- **Bug Hunting Domain:** Stage management, workflow, data collection, target management
+- **Bug Reporting Domain:** Report templates, report generation, export management
+- **User Management Domain:** Authentication, profile, session handling
+- **Analytics Domain:** Performance metrics, statistics, dashboards
+
+Domains are mapped to epics and phases as tracked in `epics.mdc`. Each domain is implemented as a set of Django apps/modules, with clear boundaries and interfaces.
+
+### **Domain Boundaries**
+- **Bug Hunting** ↔ **Bug Reporting:** Data flows from hunting stages to reporting
+- **User Management** is cross-cutting (auth, session, profile)
+- **Analytics** aggregates data from all domains
+- Interfaces are defined via REST API endpoints and shared database models
+
+---
+
+## **Technical Architecture**
+
+### **Data Architecture**
+- **Database:** PostgreSQL, managed via SQLAlchemy ORM and Alembic migrations
+- **Schema:** Core tables for users, targets, stage results (passive/active recon, vulnerabilities, kill chain, reports)
+- **Data Flow:** Stage containers POST results to backend API, which validates and persists them
+- **Storage:** Outputs mounted in `/outputs/<target>/<stage>/` for raw tool data
+- **Security:** Data validation (Pydantic), input sanitization, at-rest and in-transit encryption
+
+### **API Architecture**
+- **Pattern:** RESTful endpoints via Django Ninja, async support
+- **Auth:** JWT (access/refresh tokens, HTTP-only cookies)
+- **Versioning:** URL-based (e.g., `/api/v1/`)
+- **Validation:** Pydantic schemas for all requests/responses
+- **Error Handling:** Standardized APIResponse model, global exception handlers
+- **Docs:** OpenAPI/Swagger auto-generated
+
+### **Frontend Architecture**
+- **Framework:** Next.js 14+, React, Zustand, React Query
+- **Component Library:** shadcn/ui, Radix UI
+- **Styling:** Tailwind CSS
+- **State Management:** Zustand (global), React Query (async)
+- **Real-time:** WebSocket client for live updates
+- **Pages:** Dashboard, target management, stage views, reporting, user profile
+- **Testing:** Vitest, Testing Library, Playwright
+
+### **Backend Architecture**
+- **Layered Structure:**
+  - API (Django Ninja routers)
+  - Tasks (business logic)
+  - Repositories (SQLAlchemy data access)
+  - Models (ORM entities)
+- **Async:** End-to-end async support (ASGI, asyncpg, HTTPX for tests)
+- **Dependency Injection:** Services and repositories injected into business logic
+- **Background Jobs:** (Planned) Celery or similar for long-running tasks
+
+---
+
+## **Infrastructure Architecture**
+
+### **Development Environment**
+- **Local Dev:** Docker Compose, hot reloading, .env config, persistent volumes for db and outputs
+- **Testing:** Pytest, HTTPX (ASGITransport), coverage, performance/load testing (Locust)
+- **Monitoring:** Prometheus/Grafana, Sentry for error tracking
+
+### **Production Environment**
+- **Deployment:** Containerized, shared bridge network, health checks
+- **Monitoring:** Prometheus/Grafana, log aggregation
+- **Backup:** Automated db and output backups, disaster recovery plan
+- **Security:** Hardened containers, secrets management, regular dependency scanning
+
+---
+
+## **Security Architecture**
+
+### **Authentication & Authorization**
+- **JWT:** Access/refresh tokens, HTTP-only cookies, 30-min access expiry, 7-day refresh
+- **Session Management:** Token rotation, session invalidation, user profile isolation
+- **Role-based Access:** (Planned) for admin/user separation
+- **Security Headers:** Enforced via middleware
+
+### **Data Security**
+- **Encryption:** At-rest (db, outputs), in-transit (HTTPS)
+- **Validation:** Pydantic schemas, input/output sanitization
+- **Backup:** Encrypted backups, retention policies
+- **Audit Logging:** All auth and critical actions logged
+
+---
+
+## **Architecture Decision Records (ADRs)**
+
+### **Decision Template**
+```
+### ADR-[NUMBER]: [TITLE]
+**Date**: [YYYY-MM-DD]
+**Status**: [Proposed/Accepted/Deprecated/Superseded]
+**Deciders**: [AI/User/Team]
+
+#### Context
+[What is the issue we're trying to solve?]
+
+#### Decision
+[What is the change we're making?]
+
+#### Consequences
+[What becomes easier or harder to do because of this change?]
+
+#### Alternatives Considered
+[What other options were evaluated?]
+```
+
+### **Active Decisions**
+<!-- AI/User: Add new ADRs here as architectural decisions are made -->
+*No architectural decisions recorded yet. ADRs will be added as decisions are made.*
+
+---
+
+## **Architecture Validation Rules**
+
+### **Validation Checklist**
+- [x] **Consistency**: New components follow existing patterns
+- [x] **Scalability**: Design supports expected growth
+- [x] **Maintainability**: Code is readable and well-organized
+- [x] **Security**: Security considerations are addressed
+- [x] **Performance**: Performance impact is considered
+- [x] **Testing**: Testability is built into the design
+
+### **Integration Points**
+- **Epic Planning:** All epic steps should consider architectural impact (see `epics.mdc`)
+- **Workflow Planning:** Blueprint phase must validate against this architecture
+- **Code Review:** Implementation should follow architectural decisions
+
+---
+
+## **Architecture Changelog**
+<!-- AI/User: Log all significant architecture changes here -->
+*Architecture changes will be logged here with timestamps and descriptions.*
+
+**Format**: [YYYY-MM-DD] [AI/USER] [ADD/MODIFY/REMOVE] - Description
+
+---
+
+## **Architecture References**
+<!-- AI/User: Add links to detailed architecture documents -->
+*References to detailed architecture documents will be added here as they are created.*

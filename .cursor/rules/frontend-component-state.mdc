@@ -1,0 +1,37 @@
+---
+description: 
+globs: frontend/src/**/*.js,frontend/src/**/*.jsx,frontend/src/**/*.ts,frontend/src/**/*.tsx
+alwaysApply: false
+---
+---
+description: Frontend component structure, state management, and UI/UX standards
+globs: frontend/src/**/*.{js,jsx,ts,tsx}
+alwaysApply: true
+---
+# Frontend Component & State Rules
+
+## Component Structure
+- All components must be functional and use React hooks for state.
+- Use TypeScript interfaces or PropTypes for all component props.
+- Organize components by atomic design (atoms, molecules, organisms, templates, pages).
+
+## State Management
+- Use Zustand for global state management.
+- Use React Query for async state and data fetching.
+- State must be colocated where possible and only globalized when necessary.
+
+## UI/UX Standards
+- Use shadcn/ui and Radix UI for all UI components.
+- Styling must be done with Tailwind CSS.
+- All components must implement loading and error states for async operations.
+- Use error boundaries for all major UI trees.
+
+## Testing
+- All components must have unit tests using Vitest and Testing Library.
+- Maintain high test coverage for all UI logic.
+
+## Documentation
+- All components must have clear JSDoc or TypeScript doc comments.
+
+
+

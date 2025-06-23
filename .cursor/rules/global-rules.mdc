@@ -1,0 +1,806 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: global rules for entire project
+globs: "**/*.*"
+alwaysApply: true
+---
+# Global Rules
+
+## File Management Rules
+
+### 1.**File Duplication Prevention**
+- **Never create duplicate files in the project**
+- **Before creating a new file:**
+  * Search the entire codebase for similar files
+  * Check for existing files with similar purpose
+  * Update existing files instead of creating new ones
+  * Document any major updates to existing files
+  * Maintain version history of changes
+- **File naming conventions:**
+  * Use consistent naming patterns
+  * Follow project-specific prefixes
+  * Avoid ambiguous names
+  * Document naming conventions
+  * Regular naming convention reviews
+
+### 2. **File Organization**
+- Maintain clear directory structure
+- Follow established file locations
+- Document file purposes
+- Regular structure reviews
+- Update organization as needed
+
+### 3. **File Updates**
+- Document all file changes
+- Maintain change history
+- Track file dependencies
+- Regular update reviews
+- Version control compliance
+
+## Rule Management Principles
+
+### 1. **Rule Consistency**
+- All rules must be consistent with global rules
+- No rule should contradict another rule
+- Rules must be cross-referenced appropriately
+- Regular consistency checks required
+- Document any rule conflicts
+
+### 2. **Rule Updates**
+- **Update all affected rules when:**
+  * New rule is created
+  * Existing rule is modified
+  * New module is discovered
+  * Architecture changes occur
+  * Security requirements change
+- Document all rule updates
+- Maintain version history
+- Track rule dependencies
+- Regular update reviews
+
+### 3. **Rule Documentation**
+- All rules must be documented
+- Documentation must be clear and concise
+- Include examples where necessary
+- Regular documentation reviews
+- Update documentation with rule changes
+
+## AI Interaction Rules
+
+### 1. **Rule Reference**
+- AI must always reference rule directory
+- Check rule consistency before actions
+- Follow rule hierarchy
+- Document rule applications
+- Regular rule compliance checks
+- Check for existing files before creation
+- Update existing files when appropriate
+
+### 2. **Rule Application**
+- Apply rules in correct order
+- Consider rule dependencies
+- Document rule applications
+- Monitor rule effectiveness
+- Regular application reviews
+
+### 3. **Rule Validation**
+- Validate rule applications
+- Check rule conflicts
+- Monitor rule effectiveness
+- Document validation results
+- Regular validation reviews
+
+## Development Integration
+
+### 1. **Module Management**
+- Document new modules
+- Update affected rules
+- Define module boundaries
+- Monitor module integration
+- Regular module reviews
+- Check for existing module files
+- Update existing modules when needed
+
+### 2. **Architecture Alignment**
+- Align rules with architecture
+- Update rules with architecture changes
+- Document architecture decisions
+- Monitor architecture compliance
+- Regular architecture reviews
+
+### 3. **Security Integration**
+- Update security rules
+- Monitor security compliance
+- Document security changes
+- Regular security reviews
+- Update security procedures
+
+## Rule Maintenance
+
+### 1. **Version Control**
+- Track rule versions
+- Document rule changes
+- Maintain change history
+- Regular version reviews
+- Update version documentation
+- Track file changes
+- Document file updates
+
+### 2. **Review Process**
+- Regular rule reviews
+- Document review findings
+- Update rules based on reviews
+- Monitor review effectiveness
+- Regular review process updates
+
+### 3. **Compliance Tracking**
+- Track rule compliance
+- Document compliance issues
+- Update compliance procedures
+- Monitor compliance effectiveness
+- Regular compliance reviews
+
+## Emergency Procedures
+
+### 1. **Rule Conflicts**
+- Define conflict resolution
+- Document conflict procedures
+- Implement resolution measures
+- Monitor conflict resolution
+- Regular conflict reviews
+
+### 2. **Rule Updates**
+- Define update procedures
+- Document update process
+- Implement update measures
+- Monitor update effectiveness
+- Regular update reviews
+
+### 3. **Rule Recovery**
+- Define recovery procedures
+- Document recovery process
+- Implement recovery measures
+- Monitor recovery effectiveness
+- Regular recovery reviews
+
+## Rule Dependencies
+
+### 1. **Dependency Management**
+- Track rule dependencies
+- Document dependencies
+- Monitor dependency changes
+- Update dependency documentation
+- Regular dependency reviews
+- Track file dependencies
+- Document file relationships
+
+### 2. **Impact Analysis**
+- Analyze rule impacts
+- Document impact findings
+- Monitor impact changes
+- Update impact documentation
+- Regular impact reviews
+
+### 3. **Change Management**
+- Track rule changes
+- Document change impacts
+- Monitor change effectiveness
+- Update change documentation
+- Regular change reviews
+
+## Rule Enforcement
+
+### 1. **Compliance Monitoring**
+- Monitor rule compliance
+- Document compliance issues
+- Implement compliance measures
+- Monitor compliance effectiveness
+- Regular compliance reviews
+
+### 2. **Rule Validation**
+- Validate rule applications
+- Document validation results
+- Implement validation measures
+- Monitor validation effectiveness
+- Regular validation reviews
+
+### 3. **Rule Updates**
+- Track rule updates
+- Document update process
+- Implement update measures
+- Monitor update effectiveness
+- Regular update reviews
+
+## Rule Documentation
+
+### 1. **Documentation Standards**
+- Define documentation format
+- Document documentation process
+- Implement documentation measures
+- Monitor documentation effectiveness
+- Regular documentation reviews
+
+### 2. **Version History**
+- Track version history
+- Document version changes
+- Implement version measures
+- Monitor version effectiveness
+- Regular version reviews
+
+### 3. **Review Logs**
+- Track review logs
+- Document review findings
+- Implement review measures
+- Monitor review effectiveness
+- Regular review log updates
+
+## File Management Procedures
+
+### 1. **File Creation**
+- Search for existing files
+- Check file purposes
+- Verify naming conventions
+- Document file creation
+- Update related files
+- Regular creation reviews
+
+### 2. **File Updates**
+- Document changes
+- Track modifications
+- Update dependencies
+- Maintain history
+- Regular update reviews
+
+### 3. **File Maintenance**
+- Regular file reviews
+- Update documentation
+- Track file status
+- Monitor file health
+- Regular maintenance checks
+
+# Global Development Rules
+
+## **Purpose**
+Define global standards and patterns for the bug hunting framework development, ensuring consistency, quality, and maintainability across all components.
+
+## Core Development Principles
+
+### 1. **API Response Consistency**
+**All API endpoints must use the standardized `APIResponse` model:**
+
+```python
+from pydantic import BaseModel, Field
+from typing import Optional, List
+
+class APIResponse(BaseModel):
+    """Standard API response model for all endpoints."""
+    
+    success: bool = Field(..., description="Whether the request was successful")
+    message: str = Field(..., description="Human-readable message")
+    data: Optional[dict] = Field(None, description="Response data for success cases")
+    errors: Optional[List[str]] = Field(None, description="List of error messages for failure cases")
+```
+
+**Response Pattern Rules:**
+- Success responses: `success=True`, `data` contains payload, `errors=None`
+- Error responses: `success=False`, `data=None`, `errors` contains error details
+- Business logic errors return HTTP 200 with `success=False`
+- Framework errors use global exception handlers for appropriate HTTP status codes
+
+### 2. Testing Standards
+**All integration tests must use HTTPX with Django ASGI app:**
+
+```python
+from httpx import AsyncClient, ASGITransport
+from api.asgi import application
+
+class TestAPIEndpoints:
+    async def setup_client(self):
+        transport = ASGITransport(app=application)
+        self.client = AsyncClient(transport=transport, base_url="http://testserver")
+```
+
+**Test Assertion Patterns:**
+- Success cases: Assert `response.status_code == 200` and `data["success"] is True`
+- Error cases: Assert `response.status_code == 200` and `data["success"] is False`
+- Framework errors: Assert appropriate HTTP status code (422, 404, etc.)
+
+### 3. Error Handling Standards
+**Use global exception handlers for framework errors:**
+
+```python
+@api.exception_handler(ValidationError)
+def validation_error_handler(request, exc):
+    return JsonResponse(
+        {"success": False, "message": "Validation error", "errors": [str(exc)]},
+        status=422,
+    )
+```
+
+**Exception Types:**
+- `ValidationError`: Input validation failures (HTTP 422)
+- `NotFoundError`: Resource not found (HTTP 404)
+- `AuthenticationError`: Authentication failures (HTTP 401)
+- `AuthorizationError`: Authorization failures (HTTP 403)
+
+## Architecture Standards
+
+### 1. Layered Architecture
+Follow the established layered architecture pattern:
+
+```
+api  (API Endpoints)
+    ↓
+tasks (Bussiness Logic)
+    ↓
+Repositories (Data Access)
+    ↓
+Models (Data Models)
+```
+
+### 2. Database Integration
+**Use async database sessions with proper management:**
+
+```python
+async with db_manager.async_session_factory() as session:
+    repo = UserRepository(session)
+    user_service = UserService(repo)
+    result = await user_service.operation(payload)
+```
+
+### 3. Dependency Injection
+**Use dependency injection for services and repositories:**
+
+```python
+class UserService:
+    def __init__(self, user_repository: UserRepository):
+        self.user_repository = user_repository
+```
+
+## Code Quality Standards
+
+### 1. Type Hints
+**Use comprehensive type hints throughout the codebase:**
+
+```python
+from typing import Optional, List, Dict, Any
+from uuid import UUID
+from pydantic import BaseModel
+
+async def get_user_by_id(user_id: UUID) -> Optional[User]:
+    """Get user by ID with proper type hints."""
+    pass
+```
+
+### 2. Documentation
+**All functions, classes, and modules must have comprehensive docstrings:**
+
+```python
+async def register_user(request, payload: RegisterRequest) -> APIResponse:
+    """
+    Register a new user account.
+    
+    Args:
+        request: HTTP request object
+        payload: User registration data
+        
+    Returns:
+        APIResponse with user ID and success message
+        
+    Raises:
+        ValidationError: If input validation fails
+        Exception: For other errors
+    """
+    pass
+```
+
+### 3. Error Handling
+**Use proper exception handling with specific exception types:**
+
+```python
+try:
+    result = await service.operation(payload)
+    return APIResponse(success=True, message="Success", data=result)
+except ValidationError as e:
+    return APIResponse(success=False, message="Validation error", errors=[str(e)])
+except Exception as e:
+    return APIResponse(success=False, message="Internal error", errors=[str(e)])
+```
+
+## Performance Standards
+
+### 1. Database Optimization
+**Use proper database optimization techniques:**
+
+```python
+# Use pagination for large datasets
+users = await repo.list(limit=10, offset=0)
+
+# Use proper indexing
+# Use connection pooling
+# Use async operations
+```
+
+### 2. Caching
+**Implement caching where appropriate:**
+
+```python
+from django.core.cache import cache
+
+# Cache frequently accessed data
+cached_data = cache.get(cache_key)
+if cached_data:
+    return cached_data
+```
+
+### 3. Async Operations
+**Use async/await patterns throughout the application:**
+
+```python
+async def async_operation():
+    """Use async operations for better performance."""
+    result = await database_operation()
+    return result
+```
+
+## Testing Standards
+
+### 1. Test Coverage
+**Maintain high test coverage:**
+
+- Unit tests: 80% minimum coverage
+- Integration tests: All endpoints tested
+- Security tests: All security features tested
+- Performance tests: Critical paths tested
+
+### 2. Test Organization
+**Organize tests by domain and feature:**
+
+```
+tests/
+  ├── conftest.py                    # Shared fixtures
+  ├── models/                        # Model tests
+  ├── repositories/                  # Repository tests
+  ├── tasks/                         # Service tests
+  ├── api/                           # API tests
+  └── integration/                   # Integration tests
+```
+
+### 3. Test Data Management
+**Use proper test data management:**
+
+```python
+@pytest.fixture
+def user_factory():
+    """Factory for creating test users."""
+    def _create_user(**kwargs):
+        defaults = {
+            "email": f"test_{int(time.time())}@example.com",
+            "password": "TestPass123!",
+            "name": "Test User",
+            "platform": "hackerone"
+        }
+        defaults.update(kwargs)
+        return User(**defaults)
+    return _create_user
+```
+
+## Documentation Standards
+
+### 1. Code Documentation
+**Document all code with comprehensive docstrings:**
+
+```python
+class UserService:
+    """
+    Service layer for user management operations.
+    
+    This service handles all business logic related to user operations,
+    including creation, authentication, and profile management.
+    """
+    
+    def __init__(self, user_repository: UserRepository):
+        """
+        Initialize the user service.
+        
+        Args:
+            user_repository: Repository for user data access
+        """
+        self.user_repository = user_repository
+```
+
+### 2. API Documentation
+**Generate comprehensive API documentation using OpenAPI/Swagger:**
+
+```python
+@router.post(
+    "/register", 
+    response=APIResponse, 
+    summary="Register new user",
+    description="Create a new user account",
+    tags=["Authentication"]
+)
+async def register_user(request, payload: RegisterRequest):
+    # Implementation
+```
+
+### 3. README Documentation
+**Maintain comprehensive README files for all components:**
+
+```markdown
+# Component Name
+
+## Purpose
+Brief description of the component's purpose.
+
+## Usage
+How to use the component.
+
+## API Reference
+API endpoints and their usage.
+
+## Examples
+Code examples and usage patterns.
+```
+
+## Version Control Standards
+
+### 1. Commit Messages
+**Use conventional commit message format:**
+
+```
+feat: add user registration endpoint
+fix: resolve database connection issue
+docs: update API documentation
+test: add integration tests for user API
+refactor: improve error handling in user service
+```
+
+### 2. Branch Naming
+**Use descriptive branch names:**
+
+```
+feature/user-authentication
+bugfix/database-connection
+hotfix/security-vulnerability
+refactor/api-response-model
+```
+
+### 3. Pull Request Standards
+**Follow proper pull request practices:**
+
+- Clear description of changes
+- Link to related issues
+- Include tests for new features
+- Update documentation
+- Code review required
+
+## Deployment Standards
+
+### 1. Environment Configuration
+**Use proper environment configuration:**
+
+```python
+# settings.py
+import os
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'bug_hunting_framework'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+    }
+}
+```
+
+### 2. Docker Configuration
+**Use Docker for consistent deployment:**
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+EXPOSE 8000
+
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+```
+
+### 3. CI/CD Pipeline
+**Implement proper CI/CD pipeline:**
+
+```yaml
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run tests
+        run: python -m pytest
+      - name: Run linting
+        run: python -m flake8
+```
+
+## Monitoring and Logging Standards
+
+### 1. Logging
+**Implement comprehensive logging:**
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+async def endpoint_with_logging(request, payload):
+    """Endpoint with proper logging."""
+    logger.info(f"Processing request for user: {payload.email}")
+    try:
+        result = await service.operation(payload)
+        logger.info(f"Successfully processed request for user: {payload.email}")
+        return APIResponse(success=True, message="Success", data=result)
+    except Exception as e:
+        logger.error(f"Error processing request for user {payload.email}: {str(e)}")
+        return APIResponse(success=False, message="Error", errors=[str(e)])
+```
+
+### 2. Metrics Collection
+**Collect and monitor application metrics:**
+
+```python
+from prometheus_client import Counter, Histogram
+
+request_counter = Counter('http_requests_total', 'Total HTTP requests')
+request_duration = Histogram('http_request_duration_seconds', 'HTTP request duration')
+
+async def monitored_endpoint(request, payload):
+    """Endpoint with metrics collection."""
+    request_counter.inc()
+    with request_duration.time():
+        return await process_request(payload)
+```
+
+### 3. Health Checks
+**Implement health check endpoints:**
+
+```python
+@router.get("/health", response=APIResponse)
+async def health_check(request):
+    """Health check endpoint."""
+    try:
+        # Check database connection
+        async with db_manager.async_session_factory() as session:
+            await session.execute(text("SELECT 1"))
+        
+        return APIResponse(
+            success=True,
+            message="Service is healthy",
+            data={"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+        )
+    except Exception as e:
+        return APIResponse(
+            success=False,
+            message="Service is unhealthy",
+            errors=[str(e)]
+        )
+```
+
+## Compliance and Standards
+
+### 1. Code Style
+**Follow PEP 8 and project-specific style guidelines:**
+
+```python
+# Use black for code formatting
+# Use flake8 for linting
+# Use isort for import sorting
+# Use mypy for type checking
+```
+
+### 2. Security Compliance
+**Follow security best practices:**
+
+- Input validation and sanitization
+- Authentication and authorization
+- Data encryption
+- Secure communication (HTTPS)
+- Regular security audits
+
+### 3. Performance Compliance
+**Meet performance requirements:**
+
+- Response time < 1 second for most endpoints
+- Database query optimization
+- Proper caching strategies
+- Resource usage monitoring
+
+## Implementation Checklist
+
+### For New Features
+- [ ] Follow APIResponse pattern
+- [ ] Implement proper error handling
+- [ ] Add comprehensive tests
+- [ ] Update documentation
+- [ ] Follow security standards
+- [ ] Optimize for performance
+- [ ] Add monitoring and logging
+
+### For Bug Fixes
+- [ ] Write test that reproduces the bug
+- [ ] Fix the bug
+- [ ] Verify the fix works
+- [ ] Update tests
+- [ ] Update documentation if needed
+
+### For Refactoring
+- [ ] Ensure all tests pass
+- [ ] Update affected components
+- [ ] Verify functionality
+- [ ] Update documentation
+- [ ] Review performance impact
+
+## Quality Assurance
+
+### 1. Code Review
+**All code changes must be reviewed:**
+
+- At least one reviewer required
+- Automated checks must pass
+- Tests must pass
+- Documentation must be updated
+
+### 2. Testing Requirements
+**Comprehensive testing required:**
+
+- Unit tests for all new code
+- Integration tests for API endpoints
+- Security tests for sensitive operations
+- Performance tests for critical paths
+
+### 3. Documentation Requirements
+**Documentation must be maintained:**
+
+- Code documentation (docstrings)
+- API documentation (OpenAPI)
+- README files
+- Architecture documentation
+
+## Continuous Improvement
+
+### 1. Regular Reviews
+**Conduct regular code and architecture reviews:**
+
+- Monthly code quality reviews
+- Quarterly architecture reviews
+- Annual security audits
+- Performance optimization reviews
+
+### 2. Feedback Integration
+**Integrate feedback from various sources:**
+
+- User feedback
+- Performance metrics
+- Error logs
+- Security reports
+
+### 3. Technology Updates
+**Keep technology stack updated:**
+
+- Regular dependency updates
+- Security patches
+- Performance improvements
+- Feature enhancements

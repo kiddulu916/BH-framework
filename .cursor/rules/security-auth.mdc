@@ -1,0 +1,33 @@
+---
+description: 
+globs: backend/**/*.*,frontend/**/*
+alwaysApply: false
+---
+---
+description: Security, authentication, and authorization rules
+globs: backend/**/*.*, frontend/**/*
+alwaysApply: true
+---
+# Security & Authentication Rules
+
+## Authentication
+- Use JWT for authentication, stored in HTTP-only cookies.
+- Access tokens expire in 30 minutes, refresh tokens in 7 days.
+- Implement token rotation and session invalidation.
+
+## Authorization
+- (Planned) Implement role-based access control (RBAC) for admin/user separation.
+- All protected endpoints must check user roles and permissions.
+
+## Data Security
+- All sensitive data must be encrypted at rest and in transit (HTTPS).
+- Use Pydantic for input/output validation and sanitization.
+
+## Audit Logging
+- Log all authentication and critical actions for audit purposes.
+
+## Security Headers
+- Enforce security headers via backend middleware.
+
+
+

@@ -1,0 +1,42 @@
+---
+description: 
+globs: backend/**/*.*
+alwaysApply: false
+---
+---
+description: Backend architecture guidelines, layering, and service structure
+globs: backend/**/*.*
+alwaysApply: true
+---
+# Backend Architecture Rules
+
+## Layered Architecture
+- All backend code must follow the layered structure:
+  - API (Django Ninja routers)
+  - Tasks (business logic)
+  - Repositories (SQLAlchemy data access)
+  - Models (ORM entities)
+- No business logic should be implemented in API endpoints; it must reside in the `tasks` layer.
+
+## Async Support
+- All database and API operations must use async/await patterns (ASGI, asyncpg, HTTPX).
+- All repository and service methods must be async.
+
+## Dependency Injection
+- Use dependency injection for all services and repositories.
+- Services should be initialized with their required repositories.
+
+## APIResponse Pattern
+- All API endpoints must return the standardized `APIResponse` model.
+- Success: `success=True`, `data` contains payload, `errors=None`.
+- Error: `success=False`, `data=None`, `errors` contains error details.
+
+## Validation & Error Handling
+- Use Pydantic schemas for all request/response validation.
+- All errors must be handled by the global exception handler.
+
+## Documentation
+- All public functions/classes must have comprehensive docstrings.
+
+
+

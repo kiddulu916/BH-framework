@@ -1,0 +1,135 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Directory Structure
+globs: "**/*.*"
+alwaysApply: true
+---
+
+## Project Structure
+```
+bug-hunting-framework        #root project directory
+├── docker-compose.yml
+├── .env
+├── README.md
+├── backend/
+│   ├── api/                   # Django project directory
+│   │   ├── settings.py        # Django settings and configuration
+│   │   ├── urls.py            # Main URL routing
+│   │   ├── wsgi.py            # WSGI application entry point
+│   │   └── asgi.py            # ASGI application entry point
+│   ├── core/                  # Django apps (business logic)
+│   |   ├── schemas/           # Database Schemas
+│   │   ├── models/            # SQLAlchemy ORM models
+│   │   ├── repositories/      # Data access layer
+│   │   ├── tasks/             # Business logic layer
+│   │   ├── api/               # API endpoints (Django Ninja)
+│   |   ├── middleware/        # Middleware layer
+│   │   └── utils/             # Shared utilities and exceptions
+│   ├── tests/                 # Test files
+│   ├── migrations/            # Django migrations
+│   ├── manage.py              # Django management script
+│   ├── requirements.txt       # Python dependencies
+│   ├── .env                   # Backend Environment Variables
+│
+├── frontend/
+│   ├── README.md
+│   ├── eslint.config.mjs
+│   ├── next.config.mjs
+│   ├── node_modules/
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.mjs
+│   ├── public/
+│   │   ├── file.svg
+│   │   ├── globe.svg
+│   │   ├── next.svg
+│   │   ├── vercel.svg
+│   │   └── window.svg
+│   └── src/
+│       ├── app/
+│       │   ├── favicon.ico
+│       │   ├── globals.css
+│       │   ├── layout.js
+│       │   └── page.js
+│       ├── components/
+│       │   ├── README.md
+│       │   ├── atoms/
+│       │   ├── molecules/
+│       │   ├── organisms/
+│       │   ├── pages/
+│       │   └── templates/
+│       ├── hooks/
+│       └── lib/
+│           ├── api/
+│           ├── data/
+│           ├── state/
+│           ├── ui/
+│           └── websocket/
+│
+├── outputs/                        # Mounted volume for tool outputs
+│   └── <target>/
+│       └── passive_recon/
+│       └── active_recon/
+│       └── vuln_scan/
+│       └── vuln_test/
+│       └── kill_chain/
+│       └── report/
+│
+├── data/                           # Optional: for persistent volumes, e.g., db
+│   └── postgres/
+│
+├── stages/                         # Pipeline stages - each in its own container
+    ├── passive_recon/
+    │   ├── tools/
+    │   │   ├── amass_runner.py
+    │   │   ├── subfinder_runner.py
+    │   │   ├── crtsh_runner.py
+    │   │   └── utils.py
+    │   ├── run_passive_recon.py
+    │   ├── requirements.txt
+    │   └── Dockerfile
+    │
+    ├── active_recon/
+    │   ├── tools/
+    │   ├── run_active_recon.py
+    │   ├── requirements.txt
+    │   └── Dockerfile
+    │
+    ├── vuln_scan/
+    │   ├── tools/
+    │   ├── run_vuln_scan.py
+    │   ├── requirements.txt
+    │   └── Dockerfile
+    │
+    ├── vuln_test/
+    │   ├── tools/
+    │   ├── run_vuln_test.py
+    │   ├── requirements.txt
+    │   └── Dockerfile
+    │
+    ├── kill_chain/
+    │   ├── logic/
+    │   ├── analyze_kill_chain.py
+    │   ├── requirements.txt
+    │   └── Dockerfile
+    │
+    └── report/
+        ├── generate_report.py
+        ├── templates/
+        │   └── report_template.md
+        ├── requirements.txt
+        └── Dockerfile
+
+
+
+
+
+
+
+
+
+```

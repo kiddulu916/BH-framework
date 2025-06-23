@@ -1,0 +1,75 @@
+---
+description: 
+globs: output/**/*
+alwaysApply: false
+---
+---
+description: Rules for the structure of the output directory
+globs: output/**/**/*.*
+alwaysApply: true
+---
+# Output Directory Structure & naming conventions
+
+## Directory Layout
+```
+outputs
+├── <target1>/                            # Submitted targets root domain 
+│     ├── passive-recon/                  # Stage output came from
+│     │    ├── amass_scan.json            # Amass scan results
+│     │    ├── subfinder_scan.json        # Subfinder raw scan results
+│     │    ├── assetfinder_scan.json      # AssetFinder raw scan results
+│     │    ├── sublist3r_scan.json        # Sublist3r raw scan results
+│     │    ├── rev_whois_scan.json        # Reverse WhoIs raw scan results
+│     │    ├── all_subdomains.txt         # Parsed subdomains and combined
+│     │    ├── all_ipv4.txt               # Parsed IPv4 and combined
+│     │    ├── all_ASNs.txt               # Parsed AS numbers and combined
+│     │    ├── all_cnames.txt             # Parsed CNames and combined
+│     │    ├── all_cidr_ranges.txt        # Parsed Network CIDR ranges and combined
+│     │
+│     ├── active-recon/
+│     │     ├── nmap_ports_services.txt
+│     │     ├── naabu_scan_results.txt
+│     │     ├── ETC......
+│     │
+│     ├── vuln-scan/
+│     │     ├── <tool scan results>
+│     │     ├── <tool scan results>
+│     │     ├── ETC......
+│     │
+│     ├── vuln-test/
+│     │     ├── <tool scan results>
+│     │     ├── <tool scan results>
+│     │     ├── all_flagged_vulns.json
+│     │	    ├── ETC.......
+│     │
+│     ├── kill-chain/
+│     │     ├── <tool scan results>
+│     │     ├── <tool scan results>
+│     │     ├── ETC......
+│     │
+│     ├── report-gen/
+│     │     ├── templates/
+│     │     │    ├── bug_crowd_report_temp.txt
+│     │     │    ├── intgriti_report_temp.txt
+│     │     │    ├── ETC......
+│     │     │ 
+│     │     ├── POCs.txt
+│     │     ├── <tool scan results>
+│     │     ├── <tool scan results>
+│     │     ├── ETC......
+│
+├── <target2>
+│     ├── (same as target 1) 
+│   
+├── utils/    # Custom Scripts for parsing data or 
+               # manipulating the output files in some way
+```
+
+## Output directory structure rules
+- Each target seperated to its own directory
+- Scan results are seperated by the stage container they came from
+- Scan results are labeled by the tool they came from
+
+
+
+
