@@ -14,20 +14,38 @@ alwaysApply: true
 - Use JWT for authentication, stored in HTTP-only cookies.
 - Access tokens expire in 30 minutes, refresh tokens in 7 days.
 - Implement token rotation and session invalidation.
+- All authentication logic must be covered by tests (Pytest).
+- Document all authentication flows in the architecture or rules files.
 
 ## Authorization
 - (Planned) Implement role-based access control (RBAC) for admin/user separation.
 - All protected endpoints must check user roles and permissions.
+- Authorization logic must be tested and documented.
 
 ## Data Security
 - All sensitive data must be encrypted at rest and in transit (HTTPS).
 - Use Pydantic for input/output validation and sanitization.
+- Regularly review and update security policies and procedures.
+- Perform regular dependency scanning for vulnerabilities (e.g., Bandit, Safety).
 
 ## Audit Logging
 - Log all authentication and critical actions for audit purposes.
+- Audit logs must be protected and regularly reviewed.
 
 ## Security Headers
 - Enforce security headers via backend middleware.
+- Document all security header policies in the architecture or rules files.
+
+## Tool/Pattern Adoption
+- When introducing a new security/auth tool, library, or major dependency, document its purpose and integration in the appropriate rule or architecture file.
+- Review all new security/auth tools/patterns for compatibility with existing architecture before adoption.
+
+## Checklist for Introducing New Security/Auth Patterns/Dependencies
+- [ ] Cross-reference with architecture and epic plans
+- [ ] Update this file and relevant rules/epics
+- [ ] Document integration and usage patterns
+- [ ] Add/expand tests and documentation as needed
+- [ ] Review for security, performance, and maintainability
 
 
 

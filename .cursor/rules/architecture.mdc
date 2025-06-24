@@ -205,3 +205,51 @@ Domains are mapped to epics and phases as tracked in `epics.mdc`. Each domain is
 ## **Architecture References**
 <!-- AI/User: Add links to detailed architecture documents -->
 *References to detailed architecture documents will be added here as they are created.*
+
+## **Key Codebase Patterns & Enforcement**
+
+### Backend Layered Architecture
+- All backend code must follow: API (Django Ninja routers) → Tasks (business logic) → Repositories (SQLAlchemy) → Models (ORM entities).
+- No business logic in API endpoints; must reside in the `tasks` layer.
+- All database and API operations must use async/await patterns (ASGI, asyncpg, HTTPX).
+- Use dependency injection for all services and repositories.
+- All API endpoints must return the standardized `APIResponse` model.
+- Use Pydantic schemas for all request/response validation.
+- All errors must be handled by the global exception handler.
+
+### Frontend Atomic & State Patterns
+- All React components must be functional and use hooks for state.
+- Organize components by atomic design (atoms, molecules, organisms, templates, pages).
+- Use Zustand for global state, React Query for async state/data fetching.
+- Use shadcn/ui and Radix UI for UI components; style with Tailwind CSS.
+- All components must implement loading and error states for async operations.
+- All components must have JSDoc or TypeScript doc comments.
+- All new UI libraries or design systems must be reviewed for consistency with existing patterns before adoption.
+
+### Orchestration & Dev Environment
+- Use Docker Compose to orchestrate all services (db, backend, frontend, stage containers).
+- All environment variables must be documented in `.env` and referenced in Docker Compose.
+- Use hot reloading for local development.
+- All major dependencies and tools must be documented in the architecture or rules files.
+
+### Real-time & State Management
+- Use WebSocket for real-time updates between backend and frontend.
+- State management must be centralized (Zustand) and colocated where possible.
+
+### Testing & Documentation
+- All backend code must be tested with Pytest + HTTPX (ASGITransport).
+- All frontend code must be tested with Vitest and Testing Library.
+- All code must be documented (docstrings, JSDoc, OpenAPI/Swagger).
+- All major architectural decisions must be recorded as ADRs in this file.
+- All new rules must be cross-referenced with the current architecture and epic plans.
+
+### Tool/Library Adoption
+- When introducing a new tool, library, or major dependency, document its purpose and integration pattern in the appropriate rule or architecture file.
+- Review all new tools/libraries for compatibility with existing patterns before adoption.
+
+### Checklist for Introducing New Patterns/Dependencies
+- [ ] Cross-reference with architecture and epic plans
+- [ ] Update this file and relevant rules/epics
+- [ ] Document integration and usage patterns
+- [ ] Add/expand tests and documentation as needed
+- [ ] Review for security, performance, and maintainability

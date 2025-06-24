@@ -13,17 +13,37 @@ alwaysApply: true
 ## ORM & Migrations
 - All models must use SQLAlchemy ORM with async support.
 - All schema changes must be managed via Alembic migrations.
+- All migrations must be tested in development before production deployment.
 
 ## Data Types & Relationships
 - Use JSONB for flexible fields where appropriate.
 - Enforce foreign keys for all relationships between tables.
+- Use proper indexing for performance-critical queries.
 
 ## Validation & Sanitization
 - All data must be validated and sanitized before being persisted.
 - Use Pydantic schemas for validation at the API layer.
+- All input/output must be sanitized to prevent injection and data corruption.
 
 ## Documentation
 - All models must have docstrings describing their purpose and fields.
+- All schema changes must be documented in migration files and referenced in architecture docs if significant.
+
+## Testing & Monitoring
+- All database logic must be covered by Pytest tests.
+- Implement regular backup and restore procedures for all critical data.
+- Monitor database health and performance (e.g., with Prometheus/Grafana).
+
+## Tool/Pattern Adoption
+- When introducing a new DB tool, migration pattern, or major dependency, document its purpose and integration in the appropriate rule or architecture file.
+- Review all new DB tools/patterns for compatibility with existing architecture before adoption.
+
+## Checklist for Introducing New DB Patterns/Dependencies
+- [ ] Cross-reference with architecture and epic plans
+- [ ] Update this file and relevant rules/epics
+- [ ] Document integration and usage patterns
+- [ ] Add/expand tests and documentation as needed
+- [ ] Review for security, performance, and maintainability
 
 
 

@@ -1734,3 +1734,18 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
 
 ## Changelog
 <!-- The agent prepends the latest summary here as a new list item after each VALIDATE phase -->
+
+## Critical Patterns & Conventions
+
+### Tool/Library/Pattern Adoption
+- All new tools, libraries, or major dependencies must be documented in the appropriate rule or architecture file.
+- All new patterns must be cross-referenced with the current architecture and epic plans.
+- Review all new tools/libraries/patterns for compatibility with existing project conventions before adoption.
+- Ensure security, testing, and documentation requirements are met for all new additions.
+
+### Checklist for Introducing New Project-Wide Patterns/Dependencies
+- [ ] Cross-reference with architecture and epic plans
+- [ ] Update this file and relevant rules/epics
+- [ ] Document integration and usage patterns
+- [ ] Add/expand tests and documentation as needed
+- [ ] Review for security, performance, and maintainability

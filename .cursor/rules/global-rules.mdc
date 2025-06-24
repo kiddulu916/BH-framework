@@ -804,3 +804,5 @@ async def health_check(request):
 - Security patches
 - Performance improvements
 - Feature enhancements
+
+- When introducing a new tool, library, or major dependency, document its purpose and integration pattern in the appropriate rule or architecture file.

@@ -11,12 +11,13 @@ alwaysApply: true
 # Backend Architecture Rules
 
 ## Layered Architecture
-- All backend code must follow the layered structure:
-  - API (Django Ninja routers)
-  - Tasks (business logic)
-  - Repositories (SQLAlchemy data access)
-  - Models (ORM entities)
+- All backend code must follow the strict layered structure:
+  - API (Django Ninja routers): request/response validation, no business logic
+  - Tasks (business logic): all business rules, no data access
+  - Repositories (SQLAlchemy data access): all DB queries, no business logic
+  - Models (ORM entities): data schema only
 - No business logic should be implemented in API endpoints; it must reside in the `tasks` layer.
+- All new backend patterns must be cross-referenced with the current architecture and epic plans. If a new pattern is introduced, update the relevant architecture or epic documentation and reference it in the rule.
 
 ## Async Support
 - All database and API operations must use async/await patterns (ASGI, asyncpg, HTTPX).
@@ -37,6 +38,22 @@ alwaysApply: true
 
 ## Documentation
 - All public functions/classes must have comprehensive docstrings.
+- All API endpoints must be documented in OpenAPI/Swagger with summary and description fields.
+
+## Testing
+- All backend code must be tested with Pytest and HTTPX (ASGITransport for API tests).
+- Maintain high test coverage for all business logic and endpoints.
+
+## Tool/Library Adoption
+- When introducing a new tool, library, or major dependency, document its purpose and integration pattern in the appropriate rule or architecture file.
+- Review all new tools/libraries for compatibility with existing backend patterns before adoption.
+
+## Checklist for Introducing New Backend Patterns/Dependencies
+- [ ] Cross-reference with architecture and epic plans
+- [ ] Update this file and relevant rules/epics
+- [ ] Document integration and usage patterns
+- [ ] Add/expand tests and documentation as needed
+- [ ] Review for security, performance, and maintainability
 
 
 

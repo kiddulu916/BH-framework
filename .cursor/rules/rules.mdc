@@ -38,6 +38,6 @@ Always include:
 IMPORTANT: If below rules get larger than 500 lines, break up the rules into meaningful groups and store them as separate files in .cursor/rules directory starting with rules- prefix.  Then make sure to add the reference in this file to it with short instructions on how to read it and follow it. 
 
 ## Development Rules
-<-- This area should store all the rules,  to be only completed and managed by AI -->
+- All new rules must be cross-referenced with the current architecture and epic plans. If a new pattern or convention is introduced, update the relevant architecture or epic documentation and reference it in the rule.  # [2024-06-07]
 
  

@@ -33,5 +33,8 @@ alwaysApply: true
 ## Documentation
 - All components must have clear JSDoc or TypeScript doc comments.
 
+## New UI Libraries or Design Systems
+- All new UI libraries or design systems must be reviewed for consistency with existing patterns before adoption.
+
 
 
