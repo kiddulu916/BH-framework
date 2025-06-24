@@ -81,25 +81,28 @@ class WorkflowService:
             if existing_workflow:
                 raise ValidationError(f"Workflow already exists for target {payload.target_id}")
             
-            # Create workflow
+            # Create workflow data
             workflow_data = {
-                "target_id": payload.target_id,
-                "name": payload.name or f"Workflow for {target.value}",
+                "name": payload.name,
                 "description": payload.description,
+                "target_id": payload.target_id,
+                "user_id": None,  # TODO: Get from request context
                 "status": WorkflowStatus.PENDING,
+                "current_stage": None,
+                "progress": "0%",
                 "stages": {
-                    "passive_recon": StageStatus.PENDING,
-                    "active_recon": StageStatus.PENDING,
-                    "vulnerability_scan": StageStatus.PENDING,
-                    "vulnerability_test": StageStatus.PENDING,
-                    "kill_chain_analysis": StageStatus.PENDING,
-                    "report_generation": StageStatus.PENDING
+                    "PASSIVE_RECON": StageStatus.PENDING,
+                    "ACTIVE_RECON": StageStatus.PENDING,
+                    "VULN_SCAN": StageStatus.PENDING,
+                    "VULN_TEST": StageStatus.PENDING,
+                    "KILL_CHAIN": StageStatus.PENDING,
+                    "REPORT": StageStatus.PENDING
                 },
                 "created_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc)
             }
             
-            workflow = await self.workflow_repository.create(workflow_data)
+            workflow = await self.workflow_repository.create(**workflow_data)
             
             logger.info(f"Created workflow {workflow.id} for target {payload.target_id}")
             
@@ -232,7 +235,7 @@ class WorkflowService:
             
             update_data["updated_at"] = datetime.now(timezone.utc)
             
-            updated_workflow = await self.workflow_repository.update(workflow_id, update_data)
+            updated_workflow = await self.workflow_repository.update(workflow_id, **update_data)
             
             logger.info(f"Updated workflow {workflow_id}")
             
@@ -367,7 +370,7 @@ class WorkflowService:
             await self._validate_stage_dependencies(workflow, stage_name)
             
             # Update stage status to running
-            await self.workflow_repository.update(workflow_id, {
+            await self.workflow_repository.update(workflow_id, **{
                 "stages": {**workflow.stages, stage_name: StageStatus.RUNNING},
                 "updated_at": datetime.now(timezone.utc)
             })

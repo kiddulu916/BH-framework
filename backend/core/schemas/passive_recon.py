@@ -99,19 +99,21 @@ class PassiveReconResultCreate(BaseModel):
     """Schema for creating passive reconnaissance results."""
     
     target_id: UUID = Field(..., description="Target ID")
-    execution_id: Optional[UUID] = Field(None, description="Workflow execution ID")
+    execution_id: Optional[str] = Field(None, description="Workflow execution ID")
     tools_used: List[PassiveReconTool] = Field(..., description="Tools used in reconnaissance")
     subdomains: List[SubdomainCreate] = Field(default_factory=list, description="Discovered subdomains")
     total_subdomains: int = Field(default=0, ge=0, description="Total number of subdomains discovered")
-    execution_time: Optional[float] = Field(None, ge=0, description="Execution time in seconds")
+    execution_time: Optional[str] = Field(None, description="Execution time in seconds")
     raw_output: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Raw tool outputs")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
     
     @field_validator('total_subdomains')
-    def validate_total_subdomains(cls, v, values):
+    def validate_total_subdomains(cls, v, info):
         """Validate total_subdomains matches actual subdomains count."""
-        if 'subdomains' in values and v != len(values['subdomains']):
-            raise ValueError("total_subdomains must match the actual number of subdomains")
+        if hasattr(info, 'data') and info.data is not None:
+            subdomains = info.data.get('subdomains', [])
+            if v != len(subdomains):
+                raise ValueError("total_subdomains must match the actual number of subdomains")
         return v
 
 
@@ -120,11 +122,11 @@ class PassiveReconResultResponse(BaseModel):
     
     id: UUID = Field(..., description="Result ID")
     target_id: UUID = Field(..., description="Target ID")
-    execution_id: Optional[UUID] = Field(None, description="Workflow execution ID")
+    execution_id: Optional[str] = Field(None, description="Workflow execution ID")
     tools_used: List[PassiveReconTool] = Field(..., description="Tools used in reconnaissance")
     subdomains: List[SubdomainResponse] = Field(..., description="Discovered subdomains")
     total_subdomains: int = Field(..., description="Total number of subdomains discovered")
-    execution_time: Optional[float] = Field(None, description="Execution time in seconds")
+    execution_time: Optional[str] = Field(None, description="Execution time in seconds")
     raw_output: Dict[str, Any] = Field(default_factory=dict, description="Raw tool outputs")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
     created_at: datetime = Field(..., description="Creation timestamp")

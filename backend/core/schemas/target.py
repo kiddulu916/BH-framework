@@ -38,6 +38,8 @@ class TargetUpdate(BaseModelSchema):
     """
     
     name: Optional[str] = Field(None, min_length=1, max_length=255, description="Target name")
+    value: Optional[str] = Field(None, min_length=1, max_length=500, description="Target value (domain, IP, etc.)")
+    scope: Optional[TargetScope] = Field(None, description="Target scope type")
     description: Optional[str] = Field(None, description="Target description")
     status: Optional[TargetStatus] = Field(None, description="Target status")
     is_primary: Optional[bool] = Field(None, description="Whether this is a primary target")

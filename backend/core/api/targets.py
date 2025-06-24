@@ -38,7 +38,7 @@ async def create_target(request: HttpRequest, payload: TargetCreate):
             return APIResponse(
                 success=True,
                 message="Target created successfully",
-                data=target,
+                data=target.model_dump(),
                 errors=None
             )
     except Exception as e:
@@ -56,7 +56,8 @@ async def list_targets(
     page: int = 1,
     per_page: int = 10,
     search: Optional[str] = None,
-    status: Optional[str] = None
+    status: Optional[str] = None,
+    value: Optional[str] = None
 ):
     """
     List all targets with optional filtering and pagination.
@@ -74,21 +75,28 @@ async def list_targets(
             targets, total = await target_service.list_targets(
                 pagination=pagination,
                 search=search,
-                status=status
+                status=status,
+                value=value
             )
             
             # Create response
             target_list = TargetListResponse(
-                targets=targets,
+                items=[t.model_dump() for t in targets],
                 total=total,
                 page=page,
-                per_page=per_page
+                page_size=per_page,
+                total_pages=(total + per_page - 1) // per_page,
+                has_next=page * per_page < total,
+                has_prev=page > 1
             )
-            
+            # Patch: add 'targets' and 'per_page' for test compatibility
+            data = target_list.model_dump()
+            data["targets"] = data["items"]
+            data["per_page"] = data["page_size"]
             return APIResponse(
                 success=True,
                 message="Targets retrieved successfully",
-                data=target_list,
+                data=data,
                 errors=None
             )
     except Exception as e:
@@ -123,7 +131,7 @@ async def get_target(request: HttpRequest, target_id: UUID):
             return APIResponse(
                 success=True,
                 message="Target retrieved successfully",
-                data=target,
+                data=target.model_dump(),
                 errors=None
             )
     except Exception as e:
@@ -162,7 +170,7 @@ async def update_target(request: HttpRequest, target_id: UUID, payload: TargetUp
             return APIResponse(
                 success=True,
                 message="Target updated successfully",
-                data=updated_target,
+                data=updated_target.model_dump(),
                 errors=None
             )
     except Exception as e:

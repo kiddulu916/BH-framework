@@ -10,6 +10,7 @@ from datetime import datetime
 from core.tasks.execution_service import ExecutionService
 from core.utils.exceptions import ExecutionError, ContainerError
 from core.schemas.base import APIResponse
+from core.models.workflow import StageStatus
 
 
 @pytest.fixture
@@ -24,10 +25,14 @@ def mock_repositories():
 @pytest.fixture
 def execution_service(mock_repositories):
     """Create execution service with mock repositories."""
-    return ExecutionService(
-        workflow_repository=mock_repositories['workflow_repo'],
-        target_repository=mock_repositories['target_repo']
-    )
+    with patch('core.tasks.execution_service.docker') as mock_docker:
+        # Mock Docker client initialization
+        mock_docker.from_env.return_value = MagicMock()
+        service = ExecutionService(
+            workflow_repository=mock_repositories['workflow_repo'],
+            target_repository=mock_repositories['target_repo']
+        )
+        return service
 
 
 @pytest.fixture
@@ -50,8 +55,8 @@ def sample_workflow():
         id=workflow_id,
         target_id=target_id,
         stages={
-            "passive_recon": "pending",
-            "active_recon": "pending"
+            "passive_recon": StageStatus.PENDING,
+            "active_recon": StageStatus.PENDING
         }
     )
 

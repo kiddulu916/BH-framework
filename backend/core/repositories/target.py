@@ -5,10 +5,10 @@ This module provides the TargetRepository class which handles
 all database operations related to targets.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from uuid import UUID
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.target import Target, TargetScope, TargetStatus
@@ -192,4 +192,47 @@ class TargetRepository(BaseRepository):
             'active_targets': active_targets,
             'primary_targets': primary_targets,
             'inactive_targets': total_targets - active_targets,
-        } 
+        }
+    
+    async def list_with_pagination(self, pagination=None, filters=None, search_expr=None) -> (List[Target], int):
+        # Use the base list method for pagination
+        limit = getattr(pagination, 'per_page', 10) if pagination else 10
+        offset = ((getattr(pagination, 'page', 1) - 1) * limit) if pagination else 0
+        query = select(self.model_class)
+        if filters:
+            for field, value in filters.items():
+                if hasattr(self.model_class, field):
+                    query = query.where(getattr(self.model_class, field) == value)
+        if search_expr is not None:
+            query = query.where(search_expr)
+        query = query.offset(offset).limit(limit)
+        result = await self.session.execute(query)
+        items = result.scalars().all()
+        # Count total with same filters/search
+        count_query = select(func.count(self.model_class.id))
+        if filters:
+            for field, value in filters.items():
+                if hasattr(self.model_class, field):
+                    count_query = count_query.where(getattr(self.model_class, field) == value)
+        if search_expr is not None:
+            count_query = count_query.where(search_expr)
+        total = (await self.session.execute(count_query)).scalar_one()
+        return items, total
+    
+    async def get_counts_by_status(self) -> dict:
+        from sqlalchemy import func
+        stmt = select(self.model_class.status, func.count(self.model_class.id)).group_by(self.model_class.status)
+        result = await self.session.execute(stmt)
+        return {str(row[0]): row[1] for row in result.all()}
+    
+    async def get_recent_targets(self, limit: int = 5) -> List[Target]:
+        """
+        Get the most recently created targets.
+        Args:
+            limit: Number of recent targets to return
+        Returns:
+            List of recent Target instances
+        """
+        query = select(self.model_class).order_by(self.model_class.created_at.desc()).limit(limit)
+        result = await self.session.execute(query)
+        return result.scalars().all() 

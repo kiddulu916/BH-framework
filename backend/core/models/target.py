@@ -19,10 +19,10 @@ import enum
 
 class TargetScope(enum.Enum):
     """Enumeration for target scope types."""
-    DOMAIN = "domain"
-    IP_RANGE = "ip_range"
-    SUBNET = "subnet"
-    WILDCARD = "wildcard"
+    DOMAIN = "DOMAIN"
+    IP_RANGE = "IP_RANGE"
+    SUBNET = "SUBNET"
+    WILDCARD = "WILDCARD"
 
 
 class TargetStatus(enum.Enum):

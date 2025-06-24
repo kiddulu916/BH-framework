@@ -64,6 +64,7 @@ services:
     volumes:
       - ./backend:/app
       - ./outputs:/app/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - bug-hunting-network
     healthcheck:

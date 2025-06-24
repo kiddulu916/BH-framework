@@ -118,7 +118,8 @@ class BaseModelSchema(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
         validate_assignment=True,
-        extra="forbid"
+        extra="forbid",
+        use_enum_values=True
     )
 
 

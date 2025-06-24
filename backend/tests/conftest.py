@@ -24,9 +24,12 @@ from core.models.workflow import Workflow, WorkflowStatus, StageStatus
 from core.repositories.target import TargetRepository
 from core.repositories.user import UserRepository
 from core.repositories.workflow import WorkflowRepository
-from core.utils.database import get_db_manager
+from core.utils.database import get_db_manager, get_db_session
+from core.models.base import BaseModel
 
 import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 
 
 # Pytest configuration
@@ -73,14 +76,15 @@ def sample_user_data():
 @pytest.fixture
 def sample_target_data():
     """Sample target data for testing."""
+    unique_value = f"example-{uuid4().hex}.com"
     return {
         "id": uuid4(),
         "name": "Example Target",
-        "value": "example.com",
+        "value": unique_value,
         "scope": TargetScope.DOMAIN,
         "status": TargetStatus.ACTIVE,
         "is_primary": True,
-        "scope_config": {"subdomains": ["*.example.com"]},
+        "scope_config": {"subdomains": [f"*.{unique_value}"]},
         "created_at": datetime.now(),
         "updated_at": datetime.now()
     }
@@ -212,14 +216,15 @@ class TestDataFactory:
     @staticmethod
     def create_target(**kwargs) -> Dict[str, Any]:
         """Create target test data."""
+        unique_value = f"test{uuid4().hex}.com"
         defaults = {
             "id": uuid4(),
             "name": f"Test Target {uuid4().hex[:8]}",
-            "value": f"test{uuid4().hex[:8]}.com",
+            "value": unique_value,
             "scope": TargetScope.DOMAIN,
             "status": TargetStatus.ACTIVE,
             "is_primary": True,
-            "scope_config": {"subdomains": ["*.test.com"]},
+            "scope_config": {"subdomains": [f"*.{unique_value}"]},
             "created_at": datetime.now(),
             "updated_at": datetime.now()
         }
@@ -236,12 +241,12 @@ class TestDataFactory:
             "description": "Test workflow",
             "status": WorkflowStatus.PENDING,
             "stages": {
-                "passive_recon": "pending",
-                "active_recon": "pending",
-                "vulnerability_scan": "pending",
-                "vulnerability_test": "pending",
-                "kill_chain_analysis": "pending",
-                "report_generation": "pending"
+                "passive_recon": StageStatus.PENDING,
+                "active_recon": StageStatus.PENDING,
+                "vulnerability_scan": StageStatus.PENDING,
+                "vulnerability_test": StageStatus.PENDING,
+                "kill_chain_analysis": StageStatus.PENDING,
+                "report_generation": StageStatus.PENDING
             },
             "settings": {"test": True},
             "created_at": datetime.now(),
@@ -301,3 +306,13 @@ pytestmark = [
     pytest.mark.asyncio,
     pytest.mark.django_db,
 ] 
+
+@pytest_asyncio.fixture(autouse=True)
+async def clean_db():
+    """Clean the database between tests by truncating all tables."""
+    async with get_db_session() as session:
+        # Truncate all tables in reverse dependency order
+        for table in reversed(BaseModel.metadata.sorted_tables):
+            await session.execute(text(f'TRUNCATE TABLE "{table.name}" RESTART IDENTITY CASCADE;'))
+        await session.commit()
+    yield

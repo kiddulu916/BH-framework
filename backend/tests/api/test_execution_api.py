@@ -11,6 +11,8 @@ from httpx import AsyncClient
 from unittest.mock import patch, MagicMock
 from ninja.responses import Response
 from datetime import datetime, timezone
+import pytest_asyncio
+from tests.conftest import create_test_target, create_test_workflow
 
 from core.models.workflow import Workflow, WorkflowStatus, StageStatus
 from core.schemas.workflow import WorkflowExecutionRequest, StageStatus
@@ -19,6 +21,7 @@ from core.tasks.execution_service import ExecutionService
 from core.tasks.workflow_service import WorkflowService
 from core.utils.database import get_db_session
 from tests.conftest import TestDataFactory
+from core.models.target import TargetScope
 
 
 @pytest.fixture(autouse=True)
@@ -44,17 +47,15 @@ def mock_docker_client():
         yield  # This will apply the mock for the duration of the test
 
 
-@pytest.fixture
-def sample_workflow():
-    """Create a sample workflow for testing."""
-    workflow_id = uuid4()
-    target_id = uuid4()
-    return DummyWorkflow(
-        id=workflow_id,
-        target_id=target_id,
+@pytest_asyncio.fixture
+async def sample_workflow(db_session):
+    """Create a real workflow and target in the database for testing."""
+    target = await create_test_target(db_session, name="Test Target", scope=TargetScope.DOMAIN, value="test-target.com")
+    workflow = await create_test_workflow(
+        db_session,
+        target_id=target.id,
         name="Test Workflow",
         description="Test workflow description",
-        status=StageStatus.PENDING,
         stages={
             "passive_recon": StageStatus.PENDING,
             "active_recon": StageStatus.PENDING,
@@ -63,10 +64,9 @@ def sample_workflow():
             "kill_chain_analysis": StageStatus.PENDING,
             "report_generation": StageStatus.PENDING
         },
-        config={},
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc)
+        settings={}
     )
+    return workflow
 
 
 class TestExecutionAPI:

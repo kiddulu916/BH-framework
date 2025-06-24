@@ -17,20 +17,21 @@ from .base import APIResponse
 
 class WorkflowStatus(str, Enum):
     """Workflow execution status."""
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+    PAUSED = "PAUSED"
 
 
 class StageStatus(str, Enum):
     """Individual stage execution status."""
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    SKIPPED = "skipped"
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    SKIPPED = "SKIPPED"
 
 
 class WorkflowCreate(BaseModel):
@@ -44,15 +45,18 @@ class WorkflowCreate(BaseModel):
     
     @field_validator('stages')
     def validate_stages(cls, v):
-        """Validate that stages are valid stage names."""
+        """Validate that stages are valid stage names (case-insensitive) and normalize to uppercase."""
         valid_stages = [
-            'passive_recon', 'active_recon', 'vulnerability_scan',
-            'vulnerability_test', 'kill_chain_analysis', 'report_generation'
+            'PASSIVE_RECON', 'ACTIVE_RECON', 'VULN_SCAN',
+            'VULN_TEST', 'KILL_CHAIN', 'REPORT'
         ]
+        normalized = []
         for stage in v:
-            if stage not in valid_stages:
+            stage_up = stage.upper()
+            if stage_up not in valid_stages:
                 raise ValueError(f"Invalid stage: {stage}. Valid stages: {valid_stages}")
-        return v
+            normalized.append(stage_up)
+        return normalized
 
 
 class WorkflowUpdate(BaseModel):
@@ -66,17 +70,20 @@ class WorkflowUpdate(BaseModel):
     
     @field_validator('stages')
     def validate_stages(cls, v):
-        """Validate that stages are valid stage names."""
+        """Validate that stages are valid stage names (case-insensitive) and normalize to uppercase."""
         if v is None:
             return v
         valid_stages = [
-            'passive_recon', 'active_recon', 'vulnerability_scan',
-            'vulnerability_test', 'kill_chain_analysis', 'report_generation'
+            'PASSIVE_RECON', 'ACTIVE_RECON', 'VULN_SCAN',
+            'VULN_TEST', 'KILL_CHAIN', 'REPORT'
         ]
+        normalized = []
         for stage in v:
-            if stage not in valid_stages:
+            stage_up = stage.upper()
+            if stage_up not in valid_stages:
                 raise ValueError(f"Invalid stage: {stage}. Valid stages: {valid_stages}")
-        return v
+            normalized.append(stage_up)
+        return normalized
 
 
 class WorkflowResponse(BaseModel):

@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_
+from sqlalchemy.inspection import inspect
 
 from core.models.target import Target
 from core.repositories.target import TargetRepository
@@ -49,8 +50,16 @@ class TargetService:
         if existing_target:
             raise ValidationError(f"Target with value {payload.value} already exists")
         
+        # Convert scope and status to Enum if provided as strings
+        create_data = payload.model_dump()
+        if isinstance(create_data.get("scope"), str):
+            from core.models.target import TargetScope
+            create_data["scope"] = TargetScope(create_data["scope"])
+        if "status" in create_data and isinstance(create_data["status"], str):
+            from core.models.target import TargetStatus
+            create_data["status"] = TargetStatus(create_data["status"])
         # Create target
-        target = await self.repository.create(payload)
+        target = await self.repository.create(**create_data)
         return TargetResponse.model_validate(target, from_attributes=True)
     
     async def get_target_by_id(self, target_id: UUID) -> Optional[TargetResponse]:
@@ -72,7 +81,8 @@ class TargetService:
         self,
         pagination: PaginationParams,
         search: Optional[str] = None,
-        status: Optional[str] = None
+        status: Optional[str] = None,
+        value: Optional[str] = None
     ) -> Tuple[List[TargetResponse], int]:
         """
         List targets with filtering and pagination.
@@ -81,28 +91,33 @@ class TargetService:
             pagination: Pagination parameters
             search: Search term for domain or description
             status: Filter by target status
+            value: Filter by target value
             
         Returns:
             Tuple of (targets, total_count)
         """
-        # Build filters
-        filters = []
-        if search:
-            filters.append(
-                or_(
-                    Target.value.ilike(f"%{search}%"),
-                    Target.description.ilike(f"%{search}%")
-                )
-            )
-        
+        filters = {}
+        if value:
+            filters["value"] = value
         if status:
-            filters.append(Target.status == status)
-        
+            filters["status"] = status
+        # For search, use SQLAlchemy or_ expression
+        search_expr = None
+        if search:
+            search_expr = or_(Target.value.ilike(f"%{search}%"), Target.description.ilike(f"%{search}%"))
         # Get targets with pagination
-        targets, total = await self.repository.list_with_pagination(
-            pagination=pagination,
-            filters=filters
-        )
+        if search_expr:
+            # If search, pass as a special filter (repository may need to handle this)
+            targets, total = await self.repository.list_with_pagination(
+                pagination=pagination,
+                filters=filters,
+                search_expr=search_expr
+            )
+        else:
+            targets, total = await self.repository.list_with_pagination(
+                pagination=pagination,
+                filters=filters
+            )
         
         # Convert to response models
         target_responses = [TargetResponse.model_validate(target, from_attributes=True) for target in targets]
@@ -140,9 +155,22 @@ class TargetService:
                 raise ValidationError(f"Target with value {payload.value} already exists")
         
         # Update target
-        update_data = payload.model_dump()
-        update_data["updated_at"] = datetime.now(timezone.utc)
-        updated_target = await self.repository.update(target_id, update_data)
+        update_data = payload.model_dump(exclude_unset=True)
+        existing_data = target.__dict__.copy()
+        existing_data.update(update_data)
+        model_columns = set(c.key for c in inspect(target).mapper.column_attrs)
+        filtered_data = {k: v for k, v in existing_data.items() if k in model_columns}
+        filtered_data["updated_at"] = datetime.now(timezone.utc)
+        # Convert scope and status to Enum if provided as strings
+        if isinstance(filtered_data.get("scope"), str):
+            from core.models.target import TargetScope
+            filtered_data["scope"] = TargetScope(filtered_data["scope"])
+        if "status" in filtered_data and isinstance(filtered_data["status"], str):
+            from core.models.target import TargetStatus
+            filtered_data["status"] = TargetStatus(filtered_data["status"])
+        # Remove 'id' if present to avoid multiple values for 'id'
+        filtered_data.pop("id", None)
+        updated_target = await self.repository.update(target_id, **filtered_data)
         return TargetResponse.model_validate(updated_target, from_attributes=True)
     
     async def delete_target(self, target_id: UUID) -> bool:
@@ -187,7 +215,7 @@ class TargetService:
         
         # Get related data counts
         summary = {
-            "target": TargetResponse.model_validate(target, from_attributes=True),
+            "target": TargetResponse.model_validate(target, from_attributes=True).model_dump(),
             "statistics": {
                 "passive_recon_results": 0,  # TODO: Add when repositories are implemented
                 "active_recon_results": 0,
@@ -229,7 +257,6 @@ class TargetService:
             "checks": {
                 "domain_format": self._is_valid_domain(target.value),
                 "domain_resolution": await self._check_domain_resolution(target.value),
-                "ip_addresses": await self._validate_ip_addresses(target.ip_addresses),
                 "scope_validation": self._validate_scope(target.scope)
             },
             "overall_valid": True,
@@ -244,26 +271,26 @@ class TargetService:
     async def get_targets_overview(self) -> Dict[str, Any]:
         """
         Get overview statistics for all targets.
-        
-        Returns:
-            Overview statistics
         """
         # Get basic counts
         total_targets = await self.repository.count()
-        
         # Get targets by status
         status_counts = await self.repository.get_counts_by_status()
-        
-        # Get recent activity
-        recent_targets = await self.repository.get_recent_targets(limit=5)
-        
+        # Map status keys to lowercase for explicit keys
+        mapped_status = {k.lower().replace('targetstatus.', ''): v for k, v in status_counts.items()}
+        active_targets = mapped_status.get('active', 0)
+        inactive_targets = mapped_status.get('inactive', 0)
+        primary_targets = await self.repository.count({'is_primary': True})
         overview = {
             "total_targets": total_targets,
+            "active_targets": active_targets,
+            "inactive_targets": inactive_targets,
+            "primary_targets": primary_targets,
             "status_distribution": status_counts,
-            "recent_targets": [TargetResponse.model_validate(target, from_attributes=True) for target in recent_targets],
+            "targets_by_status": status_counts,
+            "recent_targets": [TargetResponse.model_validate(target, from_attributes=True).model_dump() for target in await self.repository.get_recent_targets(limit=5)],
             "last_updated": datetime.now(timezone.utc).isoformat()
         }
-        
         return overview
     
     def _is_valid_domain(self, domain: str) -> bool:

@@ -21,7 +21,7 @@ from core.schemas.workflow import (
 from core.tasks.workflow_service import WorkflowService
 from core.tasks.execution_service import ExecutionService
 from core.schemas.base import APIResponse
-from core.utils.database import get_db_manager
+from core.utils.database import get_db_manager, get_db_session
 from core.repositories.workflow import WorkflowRepository
 from core.repositories.target import TargetRepository
 from core.repositories.passive_recon import PassiveReconRepository
@@ -33,7 +33,7 @@ from core.repositories.report import ReportRepository
 router = Router(tags=["Workflows"])
 
 
-@router.post("/workflows", response=APIResponse, summary="Create workflow")
+@router.post("", response=APIResponse, summary="Create workflow")
 async def create_workflow(request, payload: WorkflowCreateRequest):
     """
     Create a new workflow for a target.
@@ -44,7 +44,7 @@ async def create_workflow(request, payload: WorkflowCreateRequest):
     Returns:
         APIResponse with created workflow data
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)
@@ -68,7 +68,7 @@ async def create_workflow(request, payload: WorkflowCreateRequest):
         return await workflow_service.create_workflow(payload)
 
 
-@router.get("/workflows/{workflow_id}", response=APIResponse, summary="Get workflow")
+@router.get("/{workflow_id}", response=APIResponse, summary="Get workflow")
 async def get_workflow(request, workflow_id: UUID):
     """
     Get workflow by ID.
@@ -79,7 +79,7 @@ async def get_workflow(request, workflow_id: UUID):
     Returns:
         APIResponse with workflow data
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)
@@ -103,7 +103,7 @@ async def get_workflow(request, workflow_id: UUID):
         return await workflow_service.get_workflow(workflow_id)
 
 
-@router.get("/workflows", response=APIResponse, summary="List workflows")
+@router.get("", response=APIResponse, summary="List workflows")
 async def list_workflows(
     request,
     limit: int = 10,
@@ -123,7 +123,7 @@ async def list_workflows(
     Returns:
         APIResponse with workflow list
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)
@@ -164,7 +164,7 @@ async def update_workflow(request, workflow_id: UUID, payload: WorkflowUpdateReq
     Returns:
         APIResponse with updated workflow data
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)
@@ -199,7 +199,7 @@ async def delete_workflow(request, workflow_id: UUID):
     Returns:
         APIResponse with deletion confirmation
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)
@@ -223,7 +223,7 @@ async def delete_workflow(request, workflow_id: UUID):
         return await workflow_service.delete_workflow(workflow_id)
 
 
-@router.get("/workflows/{workflow_id}/summary", response=APIResponse, summary="Get workflow summary")
+@router.get("/{workflow_id}/summary", response=APIResponse, summary="Get workflow summary")
 async def get_workflow_summary(request, workflow_id: UUID):
     """
     Get workflow summary with stage status and progress.
@@ -234,7 +234,7 @@ async def get_workflow_summary(request, workflow_id: UUID):
     Returns:
         APIResponse with workflow summary
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)
@@ -258,7 +258,7 @@ async def get_workflow_summary(request, workflow_id: UUID):
         return await workflow_service.get_workflow_summary(workflow_id)
 
 
-@router.post("/workflows/{workflow_id}/execute", response=APIResponse, summary="Execute workflow stage")
+@router.post("/{workflow_id}/execute", response=APIResponse, summary="Execute workflow stage")
 async def execute_workflow_stage(request, workflow_id: UUID, payload: WorkflowExecutionRequest):
     """
     Execute a specific stage of the workflow.
@@ -270,7 +270,7 @@ async def execute_workflow_stage(request, workflow_id: UUID, payload: WorkflowEx
     Returns:
         APIResponse with execution status
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)
@@ -315,7 +315,7 @@ async def execute_workflow_stage(request, workflow_id: UUID, payload: WorkflowEx
         return workflow_result
 
 
-@router.get("/workflows/statistics", response=APIResponse, summary="Get workflow statistics")
+@router.get("/statistics", response=APIResponse, summary="Get workflow statistics")
 async def get_workflow_statistics(request):
     """
     Get workflow statistics.
@@ -323,7 +323,7 @@ async def get_workflow_statistics(request):
     Returns:
         APIResponse with workflow statistics
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)
@@ -356,7 +356,7 @@ async def list_running_containers(request):
     Returns:
         APIResponse with list of running containers
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)
@@ -381,7 +381,7 @@ async def get_container_status(request, container_name: str):
     Returns:
         APIResponse with container status
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)
@@ -406,7 +406,7 @@ async def stop_container(request, container_name: str):
     Returns:
         APIResponse with stop confirmation
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         workflow_repo = WorkflowRepository(session)
         target_repo = TargetRepository(session)

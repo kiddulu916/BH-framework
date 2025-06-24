@@ -17,15 +17,29 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 # Database configuration
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql+asyncpg://postgres:postgres@localhost:5432/bug_hunting_framework')
+# Construct DATABASE_URL from environment variables
+DB_HOST = os.getenv('DB_HOST', 'localhost')
+DB_PORT = os.getenv('DB_PORT', '5432')
+DB_NAME = os.getenv('DB_NAME', 'bug_hunting_framework')
+DB_USER = os.getenv('DB_USER', 'postgres')
+DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
+
+DATABASE_URL = os.getenv('DATABASE_URL', f'postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
+
+# Ensure we're using asyncpg
+if not DATABASE_URL.startswith('postgresql+asyncpg://'):
+    # Replace any other postgresql:// with postgresql+asyncpg://
+    DATABASE_URL = DATABASE_URL.replace('postgresql://', 'postgresql+asyncpg://', 1)
+
+print(f"DEBUG: Using DATABASE_URL: {DATABASE_URL}")
 
 # Create async engine
 engine = create_async_engine(
     DATABASE_URL,
-    echo=False,  # Set to True for SQL debugging
+    echo=os.getenv('DB_ECHO', 'false').lower() == 'true',  # Set to True for SQL debugging
     poolclass=NullPool,  # Use NullPool for development
     pool_pre_ping=True,
-    pool_recycle=300,
+    pool_recycle=int(os.getenv('DB_POOL_RECYCLE', '300')),
 )
 
 # Set search_path to public on each new connection
@@ -137,13 +151,26 @@ async def check_database_health() -> dict:
             result = await session.execute(text("SELECT 1"))
             result.fetchone()
             
+            # Get pool info safely
+            pool_info = {}
+            try:
+                pool_info = {
+                    "pool_size": engine.pool.size(),
+                    "checked_out": engine.pool.checkedout()
+                }
+            except AttributeError:
+                # NullPool doesn't have these attributes
+                pool_info = {
+                    "pool_type": "NullPool",
+                    "note": "NullPool doesn't track pool size"
+                }
+            
             return {
                 "status": "healthy",
                 "message": "Database connection successful",
                 "details": {
                     "url": DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else "unknown",
-                    "pool_size": engine.pool.size(),
-                    "checked_out": engine.pool.checkedout()
+                    **pool_info
                 }
             }
     except Exception as e:

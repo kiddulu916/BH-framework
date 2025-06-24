@@ -237,7 +237,7 @@ class ReportService:
             
             update_data["updated_at"] = datetime.now(timezone.utc)
             
-            updated_report = await self.report_repository.update(report_id, update_data)
+            updated_report = await self.report_repository.update(report_id, **update_data)
             
             logger.info(f"Updated report {report_id}")
             
@@ -314,7 +314,7 @@ class ReportService:
                     "status": "generated",
                     "updated_at": datetime.now(timezone.utc)
                 }
-                report = await self.report_repository.update(existing_report.id, update_data)
+                report = await self.report_repository.update(existing_report.id, **update_data)
             else:
                 # Create new report
                 report_data = {

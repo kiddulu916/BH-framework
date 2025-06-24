@@ -28,6 +28,34 @@ class PassiveReconRepository(BaseRepository):
         """Get passive recon result by execution ID."""
         return await self.find_one({'execution_id': execution_id})
 
+    async def create_with_subdomains(self, subdomains: list, **kwargs) -> PassiveReconResult:
+        """
+        Create a PassiveReconResult with a list of subdomain dicts.
+        Normalize enum fields to uppercase for DB compatibility.
+        """
+        from ..models.passive_recon import Subdomain
+        subdomain_objs = []
+        for sd in subdomains:
+            sd = dict(sd)
+            sd.pop('target_id', None)
+            # Map schema fields to model fields
+            if 'subdomain' in sd:
+                subdomain_name = sd.pop('subdomain')
+                sd['name'] = subdomain_name
+                # Extract subdomain part (leftmost label)
+                sd['subdomain_part'] = subdomain_name.split('.')[0]
+            if 'source' in sd:
+                # Normalize to uppercase for DB enum
+                sd['sources'] = [sd.pop('source').upper()]
+            if 'status' in sd:
+                sd['status'] = sd['status'].upper()
+            subdomain_objs.append(Subdomain(**sd))
+        kwargs['subdomains'] = subdomain_objs
+        # Normalize tools_used to uppercase if present
+        if 'tools_used' in kwargs:
+            kwargs['tools_used'] = [t.upper() for t in kwargs['tools_used']]
+        return await self.create(**kwargs)
+
 
 class SubdomainRepository(BaseRepository):
     """Repository for Subdomain model operations."""

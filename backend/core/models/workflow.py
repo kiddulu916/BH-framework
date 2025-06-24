@@ -19,31 +19,31 @@ import enum
 
 class WorkflowStatus(enum.Enum):
     """Enumeration for workflow status."""
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
-    PAUSED = "paused"
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+    PAUSED = "PAUSED"
 
 
 class WorkflowStage(enum.Enum):
     """Enumeration for workflow stages."""
-    PASSIVE_RECON = "passive_recon"
-    ACTIVE_RECON = "active_recon"
-    VULN_SCAN = "vuln_scan"
-    VULN_TEST = "vuln_test"
-    KILL_CHAIN = "kill_chain"
-    REPORT = "report"
+    PASSIVE_RECON = "PASSIVE_RECON"
+    ACTIVE_RECON = "ACTIVE_RECON"
+    VULN_SCAN = "VULN_SCAN"
+    VULN_TEST = "VULN_TEST"
+    KILL_CHAIN = "KILL_CHAIN"
+    REPORT = "REPORT"
 
 
 class StageStatus(enum.Enum):
     """Enumeration for individual stage status."""
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    SKIPPED = "skipped"
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    SKIPPED = "SKIPPED"
 
 
 class Workflow(BaseModel):

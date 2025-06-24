@@ -45,10 +45,26 @@ class ResultService:
         """
         # Validate target exists
         await self._validate_target_exists(payload.target_id)
+        data = payload.model_dump()
+        subdomains = data.pop('subdomains', [])
+        result = await self.passive_recon_repo.create_with_subdomains(subdomains=subdomains, **data)
         
-        # Create passive recon result
-        result = await self.passive_recon_repo.create(payload)
-        return PassiveReconResultResponse.model_validate(result, from_attributes=True)
+        # Convert the result to a dict and normalize enum values back to lowercase
+        result_dict = result.to_dict()
+        
+        # Normalize tools_used back to lowercase
+        if 'tools_used' in result_dict and result_dict['tools_used']:
+            result_dict['tools_used'] = [tool.lower() for tool in result_dict['tools_used']]
+        
+        # Normalize subdomain enum values back to lowercase
+        if 'subdomains' in result_dict and result_dict['subdomains']:
+            for subdomain in result_dict['subdomains']:
+                if 'status' in subdomain:
+                    subdomain['status'] = subdomain['status'].lower()
+                if 'sources' in subdomain and subdomain['sources']:
+                    subdomain['sources'] = [source.lower() for source in subdomain['sources']]
+        
+        return PassiveReconResultResponse.model_validate(result_dict)
     
     async def create_active_recon_result(self, payload: ActiveReconResultCreate) -> ActiveReconResultResponse:
         """
@@ -64,7 +80,7 @@ class ResultService:
         await self._validate_target_exists(payload.target_id)
         
         # Create active recon result
-        result = await self.active_recon_repo.create(payload)
+        result = await self.active_recon_repo.create(**payload.model_dump())
         return ActiveReconResultResponse.model_validate(result, from_attributes=True)
     
     async def create_vulnerability_result(self, payload: VulnerabilityCreate) -> VulnerabilityResponse:
@@ -81,7 +97,7 @@ class ResultService:
         await self._validate_target_exists(payload.target_id)
         
         # Create vulnerability result
-        result = await self.vulnerability_repo.create(payload)
+        result = await self.vulnerability_repo.create(**payload.model_dump())
         return VulnerabilityResponse.model_validate(result, from_attributes=True)
     
     async def create_kill_chain_result(self, payload: KillChainCreate) -> KillChainResponse:
@@ -98,7 +114,7 @@ class ResultService:
         await self._validate_target_exists(payload.target_id)
         
         # Create kill chain result
-        result = await self.kill_chain_repo.create(payload)
+        result = await self.kill_chain_repo.create(**payload.model_dump())
         return KillChainResponse.model_validate(result, from_attributes=True)
     
     async def get_target_results_summary(self, target_id: UUID) -> Dict[str, Any]:

@@ -19,7 +19,7 @@ from core.schemas.report import (
 )
 from core.tasks.report_service import ReportService
 from core.schemas.base import APIResponse
-from core.utils.database import get_db_manager
+from core.utils.database import get_db_manager, get_db_session
 from core.repositories.report import ReportRepository
 from core.repositories.workflow import WorkflowRepository
 from core.repositories.target import TargetRepository
@@ -42,7 +42,7 @@ async def create_report(request, payload: ReportCreateRequest):
     Returns:
         APIResponse with created report data
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         report_repo = ReportRepository(session)
         workflow_repo = WorkflowRepository(session)
@@ -77,7 +77,7 @@ async def get_report(request, report_id: UUID):
     Returns:
         APIResponse with report data
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         report_repo = ReportRepository(session)
         workflow_repo = WorkflowRepository(session)
@@ -121,7 +121,7 @@ async def list_reports(
     Returns:
         APIResponse with report list
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         report_repo = ReportRepository(session)
         workflow_repo = WorkflowRepository(session)
@@ -162,7 +162,7 @@ async def update_report(request, report_id: UUID, payload: ReportUpdateRequest):
     Returns:
         APIResponse with updated report data
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         report_repo = ReportRepository(session)
         workflow_repo = WorkflowRepository(session)
@@ -197,7 +197,7 @@ async def delete_report(request, report_id: UUID):
     Returns:
         APIResponse with deletion confirmation
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         report_repo = ReportRepository(session)
         workflow_repo = WorkflowRepository(session)
@@ -233,7 +233,7 @@ async def generate_report(request, workflow_id: UUID, template: str = "default")
     Returns:
         APIResponse with generated report data
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         report_repo = ReportRepository(session)
         workflow_repo = WorkflowRepository(session)
@@ -269,7 +269,7 @@ async def export_report(request, report_id: UUID, payload: ReportExportRequest):
     Returns:
         APIResponse with export data
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         report_repo = ReportRepository(session)
         workflow_repo = WorkflowRepository(session)
@@ -301,7 +301,7 @@ async def get_report_templates(request):
     Returns:
         APIResponse with available templates
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         report_repo = ReportRepository(session)
         workflow_repo = WorkflowRepository(session)
@@ -344,7 +344,7 @@ async def get_workflow_reports(
     Returns:
         APIResponse with workflow reports
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         report_repo = ReportRepository(session)
         workflow_repo = WorkflowRepository(session)
@@ -384,7 +384,7 @@ async def generate_workflow_report(request, workflow_id: UUID, template: str = "
     Returns:
         APIResponse with generated report data
     """
-    async with get_db_manager().async_session_factory() as session:
+    async with get_db_session() as session:
         # Initialize repositories
         report_repo = ReportRepository(session)
         workflow_repo = WorkflowRepository(session)

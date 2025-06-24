@@ -83,6 +83,16 @@ class WorkflowRepository(BaseRepository):
         """
         return await self.list(filters={'user_id': user_id}, order_by=['created_at'])
 
+    async def get_by_target_id(self, target_id: UUID) -> List[Workflow]:
+        """
+        Get all workflows for a target by target_id (alias for get_by_target).
+        Args:
+            target_id: Target ID
+        Returns:
+            List of workflows for the target
+        """
+        return await self.get_by_target(target_id)
+
 
 class WorkflowExecutionRepository(BaseRepository):
     """

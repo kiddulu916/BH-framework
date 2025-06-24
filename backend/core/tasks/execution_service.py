@@ -364,7 +364,7 @@ class ExecutionService:
             # Update workflow status
             new_workflow_status = self._determine_workflow_status(updated_stages)
             
-            await self.workflow_repository.update(workflow_id, {
+            await self.workflow_repository.update(workflow_id, **{
                 "stages": updated_stages,
                 "status": new_workflow_status,
                 "updated_at": datetime.now(timezone.utc)
@@ -541,6 +541,10 @@ class ExecutionService:
             if not workflow:
                 return APIResponse(success=False, message="Workflow not found", errors=["Workflow not found"])
             
+            # Ensure stages is a dictionary
+            if not isinstance(workflow.stages, dict):
+                return APIResponse(success=False, message="Invalid workflow stages format", errors=["Stages must be a dictionary"])
+            
             if stage_name not in workflow.stages:
                 return APIResponse(success=False, message="Stage not found", errors=["Stage not found"])
             
@@ -552,7 +556,7 @@ class ExecutionService:
                 data={
                     "workflow_id": str(workflow_id),
                     "stage_name": stage_name,
-                    "status": stage_status.value,
+                    "status": stage_status.value if hasattr(stage_status, 'value') else str(stage_status),
                     "workflow_status": workflow.status.value
                 }
             )
@@ -577,11 +581,16 @@ class ExecutionService:
             if not workflow:
                 return APIResponse(success=False, message="Workflow not found", errors=["Workflow not found"])
             
+            # Ensure stages is a dictionary
+            if not isinstance(workflow.stages, dict):
+                return APIResponse(success=False, message="Invalid workflow stages format", errors=["Stages must be a dictionary"])
+            
             if stage_name not in workflow.stages:
                 return APIResponse(success=False, message="Stage not found", errors=["Stage not found"])
             
             # Check if stage is running
-            if workflow.stages[stage_name] != StageStatus.RUNNING:
+            stage_status = workflow.stages[stage_name]
+            if stage_status != StageStatus.RUNNING:
                 return APIResponse(success=False, message="Stage is not running", errors=["Stage is not running"])
             
             # Try to stop the container
@@ -600,7 +609,7 @@ class ExecutionService:
             updated_stages = {**workflow.stages, stage_name: StageStatus.FAILED}
             new_workflow_status = self._determine_workflow_status(updated_stages)
             
-            await self.workflow_repository.update(workflow_id, {
+            await self.workflow_repository.update(workflow_id, **{
                 "stages": updated_stages,
                 "status": new_workflow_status,
                 "updated_at": datetime.now(timezone.utc)
@@ -633,6 +642,10 @@ class ExecutionService:
             if not workflow:
                 return APIResponse(success=False, message="Workflow not found", errors=["Workflow not found"])
             
+            # Ensure stages is a dictionary
+            if not isinstance(workflow.stages, dict):
+                return APIResponse(success=False, message="Invalid workflow stages format", errors=["Stages must be a dictionary"])
+            
             if stage_name not in workflow.stages:
                 return APIResponse(success=False, message="Stage not found", errors=["Stage not found"])
             
@@ -649,6 +662,7 @@ class ExecutionService:
             except Exception as e:
                 logs = f"Error retrieving logs: {str(e)}"
             
+            stage_status = workflow.stages[stage_name]
             return APIResponse(
                 success=True,
                 message="Stage logs retrieved successfully",
@@ -656,7 +670,7 @@ class ExecutionService:
                     "workflow_id": str(workflow_id),
                     "stage_name": stage_name,
                     "logs": logs,
-                    "stage_status": workflow.stages[stage_name].value
+                    "stage_status": stage_status.value if hasattr(stage_status, 'value') else str(stage_status)
                 }
             )
             
