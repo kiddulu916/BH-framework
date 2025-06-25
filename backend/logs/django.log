@@ -3451,3 +3451,48 @@ INFO 2025-06-25 10:44:29,649 _client 40060 39808 HTTP Request: PUT http://testse
 INFO 2025-06-25 10:44:30,084 _client 40060 39808 HTTP Request: PUT http://testserver/api/targets/d7e01101-a98b-4cd2-8b7f-bb5ad660b304 "HTTP/1.1 200 OK"
 INFO 2025-06-25 10:44:30,641 _client 40060 39808 HTTP Request: DELETE http://testserver/api/targets/fe2022a6-4aba-4aa7-b9d2-0f7d048ec671 "HTTP/1.1 200 OK"
 INFO 2025-06-25 10:44:31,130 _client 40060 39808 HTTP Request: DELETE http://testserver/api/targets/75af618d-d35c-4094-a216-fc646a0debe9 "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:31,692 _client 40060 39808 HTTP Request: GET http://testserver/api/targets/?value=example-46bda48139464bbb832cc5a75498babf.com "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:32,126 _client 40060 39808 HTTP Request: GET http://testserver/api/targets/?page=1&per_page=5 "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:32,669 _client 40060 39808 HTTP Request: GET http://testserver/api/targets/?value=example-363dcc192b1e449dbf018df0a97adeb5.com "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:33,242 _client 40060 39808 HTTP Request: GET http://testserver/api/targets/e2c07345-d8cb-4f8f-8c07-af7be8a17704/summary "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:33,843 _client 40060 39808 HTTP Request: POST http://testserver/api/targets/149bc741-36f1-47dc-a511-c1c0dd6105c1/validate "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:34,298 _client 40060 39808 HTTP Request: POST http://testserver/api/targets/59e597c4-7a9b-4be7-8e56-7b0b05695eb8/validate "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:34,751 _client 40060 39808 HTTP Request: GET http://testserver/api/targets/stats/overview "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:35,190 _client 40060 39808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:35,258 workflow_service 40060 26648 Created workflow ba18eef1-1b32-4d90-82f9-5a76bb098c51 for target 08a15ed5-7e14-4f77-9a9b-fedc88e6382c
+INFO 2025-06-25 10:44:35,262 _client 40060 39808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:35,276 execution_service 40060 23420 Docker client initialized successfully
+INFO 2025-06-25 10:44:35,332 workflow_service 40060 23420 Started execution of stage PASSIVE_RECON for workflow ba18eef1-1b32-4d90-82f9-5a76bb098c51
+INFO 2025-06-25 10:44:35,336 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/ba18eef1-1b32-4d90-82f9-5a76bb098c51/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:35,410 _client 40060 39808 HTTP Request: POST http://testserver/api/results/passive-recon "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:35,421 execution_service 40060 12100 Docker client initialized successfully
+INFO 2025-06-25 10:44:35,477 workflow_service 40060 12100 Started execution of stage ACTIVE_RECON for workflow ba18eef1-1b32-4d90-82f9-5a76bb098c51
+INFO 2025-06-25 10:44:35,482 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/ba18eef1-1b32-4d90-82f9-5a76bb098c51/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:35,559 _client 40060 39808 HTTP Request: POST http://testserver/api/results/active-recon "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:35,569 execution_service 40060 20180 Docker client initialized successfully
+INFO 2025-06-25 10:44:35,625 workflow_service 40060 20180 Started execution of stage VULN_SCAN for workflow ba18eef1-1b32-4d90-82f9-5a76bb098c51
+INFO 2025-06-25 10:44:35,629 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/ba18eef1-1b32-4d90-82f9-5a76bb098c51/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:35,634 _client 40060 39808 HTTP Request: POST http://testserver/api/results/vulnerabilities/ "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:36,096 _client 40060 39808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:36,162 workflow_service 40060 4768 Created workflow 21c9d224-e57f-4231-8418-048efbc7a46c for target 0ac8d7b0-c569-49ff-861a-16817dddb6cb
+INFO 2025-06-25 10:44:36,166 _client 40060 39808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-25 10:44:36,170 log 40060 32628 Unprocessable Content: /api/execution/workflows/21c9d224-e57f-4231-8418-048efbc7a46c/execute
+INFO 2025-06-25 10:44:36,171 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/21c9d224-e57f-4231-8418-048efbc7a46c/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-25 10:44:36,615 _client 40060 39808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:36,677 _client 40060 39808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:36,743 _client 40060 39808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:36,805 workflow_service 40060 19584 Created workflow 237c43ee-175a-46da-8cd4-e00bbc9ea244 for target 31207fe1-5120-4732-b39d-56a944d5524e
+INFO 2025-06-25 10:44:36,810 _client 40060 39808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:36,872 workflow_service 40060 38996 Created workflow af3f9b9c-c9d5-4f35-8793-370eb9731614 for target 6212a9e9-99de-4baf-9f28-f9ede59ece8a
+INFO 2025-06-25 10:44:36,876 _client 40060 39808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:36,939 workflow_service 40060 42372 Created workflow bf13c5b8-db6b-42d7-94f3-5ace05838585 for target f7cb422e-a7d7-4462-99ff-f1afabf2e52d
+INFO 2025-06-25 10:44:36,943 _client 40060 39808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:36,957 execution_service 40060 30204 Docker client initialized successfully
+INFO 2025-06-25 10:44:36,957 execution_service 40060 38472 Docker client initialized successfully
+INFO 2025-06-25 10:44:36,957 execution_service 40060 45084 Docker client initialized successfully
+INFO 2025-06-25 10:44:37,048 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/237c43ee-175a-46da-8cd4-e00bbc9ea244/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:37,049 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/bf13c5b8-db6b-42d7-94f3-5ace05838585/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:37,049 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/af3f9b9c-c9d5-4f35-8793-370eb9731614/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 17:44:44,004 basehttp 4950 137408747140800 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-25 17:44:53,390 autoreload 4950 137408928754560 /app/core/tasks/result_service.py changed, reloading.
+INFO 2025-06-25 17:44:54,115 autoreload 5106 130962841222016 Watching for file changes with StatReloader

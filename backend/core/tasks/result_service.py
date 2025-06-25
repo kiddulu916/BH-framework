@@ -183,7 +183,15 @@ class ResultService:
                 'notes': None,
             }
             findings.append(VulnerabilityFinding(**{k: v for k, v in mapped.items() if v is not None}))
-        result = await self.vulnerability_repo.create(**data, findings=findings)
+        # Only keep valid fields for Vulnerability
+        vuln_fields = {
+            "target_id", "execution_id", "tools_used", "configuration", "scan_type", "scan_targets", "total_findings", "critical_findings", "high_findings", "medium_findings", "low_findings", "info_findings", "raw_output", "processed_data", "execution_time", "errors"
+        }
+        filtered_data = {k: v for k, v in data.items() if k in vuln_fields}
+        result = await self.vulnerability_repo.create(
+            **filtered_data,
+            findings=findings
+        )
         return VulnerabilityResponse.model_validate(result, from_attributes=True)
     
     async def create_kill_chain_result(self, payload: KillChainCreate) -> KillChainResponse:
