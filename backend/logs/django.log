@@ -9930,3 +9930,805 @@ ERROR 2025-06-23 18:24:19,207 execution_service 18012 19720 Failed to initialize
 INFO 2025-06-23 18:24:19,265 workflow_service 18012 19720 Started execution of stage PASSIVE_RECON for workflow 6be8b951-b167-4e75-8ea6-15fd5ab5163f
 INFO 2025-06-23 18:24:19,270 _client 18012 19720 HTTP Request: POST http://testserver/api/execution/workflows/6be8b951-b167-4e75-8ea6-15fd5ab5163f/execute "HTTP/1.1 200 OK"
 INFO 2025-06-23 18:24:19,337 _client 18012 19720 HTTP Request: POST http://testserver/api/results/passive-recon "HTTP/1.1 200 OK"
+INFO 2025-06-24 11:37:38,296 autoreload 7 137086426803072 Watching for file changes with StatReloader
+INFO 2025-06-24 11:37:44,699 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:38:12,529 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:38:40,390 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:39:08,183 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:39:36,022 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:40:03,895 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:40:31,708 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:40:59,508 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:41:27,346 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:41:55,170 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:42:22,984 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:42:50,804 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:43:18,644 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:43:46,469 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:44:14,302 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:44:42,152 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:45:09,936 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:45:37,806 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:46:05,645 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:46:33,476 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:47:01,450 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:47:29,291 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 11:47:57,768 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:42:41,077 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:43:11,197 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:43:41,282 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:44:11,377 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:44:41,471 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:45:11,684 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:45:41,854 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:46:11,958 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:46:42,045 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:47:12,168 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:47:42,305 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:48:12,407 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:48:37,903 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:49:08,042 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:49:38,155 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:50:06,704 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:50:34,753 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:51:03,419 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:51:31,267 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:51:59,103 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:52:26,987 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:52:54,793 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:53:22,605 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:53:50,493 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:54:18,363 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:54:46,289 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:55:14,116 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:55:42,106 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:56:10,083 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:56:37,882 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:57:05,732 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:57:33,631 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:58:01,422 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:58:31,779 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:58:55,055 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:59:27,555 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 13:59:50,820 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:00:18,813 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:00:46,573 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:01:14,375 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:01:42,272 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:02:10,061 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:02:37,879 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:03:05,794 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:03:33,590 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:04:01,412 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:04:29,261 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:04:57,147 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:05:24,991 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:05:52,878 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:06:20,604 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:06:48,509 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:07:16,449 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:07:44,170 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:08:12,000 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:08:39,829 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:09:07,658 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:09:35,504 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:10:03,256 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:10:31,095 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:10:58,888 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:11:19,906 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:11:20,084 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/workflows/54b22713-8990-4dbc-82e3-f70af7f3993d/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:11:24,882 execution_service 645 136035732440768 Docker client initialized successfully
+INFO 2025-06-24 14:11:27,279 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/workflows/dff5a487-3203-443f-8b0f-cb192c463570/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:11:26,737 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:11:26,904 execution_service 645 136035732440768 Docker client initialized successfully
+INFO 2025-06-24 14:11:27,037 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/workflows/391371b8-4a4f-4a0a-9e23-ad05860a912d/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:11:33,108 execution_service 645 136035732440768 Docker client initialized successfully
+INFO 2025-06-24 14:11:33,273 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/workflows/66b0b0b0-e2a1-420b-8fd2-ace0f2674d87/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:11:36,176 execution_service 645 136035732440768 Docker client initialized successfully
+INFO 2025-06-24 14:11:36,274 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/workflows/8e5b2c05-25d3-454b-a672-afc83c894b20/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:11:39,819 execution_service 645 136035732440768 Docker client initialized successfully
+INFO 2025-06-24 14:11:39,921 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/workflows/fa09d6d1-0e27-4ec9-ade0-84d6fed3c0e9/stages/passive_recon/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:11:44,787 execution_service 645 136035732440768 Docker client initialized successfully
+INFO 2025-06-24 14:11:44,929 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/workflows/91ec93a1-f51a-4e52-873e-8b7a13e3e50c/stages/invalid_stage/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:11:49,256 execution_service 645 136035732440768 Docker client initialized successfully
+INFO 2025-06-24 14:11:49,260 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/workflows/a625e156-19b8-4b84-9bd8-96f7248720ff/stages/passive_recon/cancel "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:11:52,483 execution_service 645 136035732440768 Docker client initialized successfully
+INFO 2025-06-24 14:11:52,566 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/workflows/d48c1f39-8c5b-4625-907f-591c50c3dd8a/stages/passive_recon/cancel "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:11:54,485 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:11:55,291 execution_service 645 136035724048064 Docker client initialized successfully
+INFO 2025-06-24 14:11:55,397 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/workflows/84ac7bb9-f815-4fec-a5cd-bb661a7b844d/stages/passive_recon/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:00,509 execution_service 645 136035724048064 Docker client initialized successfully
+INFO 2025-06-24 14:12:00,638 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/workflows/867b038b-bd8e-446f-bb5a-4a5b6bf9fa2b/stages/invalid_stage/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:03,631 execution_service 645 136035724048064 Docker client initialized successfully
+INFO 2025-06-24 14:12:03,646 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/containers "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:07,443 execution_service 645 136035724048064 Docker client initialized successfully
+INFO 2025-06-24 14:12:07,446 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/containers/test_container/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:12,254 execution_service 645 136035724048064 Docker client initialized successfully
+INFO 2025-06-24 14:12:12,257 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/containers/non_existent/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:15,243 execution_service 645 136035724048064 Docker client initialized successfully
+INFO 2025-06-24 14:12:15,246 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/containers/test_container/stop "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:19,612 execution_service 645 136035724048064 Docker client initialized successfully
+INFO 2025-06-24 14:12:19,614 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/containers/non_existent/stop "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:20,572 execution_service 645 136035724048064 Docker client initialized successfully
+INFO 2025-06-24 14:12:20,576 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/containers/test_container/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:22,331 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:12:23,997 execution_service 645 136035724048064 Docker client initialized successfully
+INFO 2025-06-24 14:12:24,000 _client 645 136035877473152 HTTP Request: GET http://testserver/api/execution/containers/non_existent/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:28,110 _client 645 136035877473152 HTTP Request: GET http://testserver/api/health "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:28,132 _client 645 136035877473152 HTTP Request: GET http://testserver/api/info "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:31,367 _client 645 136035877473152 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 14:12:35,691 log 645 136035751323328 Unprocessable Entity: /api/targets/
+INFO 2025-06-24 14:12:35,693 _client 645 136035877473152 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 14:12:40,285 _client 645 136035877473152 HTTP Request: GET http://testserver/api/targets/28312268-308d-4cbe-832c-888d9b61a549 "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:45,006 _client 645 136035877473152 HTTP Request: GET http://testserver/api/targets/0e0fcb2b-ae6a-4b54-9dc5-f6c0e7fbeb27 "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:46,106 _client 645 136035877473152 HTTP Request: PUT http://testserver/api/targets/90bb6141-6c61-46d0-a2ed-01701e677554 "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:49,107 _client 645 136035877473152 HTTP Request: PUT http://testserver/api/targets/f81823b4-a480-4b7b-ae2c-0b9dc4249e05 "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:50,134 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:12:52,544 _client 645 136035877473152 HTTP Request: DELETE http://testserver/api/targets/c9b84f7f-40dd-4825-89c8-957162d834dd "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:12:56,152 _client 645 136035877473152 HTTP Request: DELETE http://testserver/api/targets/1ea7b267-fece-4231-b7f8-b580980d6160 "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:00,834 _client 645 136035877473152 HTTP Request: GET http://testserver/api/targets/?value=example-2f48c53df6dc49909ecba42d57860bd5.com "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:04,883 _client 645 136035877473152 HTTP Request: GET http://testserver/api/targets/?page=1&per_page=5 "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:10,421 _client 645 136035877473152 HTTP Request: GET http://testserver/api/targets/?value=example-3aedff7673be4e358cd310b9b0002ff5.com "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:14,635 _client 645 136035877473152 HTTP Request: GET http://testserver/api/targets/ec9d9644-de30-4c33-8675-db84a60e396a/summary "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:16,518 _client 645 136035877473152 HTTP Request: POST http://testserver/api/targets/28d445de-7a7f-42a2-bbea-405b256ccc7a/validate "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:17,970 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:13:21,166 _client 645 136035877473152 HTTP Request: POST http://testserver/api/targets/37d55c01-7eb0-4110-9aaa-55adeb14132a/validate "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:24,078 _client 645 136035877473152 HTTP Request: GET http://testserver/api/targets/stats/overview "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:27,350 _client 645 136035877473152 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:27,466 workflow_service 645 136035732440768 Created workflow 5a566fd0-e4bc-4998-adda-5a244803d64e for target 14de97ec-d67f-4603-86b5-9172a79f4f6d
+INFO 2025-06-24 14:13:27,483 _client 645 136035877473152 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:27,521 execution_service 645 136035732440768 Docker client initialized successfully
+INFO 2025-06-24 14:13:27,615 workflow_service 645 136035732440768 Started execution of stage PASSIVE_RECON for workflow 5a566fd0-e4bc-4998-adda-5a244803d64e
+INFO 2025-06-24 14:13:27,627 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/workflows/5a566fd0-e4bc-4998-adda-5a244803d64e/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:27,789 _client 645 136035877473152 HTTP Request: POST http://testserver/api/results/passive-recon "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:32,089 _client 645 136035877473152 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:32,240 workflow_service 645 136035724048064 Created workflow 9e7f4690-b1a6-458d-add0-11d92d5ebb97 for target 403d8230-e8d5-47a8-95fc-5363511b00d3
+INFO 2025-06-24 14:13:32,250 _client 645 136035877473152 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 14:13:32,256 log 645 136035751323328 Unprocessable Entity: /api/execution/workflows/9e7f4690-b1a6-458d-add0-11d92d5ebb97/execute
+INFO 2025-06-24 14:13:32,258 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/workflows/9e7f4690-b1a6-458d-add0-11d92d5ebb97/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 14:13:36,517 _client 645 136035877473152 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:36,619 _client 645 136035877473152 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:36,728 _client 645 136035877473152 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:36,832 workflow_service 645 136035732440768 Created workflow 902f8d6a-9ca5-4d4f-93b7-bbdbc202acdc for target 88666fda-f3b5-44f2-9ca2-8bb8a605f978
+INFO 2025-06-24 14:13:36,844 _client 645 136035877473152 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:36,956 workflow_service 645 136035724048064 Created workflow 3d3dba9c-5870-4b72-9d87-c49335322a93 for target f625f24e-da70-4178-bb67-3a5964f0bcdb
+INFO 2025-06-24 14:13:36,967 _client 645 136035877473152 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:37,077 workflow_service 645 136035724048064 Created workflow 49fd4112-e0dd-4d8a-87b6-fd104aba0965 for target 4c1536e7-ab97-449e-824d-301be40ce10f
+INFO 2025-06-24 14:13:37,090 _client 645 136035877473152 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 14:13:37,106 log 645 136035751323328 Unprocessable Entity: /api/execution/workflows/902f8d6a-9ca5-4d4f-93b7-bbdbc202acdc/execute
+WARNING 2025-06-24 14:13:37,108 log 645 136035751323328 Unprocessable Entity: /api/execution/workflows/49fd4112-e0dd-4d8a-87b6-fd104aba0965/execute
+WARNING 2025-06-24 14:13:37,109 log 645 136035497404096 Unprocessable Entity: /api/execution/workflows/3d3dba9c-5870-4b72-9d87-c49335322a93/execute
+INFO 2025-06-24 14:13:37,112 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/workflows/902f8d6a-9ca5-4d4f-93b7-bbdbc202acdc/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 14:13:37,114 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/workflows/49fd4112-e0dd-4d8a-87b6-fd104aba0965/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 14:13:37,115 _client 645 136035877473152 HTTP Request: POST http://testserver/api/execution/workflows/3d3dba9c-5870-4b72-9d87-c49335322a93/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 14:13:40,328 _client 645 136035877473152 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 14:13:40,438 workflow_service 645 136035724048064 Created workflow 529fdbfd-29bb-4943-96f9-a03187b77638 for target 9c85f7b4-c907-4dcd-aef3-c48e4a6a32af
+INFO 2025-06-24 14:13:40,455 _client 645 136035877473152 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 14:13:40,473 log 645 136035497404096 Not Found: /api/results/passive-recon/
+INFO 2025-06-24 14:13:40,474 _client 645 136035877473152 HTTP Request: POST http://testserver/api/results/passive-recon/ "HTTP/1.1 404 Not Found"
+INFO 2025-06-24 14:13:45,768 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:14:13,588 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:14:41,035 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:14:41,322 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+ERROR 2025-06-24 14:14:44,270 execution_service 645 136035877473152 Failed to initialize Docker client: Docker not available
+INFO 2025-06-24 14:14:47,461 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:14:47,470 execution_service 645 136035877473152 Started container <MagicMock name='mock.containers.run().id' id='136035713773264'> for passive_recon_8ecaa54d-0f0f-485d-931e-8ebb5dc69f69_20250624_141447
+INFO 2025-06-24 14:14:47,473 execution_service 645 136035877473152 Updated workflow 8ecaa54d-0f0f-485d-931e-8ebb5dc69f69 status: WorkflowStatus.PENDING
+INFO 2025-06-24 14:14:47,474 execution_service 645 136035877473152 Stage passive_recon execution completed for workflow 8ecaa54d-0f0f-485d-931e-8ebb5dc69f69
+INFO 2025-06-24 14:14:50,318 execution_service 645 136035877473152 Docker client initialized successfully
+ERROR 2025-06-24 14:14:50,320 execution_service 645 136035877473152 Execution error for stage passive_recon: Docker client not available
+INFO 2025-06-24 14:14:53,865 execution_service 645 136035877473152 Docker client initialized successfully
+ERROR 2025-06-24 14:14:53,867 execution_service 645 136035877473152 Execution error for stage passive_recon: Target with ID a9c51d04-959b-4fdc-b9e8-206ae6819ac6 not found
+INFO 2025-06-24 14:14:57,198 execution_service 645 136035877473152 Docker client initialized successfully
+ERROR 2025-06-24 14:14:57,211 execution_service 645 136035877473152 Execution error for stage passive_recon: Workflow with ID 97ddc060-f072-4331-a2fc-30ad1873ea41 not found
+INFO 2025-06-24 14:15:00,422 execution_service 645 136035877473152 Docker client initialized successfully
+ERROR 2025-06-24 14:15:00,427 execution_service 645 136035877473152 Execution error for stage invalid_stage: Invalid stage name: invalid_stage
+INFO 2025-06-24 14:15:03,340 execution_service 645 136035877473152 Docker client initialized successfully
+ERROR 2025-06-24 14:15:03,348 execution_service 645 136035877473152 Docker error: Container error
+INFO 2025-06-24 14:15:03,351 execution_service 645 136035877473152 Updated workflow c4b6dc0d-69e7-4412-ad48-26db705aa49a status: WorkflowStatus.FAILED
+INFO 2025-06-24 14:15:03,352 execution_service 645 136035877473152 Stage passive_recon execution completed for workflow c4b6dc0d-69e7-4412-ad48-26db705aa49a
+INFO 2025-06-24 14:15:06,257 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:07,187 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:09,180 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:15:10,242 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:13,552 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:16,784 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:16,789 execution_service 645 136035877473152 Started container <MagicMock name='mock.containers.run().id' id='136035732963920'> for test-container
+INFO 2025-06-24 14:15:19,745 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:19,750 execution_service 645 136035877473152 Started container <MagicMock name='mock.containers.run().id' id='136035733055888'> for test-container
+INFO 2025-06-24 14:15:22,732 execution_service 645 136035877473152 Docker client initialized successfully
+ERROR 2025-06-24 14:15:22,736 execution_service 645 136035877473152 Docker error: Docker error
+INFO 2025-06-24 14:15:25,649 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:25,657 execution_service 645 136035877473152 Updated workflow 31ecc91d-e071-4b81-a197-0acb176670cd status: WorkflowStatus.PENDING
+INFO 2025-06-24 14:15:29,145 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:31,809 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:37,159 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:40,197 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:41,595 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:15:43,432 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:46,607 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:49,902 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:53,161 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:15:53,165 execution_service 645 136035877473152 Stopped container test-container
+INFO 2025-06-24 14:15:56,206 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:16:01,579 execution_service 645 136035877473152 Docker client initialized successfully
+INFO 2025-06-24 14:16:04,630 report_service 645 136035877473152 Created report 29a1982a-8a66-4375-ad22-070cc80e9c10 for workflow d6b49e73-10be-4c50-ab43-7ef368cf1a54
+INFO 2025-06-24 14:16:09,396 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:16:20,982 report_service 645 136035877473152 Updated report 93ff125b-7357-4bf2-9396-5a3abefb7996
+INFO 2025-06-24 14:16:27,328 report_service 645 136035877473152 Deleted report bb4f081d-01bf-4d0e-8977-6b417ff72442
+INFO 2025-06-24 14:16:33,614 report_service 645 136035877473152 Generated report 0b8adcf2-8a92-4358-a3ef-a608032350dd for workflow bb24c715-e6c1-4125-9f60-b5cdc04b8e45
+INFO 2025-06-24 14:16:37,223 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:17:05,617 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+ERROR 2025-06-24 14:17:15,473 report_service 645 136035877473152 Error exporting report content: Unsupported export format: unsupported
+INFO 2025-06-24 14:17:35,161 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:17:40,520 workflow_service 645 136035877473152 Updated workflow 8ac617c3-8413-4a1a-a8f8-f1d71959f850
+INFO 2025-06-24 14:17:46,221 workflow_service 645 136035877473152 Deleted workflow bfd6a43b-a776-4910-b5ad-7ee8249541e3
+INFO 2025-06-24 14:17:54,965 workflow_service 645 136035877473152 Started execution of stage passive_recon for workflow b9460549-8237-4c8d-9076-d14622e03296
+INFO 2025-06-24 14:18:04,746 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:18:34,916 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:19:05,074 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:19:35,202 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:20:05,311 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:20:35,420 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:21:05,525 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:21:35,670 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:22:05,787 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:22:35,893 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:23:06,013 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:23:36,168 basehttp 7 137086312339136 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:23:38,914 autoreload 7 137086426803072 /app/core/schemas/workflow.py changed, reloading.
+INFO 2025-06-24 14:23:43,194 autoreload 1101 138810918325120 Watching for file changes with StatReloader
+INFO 2025-06-24 14:24:06,278 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:24:28,324 workflow_service 1111 134371813288832 Created workflow 7d89ff47-9fa9-42bb-907a-a2dee32a19da for target 3845fe9c-b291-4ca6-b1ee-1fd962f7f3fe
+ERROR 2025-06-24 14:24:28,325 workflow_service 1111 134371813288832 Error creating workflow: 1 validation error for WorkflowResponse
+status
+  Input should be 'PENDING', 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED' or 'PAUSED' [type=enum, input_value='pending', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.9/v/enum
+INFO 2025-06-24 14:24:36,404 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:24:53,803 workflow_service 1111 134371813288832 Updated workflow 193e9ce2-d128-4d1d-9340-56193d5e1033
+INFO 2025-06-24 14:25:01,303 workflow_service 1111 134371813288832 Deleted workflow 3ea01fa1-7c49-4977-b411-088390aed72e
+INFO 2025-06-24 14:25:06,512 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:25:12,401 workflow_service 1111 134371813288832 Started execution of stage passive_recon for workflow e9bbbc5e-9027-41d3-9c64-1b11af1f7325
+INFO 2025-06-24 14:25:36,714 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:26:06,833 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:26:37,019 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:27:07,124 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:27:37,273 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:28:07,490 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:28:37,647 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:29:07,783 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:29:37,916 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:30:08,176 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:30:38,293 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:31:08,415 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:31:38,526 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:32:08,642 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:32:38,779 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:32:56,631 workflow_service 1251 124235110632320 Created workflow e81f0897-004a-4400-b923-d2da71c45111 for target 5698dec6-b925-4023-b349-8fbd8e71d59d
+INFO 2025-06-24 14:33:08,917 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:33:21,567 workflow_service 1251 124235110632320 Updated workflow a90c53c4-0ddc-4d00-b143-6e51e8024eb3
+INFO 2025-06-24 14:33:25,188 workflow_service 1251 124235110632320 Updated workflow cdd8705e-d314-4a8f-9c2e-5f1cb1912bd2
+ERROR 2025-06-24 14:33:25,189 workflow_service 1251 124235110632320 Error updating workflow cdd8705e-d314-4a8f-9c2e-5f1cb1912bd2: 7 validation errors for WorkflowResponse
+id
+  Field required [type=missing, input_value={'_mock_return_value': se...'__annotations__': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+target_id
+  Field required [type=missing, input_value={'_mock_return_value': se...'__annotations__': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+name
+  Field required [type=missing, input_value={'_mock_return_value': se...'__annotations__': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+status
+  Field required [type=missing, input_value={'_mock_return_value': se...'__annotations__': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+stages
+  Field required [type=missing, input_value={'_mock_return_value': se...'__annotations__': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+created_at
+  Field required [type=missing, input_value={'_mock_return_value': se...'__annotations__': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+updated_at
+  Field required [type=missing, input_value={'_mock_return_value': se...'__annotations__': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.9/v/missing
+INFO 2025-06-24 14:33:31,016 workflow_service 1251 124235110632320 Deleted workflow 4f9d055c-5a94-4c21-ae03-91d62bff1db4
+INFO 2025-06-24 14:33:34,568 workflow_service 1251 124235110632320 Deleted workflow e4c9c52c-9bcd-41c1-b994-b618194360af
+INFO 2025-06-24 14:33:39,061 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:34:09,193 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:34:39,541 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:35:09,681 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:35:39,827 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:36:09,973 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:36:40,092 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:37:10,225 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:37:40,349 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:38:10,482 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:38:40,589 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 14:39:10,713 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:46:52,308 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:47:22,507 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:47:51,087 workflow_service 1376 130593324895104 Created workflow 89477eed-296f-46bd-bde4-dddf38358381 for target 18fb5d63-145c-4ed2-a54a-3020008496ab
+INFO 2025-06-24 16:47:52,630 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:48:22,811 workflow_service 1376 130593324895104 Updated workflow d99f2164-9a39-42a6-90bf-005cc8f03609
+INFO 2025-06-24 16:48:22,928 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:48:33,768 workflow_service 1376 130593324895104 Deleted workflow 320ee763-eb5a-4742-bc40-fd1a704e0529
+INFO 2025-06-24 16:48:53,109 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:49:23,257 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:49:53,433 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:50:23,568 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:50:53,679 basehttp 1101 138810804623040 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:51:12,021 autoreload 1101 138810918325120 /app/core/tasks/workflow_service.py changed, reloading.
+INFO 2025-06-24 16:51:16,538 autoreload 1446 136477202410368 Watching for file changes with StatReloader
+INFO 2025-06-24 16:51:23,805 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:51:53,947 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:52:24,090 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:52:54,210 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:53:24,334 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:53:54,479 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:54:24,638 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:54:54,795 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:55:24,907 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:55:55,304 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:56:25,441 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:56:54,956 workflow_service 1532 131581533842304 Started execution of stage PASSIVE_RECON for workflow bbdcf45f-a1bf-47db-805e-dfa691041d3c
+INFO 2025-06-24 16:56:55,596 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:57:20,105 workflow_service 1541 133455322250112 Created workflow ffccc55b-1834-41b2-9804-13aca9335323 for target 9f8a61bc-4816-4105-814e-b9b68a205bf4
+INFO 2025-06-24 16:57:25,807 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:57:47,069 workflow_service 1541 133455322250112 Updated workflow 1b670e83-6d33-4b39-9780-7ae1dcd616c2
+INFO 2025-06-24 16:57:54,865 workflow_service 1541 133455322250112 Deleted workflow 53a735b9-383f-4252-a10b-fdf5d1cd1303
+INFO 2025-06-24 16:57:55,931 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:58:06,345 workflow_service 1541 133455322250112 Started execution of stage PASSIVE_RECON for workflow 4554401c-79fb-48d0-849e-270b1ccdaf8c
+INFO 2025-06-24 16:58:26,044 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:58:56,169 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:59:26,308 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 16:59:56,424 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:00:26,559 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:00:56,696 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:00:59,815 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:00:59,990 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/workflows/10c709d8-c857-4464-a3f2-09cc2eff977f/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:05,704 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:05,810 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/workflows/0bf910f9-ca66-4124-a7ae-6163384b5771/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:10,125 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:10,234 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/workflows/4704e2eb-710b-42d4-8b3e-3ec74d4a77c8/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:15,191 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:15,304 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/workflows/97a35742-98ad-423d-a0f3-b3c59ca2bfd6/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:19,364 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:19,485 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/workflows/7c58e976-8c62-4e1f-a896-169734e2cebb/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:23,578 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:23,758 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/workflows/3bf8a080-9ce9-4cc0-a11e-25a37a351ebd/stages/passive_recon/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:26,810 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:01:28,276 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:28,375 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/workflows/e9299c40-241c-4923-8f2a-28c916b7c93a/stages/invalid_stage/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:32,824 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:32,829 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/workflows/2ead8ed4-f716-41da-8afc-ec1f41682daf/stages/passive_recon/cancel "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:36,912 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:37,028 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/workflows/1b3c8013-ba56-45be-833f-28149976bdd7/stages/passive_recon/cancel "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:41,711 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:41,828 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/workflows/ab716bde-0391-4862-9bf5-6568b1c5ea4b/stages/passive_recon/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:47,666 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:47,770 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/workflows/03e717cb-6a9a-4e77-9ef3-7ad6e2cbc06f/stages/invalid_stage/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:52,160 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:52,167 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/containers "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:01:56,950 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:01:57,209 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:01:57,215 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/containers/test_container/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:02,586 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:02:02,589 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/containers/non_existent/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:06,344 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:02:06,349 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/containers/test_container/stop "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:09,843 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:02:09,848 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/containers/non_existent/stop "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:13,355 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:02:13,360 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/containers/test_container/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:17,167 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:02:17,170 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/execution/containers/non_existent/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:20,899 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/health "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:20,911 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/info "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:25,547 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:27,082 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+WARNING 2025-06-24 17:02:29,619 log 1608 137847823713984 Unprocessable Entity: /api/targets/
+INFO 2025-06-24 17:02:29,621 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:02:33,450 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/targets/d7b2541c-861f-4086-90e2-7a25921c65b5 "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:38,849 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/targets/6720b075-28cd-4bf8-b7e4-c3cd695f8db7 "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:42,798 _client 1608 137847951772544 HTTP Request: PUT http://testserver/api/targets/9ba5ac40-ff94-4022-9cba-c420554634a1 "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:47,245 _client 1608 137847951772544 HTTP Request: PUT http://testserver/api/targets/355da9fe-59ff-4578-929d-79ab086d4462 "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:51,676 _client 1608 137847951772544 HTTP Request: DELETE http://testserver/api/targets/a69d66de-37e7-4874-b999-5c3ce3305324 "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:56,796 _client 1608 137847951772544 HTTP Request: DELETE http://testserver/api/targets/500df973-aa36-4f1e-82d5-9bb20371cbc0 "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:02:57,195 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:03:01,160 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/targets/?value=example-c75f4ee3f81545ba8385a7bf3c041855.com "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:06,055 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/targets/?page=1&per_page=5 "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:09,886 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/targets/?value=example-745095c3f3f2455b82220824460eddfa.com "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:14,606 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/targets/f60ee287-0f61-4904-babd-96db543b9aee/summary "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:19,486 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/targets/be5eea56-d786-4a29-8b17-d74d26e24790/validate "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:23,858 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/targets/4d4d6a5e-a1fd-4c44-aa82-1e42d23f4128/validate "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:27,335 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:03:28,417 _client 1608 137847951772544 HTTP Request: GET http://testserver/api/targets/stats/overview "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:32,742 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:32,862 workflow_service 1608 137847805880000 Created workflow 2c78f9aa-6757-4140-8c40-821e60be0de4 for target 94e80d02-2934-4a01-a9f7-fef6133baa2b
+INFO 2025-06-24 17:03:32,872 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:32,911 execution_service 1608 137847805880000 Docker client initialized successfully
+INFO 2025-06-24 17:03:33,011 workflow_service 1608 137847805880000 Started execution of stage PASSIVE_RECON for workflow 2c78f9aa-6757-4140-8c40-821e60be0de4
+INFO 2025-06-24 17:03:33,027 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/workflows/2c78f9aa-6757-4140-8c40-821e60be0de4/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:33,165 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/results/passive-recon "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:37,929 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:38,056 workflow_service 1608 137847805880000 Created workflow 3a3ade79-6528-4ecc-a8ac-da62c4e5ddd6 for target c840261a-58e4-4f29-bc5e-094f215a1e0c
+INFO 2025-06-24 17:03:38,068 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:03:38,077 log 1608 137847823713984 Unprocessable Entity: /api/execution/workflows/3a3ade79-6528-4ecc-a8ac-da62c4e5ddd6/execute
+INFO 2025-06-24 17:03:38,080 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/workflows/3a3ade79-6528-4ecc-a8ac-da62c4e5ddd6/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:03:41,831 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:41,961 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:42,178 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:42,370 workflow_service 1608 137847805880000 Created workflow c2bd0481-094a-4a60-bf4b-14d221318408 for target 803935f8-74da-4f6d-bc2e-2695904f464b
+INFO 2025-06-24 17:03:42,438 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:42,599 workflow_service 1608 137847805880000 Created workflow f2ae66f4-943c-4c15-a10b-e99ba882da0f for target 6133f51a-0d2d-412f-b83c-f8f057abf07e
+INFO 2025-06-24 17:03:42,617 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:42,801 workflow_service 1608 137847805880000 Created workflow 637f3389-8f59-44de-b8cc-43bdc664b1b5 for target 24a3eb62-ee74-4546-a724-0a5f9d3354a7
+INFO 2025-06-24 17:03:42,854 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:03:42,885 log 1608 137847570949824 Unprocessable Entity: /api/execution/workflows/c2bd0481-094a-4a60-bf4b-14d221318408/execute
+WARNING 2025-06-24 17:03:42,885 log 1608 137847823713984 Unprocessable Entity: /api/execution/workflows/637f3389-8f59-44de-b8cc-43bdc664b1b5/execute
+WARNING 2025-06-24 17:03:42,898 log 1608 137847570949824 Unprocessable Entity: /api/execution/workflows/f2ae66f4-943c-4c15-a10b-e99ba882da0f/execute
+INFO 2025-06-24 17:03:42,900 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/workflows/c2bd0481-094a-4a60-bf4b-14d221318408/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:03:42,902 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/workflows/637f3389-8f59-44de-b8cc-43bdc664b1b5/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:03:42,905 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/execution/workflows/f2ae66f4-943c-4c15-a10b-e99ba882da0f/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:03:48,266 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:03:48,660 workflow_service 1608 137847805880000 Created workflow 866b0d6b-34b3-4cdb-adf1-c55d1296f22a for target 6819e5fa-eff2-4ccf-baff-ba145f50e45f
+INFO 2025-06-24 17:03:48,686 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:03:48,732 log 1608 137847570949824 Not Found: /api/results/passive-recon/
+INFO 2025-06-24 17:03:48,735 _client 1608 137847951772544 HTTP Request: POST http://testserver/api/results/passive-recon/ "HTTP/1.1 404 Not Found"
+INFO 2025-06-24 17:03:57,503 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:04:27,713 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:04:57,850 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:05:27,961 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:05:33,236 execution_service 1608 137847951772544 Docker client initialized successfully
+ERROR 2025-06-24 17:05:36,996 execution_service 1608 137847951772544 Failed to initialize Docker client: Docker not available
+INFO 2025-06-24 17:05:40,582 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:05:40,595 execution_service 1608 137847951772544 Started container <MagicMock name='mock.containers.run().id' id='137847787432208'> for passive_recon_ca8c0bf4-819b-402d-b13f-89ef07023036_20250624_170540
+INFO 2025-06-24 17:05:40,598 execution_service 1608 137847951772544 Updated workflow ca8c0bf4-819b-402d-b13f-89ef07023036 status: WorkflowStatus.PENDING
+INFO 2025-06-24 17:05:40,600 execution_service 1608 137847951772544 Stage passive_recon execution completed for workflow ca8c0bf4-819b-402d-b13f-89ef07023036
+INFO 2025-06-24 17:05:44,903 execution_service 1608 137847951772544 Docker client initialized successfully
+ERROR 2025-06-24 17:05:44,905 execution_service 1608 137847951772544 Execution error for stage passive_recon: Docker client not available
+INFO 2025-06-24 17:05:49,635 execution_service 1608 137847951772544 Docker client initialized successfully
+ERROR 2025-06-24 17:05:49,638 execution_service 1608 137847951772544 Execution error for stage passive_recon: Target with ID 18212cd9-ba9e-4bd6-97fa-fd162de35539 not found
+INFO 2025-06-24 17:05:56,263 execution_service 1608 137847951772544 Docker client initialized successfully
+ERROR 2025-06-24 17:05:56,274 execution_service 1608 137847951772544 Execution error for stage passive_recon: Workflow with ID 31d44d0c-b67c-47ef-b5bb-b9debc2ec47e not found
+INFO 2025-06-24 17:05:58,089 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:06:00,120 execution_service 1608 137847951772544 Docker client initialized successfully
+ERROR 2025-06-24 17:06:00,125 execution_service 1608 137847951772544 Execution error for stage invalid_stage: Invalid stage name: invalid_stage
+INFO 2025-06-24 17:06:05,116 execution_service 1608 137847951772544 Docker client initialized successfully
+ERROR 2025-06-24 17:06:05,121 execution_service 1608 137847951772544 Docker error: Container error
+INFO 2025-06-24 17:06:05,123 execution_service 1608 137847951772544 Updated workflow a9514f31-6ff1-477f-8d30-2ac17091874d status: WorkflowStatus.FAILED
+INFO 2025-06-24 17:06:05,124 execution_service 1608 137847951772544 Stage passive_recon execution completed for workflow a9514f31-6ff1-477f-8d30-2ac17091874d
+INFO 2025-06-24 17:06:10,267 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:13,653 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:18,769 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:22,705 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:26,874 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:26,878 execution_service 1608 137847951772544 Started container <MagicMock name='mock.containers.run().id' id='137847806590800'> for test-container
+INFO 2025-06-24 17:06:28,268 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:06:32,169 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:32,174 execution_service 1608 137847951772544 Started container <MagicMock name='mock.containers.run().id' id='137847806722512'> for test-container
+INFO 2025-06-24 17:06:36,601 execution_service 1608 137847951772544 Docker client initialized successfully
+ERROR 2025-06-24 17:06:36,637 execution_service 1608 137847951772544 Docker error: Docker error
+INFO 2025-06-24 17:06:41,179 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:41,190 execution_service 1608 137847951772544 Updated workflow c20d2839-7a5c-4136-a3f1-8de21e60e7ff status: WorkflowStatus.PENDING
+INFO 2025-06-24 17:06:45,323 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:49,366 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:52,753 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:56,766 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:06:58,399 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:07:00,445 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:07:04,231 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:07:07,945 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:07:12,625 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:07:12,628 execution_service 1608 137847951772544 Stopped container test-container
+INFO 2025-06-24 17:07:17,643 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:07:21,093 execution_service 1608 137847951772544 Docker client initialized successfully
+INFO 2025-06-24 17:07:25,099 report_service 1608 137847951772544 Created report a66913ab-f98c-48c7-b79c-d07e97c6bc24 for workflow b33bf835-c572-4866-a54b-8fefc7386f0e
+INFO 2025-06-24 17:07:28,572 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:07:47,001 report_service 1608 137847951772544 Updated report b3214f3b-f6fc-4008-9045-5129699ebb7c
+INFO 2025-06-24 17:07:53,791 report_service 1608 137847951772544 Deleted report 9e4be59f-cd13-4224-b036-259b7638d37e
+INFO 2025-06-24 17:07:58,715 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:08:00,970 report_service 1608 137847951772544 Generated report f7dc85f0-b473-45f2-a6b0-6744504b302e for workflow 4a59ed3b-18e2-4ee4-a9d1-fa85205f32b9
+INFO 2025-06-24 17:08:28,874 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+ERROR 2025-06-24 17:08:55,920 report_service 1608 137847951772544 Error exporting report content: Unsupported export format: unsupported
+INFO 2025-06-24 17:08:59,093 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:09:03,203 workflow_service 1608 137847951772544 Created workflow 30cb484c-1382-4c45-92ce-45e67e916a02 for target 7c6bbb53-3fbe-4add-9920-e665f4137cff
+INFO 2025-06-24 17:09:27,439 workflow_service 1608 137847951772544 Updated workflow 1f87256b-bfd5-4bef-9337-1d77f2a47649
+INFO 2025-06-24 17:09:29,233 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:09:34,192 workflow_service 1608 137847951772544 Deleted workflow f2406aa8-10b6-4bca-b566-5f83eb8c54be
+INFO 2025-06-24 17:09:46,615 workflow_service 1608 137847951772544 Started execution of stage PASSIVE_RECON for workflow 711d8eed-4331-412f-ba06-e695d97870c4
+INFO 2025-06-24 17:09:59,362 basehttp 1446 136477015013056 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:11:19,894 autoreload 8 131334481460096 Watching for file changes with StatReloader
+INFO 2025-06-24 17:11:29,793 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:12:00,088 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:12:30,272 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:13:00,472 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:13:30,667 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:14:00,840 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:14:31,011 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:15:01,192 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:15:31,354 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:16:01,474 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:16:31,593 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:17:01,740 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:17:31,858 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:18:01,969 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:18:22,671 execution_service 133 127034608171904 Docker client initialized successfully
+INFO 2025-06-24 17:18:22,778 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/workflows/854e54a2-8598-4c97-86da-fceac5e717a8/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:18:29,929 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:18:30,044 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/workflows/7ff2423a-5044-4cf9-85a1-8b96b0628402/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:18:32,113 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:18:34,588 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:18:34,730 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/workflows/6ae04de6-2a8f-450a-8591-6a59b07d444e/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:18:41,833 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:18:41,932 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/workflows/bf24fe76-00e7-44ea-91d1-8dfa5d5eeb08/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:18:48,045 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:18:48,292 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/workflows/15638837-30c2-404b-99cf-cf5d65c14cf5/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:18:52,949 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:18:53,056 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/workflows/434f7d88-28dc-419d-bcab-29e24470ce05/stages/passive_recon/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:18:59,685 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:18:59,785 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/workflows/e9b7d245-e927-4698-b163-f441163f13e2/stages/invalid_stage/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:02,269 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:19:05,270 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:05,274 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/workflows/36db7b39-2782-4eb0-b55c-8e39b6542b91/stages/passive_recon/cancel "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:11,105 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:11,256 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/workflows/5e6caa9e-068b-4436-808f-d5842e916ee9/stages/passive_recon/cancel "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:16,124 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:16,437 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/workflows/e8eaa03b-f81e-4a12-a2ee-80dc13eaa43b/stages/passive_recon/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:22,787 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:22,938 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/workflows/0b25b7c4-aa83-4167-b9b9-fe7e5ca84395/stages/invalid_stage/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:29,584 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:29,587 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/containers "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:32,372 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:19:33,278 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:33,283 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/containers/test_container/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:38,527 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:38,533 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/containers/non_existent/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:42,619 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:42,622 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/containers/test_container/stop "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:48,011 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:48,016 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/containers/non_existent/stop "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:52,651 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:52,654 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/containers/test_container/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:19:58,773 execution_service 133 127034395195072 Docker client initialized successfully
+INFO 2025-06-24 17:19:58,778 _client 133 127034608171904 HTTP Request: GET http://testserver/api/execution/containers/non_existent/logs "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:20:02,247 _client 133 127034608171904 HTTP Request: GET http://testserver/api/health "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:20:02,256 _client 133 127034608171904 HTTP Request: GET http://testserver/api/info "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:20:02,505 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:20:06,217 _client 133 127034608171904 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:20:11,788 log 133 127034483435200 Unprocessable Entity: /api/targets/
+INFO 2025-06-24 17:20:11,792 _client 133 127034608171904 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:20:15,805 _client 133 127034608171904 HTTP Request: GET http://testserver/api/targets/04a24c8f-c071-4be6-bac2-bf60902aab5c "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:20:21,734 _client 133 127034608171904 HTTP Request: GET http://testserver/api/targets/998ba09a-a0d3-4234-ad2b-67a3676fe45b "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:20:28,026 _client 133 127034608171904 HTTP Request: PUT http://testserver/api/targets/da30266f-36f5-47b4-847c-efb59f9b842d "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:20:32,627 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:20:32,859 _client 133 127034608171904 HTTP Request: PUT http://testserver/api/targets/c675c61a-2f5c-4086-9549-91462818b908 "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:20:38,544 _client 133 127034608171904 HTTP Request: DELETE http://testserver/api/targets/f81524d6-be7d-41b5-be47-b5b443738b6f "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:20:42,637 _client 133 127034608171904 HTTP Request: DELETE http://testserver/api/targets/93ce6ef1-69f2-4cf7-a6bb-6ee6c4617fbe "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:20:49,835 _client 133 127034608171904 HTTP Request: GET http://testserver/api/targets/?value=example-70aea836fe184bd2aa54381468b40662.com "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:20:54,252 _client 133 127034608171904 HTTP Request: GET http://testserver/api/targets/?page=1&per_page=5 "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:00,858 _client 133 127034608171904 HTTP Request: GET http://testserver/api/targets/?value=example-8ff876ad7b0445e8a9d8413b8c2c3fef.com "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:02,747 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:21:06,215 _client 133 127034608171904 HTTP Request: GET http://testserver/api/targets/c90760cd-b098-4fcd-807b-35ddb65d8e5f/summary "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:13,072 _client 133 127034608171904 HTTP Request: POST http://testserver/api/targets/ec27a29b-ed76-4d9e-adca-609d6c86a332/validate "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:20,562 _client 133 127034608171904 HTTP Request: POST http://testserver/api/targets/690af220-c1cc-4670-80a1-bdf91a7d4b92/validate "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:24,213 _client 133 127034608171904 HTTP Request: GET http://testserver/api/targets/stats/overview "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:30,895 _client 133 127034608171904 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:31,027 workflow_service 133 127034395195072 Created workflow f577efec-7da8-4086-8674-594cfb387984 for target 22c70928-8aae-4ebf-a7ad-b1cff6361dce
+INFO 2025-06-24 17:21:31,038 _client 133 127034608171904 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:31,079 execution_service 133 127034386802368 Docker client initialized successfully
+INFO 2025-06-24 17:21:31,171 workflow_service 133 127034386802368 Started execution of stage PASSIVE_RECON for workflow f577efec-7da8-4086-8674-594cfb387984
+INFO 2025-06-24 17:21:31,187 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/workflows/f577efec-7da8-4086-8674-594cfb387984/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:31,397 _client 133 127034608171904 HTTP Request: POST http://testserver/api/results/passive-recon "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:32,872 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:21:36,050 _client 133 127034608171904 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:36,294 workflow_service 133 127034386802368 Created workflow d4c8484f-9fae-48fc-a064-f6775d7a018d for target 936e6a1f-c82e-4f39-848c-718d97dcbfa8
+INFO 2025-06-24 17:21:36,371 _client 133 127034608171904 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:21:36,380 log 133 127034483435200 Unprocessable Entity: /api/execution/workflows/d4c8484f-9fae-48fc-a064-f6775d7a018d/execute
+INFO 2025-06-24 17:21:36,382 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/workflows/d4c8484f-9fae-48fc-a064-f6775d7a018d/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:21:42,815 _client 133 127034608171904 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:42,973 _client 133 127034608171904 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:43,111 _client 133 127034608171904 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:43,242 workflow_service 133 127034386802368 Created workflow 915c35c8-c40a-4946-842b-10ea789fb12d for target f4532aca-c418-492c-b08f-745efc651b2f
+INFO 2025-06-24 17:21:43,253 _client 133 127034608171904 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:43,416 workflow_service 133 127034386802368 Created workflow 203481a1-489e-4246-9608-63f23680478c for target 15dd81c9-fd43-40a0-8f0e-fed2ca6ec9bd
+INFO 2025-06-24 17:21:43,446 _client 133 127034608171904 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:43,636 workflow_service 133 127034386802368 Created workflow 35fda60a-2bff-41c4-82eb-7e686dd9b6fe for target 5b12fa46-5d78-4818-b0d0-2d244b26eda3
+INFO 2025-06-24 17:21:43,655 _client 133 127034608171904 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:21:43,681 log 133 127034483435200 Unprocessable Entity: /api/execution/workflows/203481a1-489e-4246-9608-63f23680478c/execute
+WARNING 2025-06-24 17:21:43,682 log 133 127034370016960 Unprocessable Entity: /api/execution/workflows/35fda60a-2bff-41c4-82eb-7e686dd9b6fe/execute
+WARNING 2025-06-24 17:21:43,686 log 133 127034483435200 Unprocessable Entity: /api/execution/workflows/915c35c8-c40a-4946-842b-10ea789fb12d/execute
+INFO 2025-06-24 17:21:43,690 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/workflows/203481a1-489e-4246-9608-63f23680478c/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:21:43,692 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/workflows/35fda60a-2bff-41c4-82eb-7e686dd9b6fe/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:21:43,694 _client 133 127034608171904 HTTP Request: POST http://testserver/api/execution/workflows/915c35c8-c40a-4946-842b-10ea789fb12d/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:21:51,292 _client 133 127034608171904 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:21:51,426 workflow_service 133 127034395195072 Created workflow 895c0d36-ef0d-476f-ab16-0cd4c9c5089e for target 8c3ed9f2-4f73-4a8c-bf02-3868966607a4
+INFO 2025-06-24 17:21:51,437 _client 133 127034608171904 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:21:51,465 log 133 127034483435200 Not Found: /api/results/passive-recon/
+INFO 2025-06-24 17:21:51,469 _client 133 127034608171904 HTTP Request: POST http://testserver/api/results/passive-recon/ "HTTP/1.1 404 Not Found"
+INFO 2025-06-24 17:22:03,004 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+ERROR 2025-06-24 17:22:04,814 base_events 133 127034608171904 an error occurred during closing of asynchronous generator <async_generator object clean_db at 0x7389854bb140>
+asyncgen: <async_generator object clean_db at 0x7389854bb140>
+RuntimeError: aclose(): asynchronous generator is already running
+ERROR 2025-06-24 17:22:05,777 base_events 133 127034608171904 Task was destroyed but it is pending!
+task: <Task pending name='Task-677' coro=<_wrap_asyncgen_fixture.<locals>._asyncgen_fixture_wrapper.<locals>.setup() running at /usr/local/lib/python3.11/site-packages/pytest_asyncio/plugin.py:316> wait_for=<Future finished result=<asyncpg.prot...x738984155120>>>
+INFO 2025-06-24 17:22:27,738 _client 377 132945756416896 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:28,018 workflow_service 377 132945756416896 Created workflow 75151b8a-35d3-470a-b5fb-2f67f640e4a2 for target 24487aab-dcb1-43ee-988c-93731fbd00a7
+INFO 2025-06-24 17:22:28,103 _client 377 132945756416896 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:28,519 execution_service 377 132945756416896 Docker client initialized successfully
+INFO 2025-06-24 17:22:28,878 workflow_service 377 132945756416896 Started execution of stage PASSIVE_RECON for workflow 75151b8a-35d3-470a-b5fb-2f67f640e4a2
+INFO 2025-06-24 17:22:28,911 _client 377 132945756416896 HTTP Request: POST http://testserver/api/execution/workflows/75151b8a-35d3-470a-b5fb-2f67f640e4a2/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:29,348 _client 377 132945756416896 HTTP Request: POST http://testserver/api/results/passive-recon "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:33,133 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:22:34,658 _client 377 132945756416896 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:34,782 workflow_service 377 132945544214208 Created workflow 06e30e3b-955f-438f-a3bc-042d8054154d for target 7e6ad9c0-1728-4a62-8fcc-4e0014b105a9
+INFO 2025-06-24 17:22:34,797 _client 377 132945756416896 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:22:34,804 log 377 132945634444992 Unprocessable Entity: /api/execution/workflows/06e30e3b-955f-438f-a3bc-042d8054154d/execute
+INFO 2025-06-24 17:22:34,808 _client 377 132945756416896 HTTP Request: POST http://testserver/api/execution/workflows/06e30e3b-955f-438f-a3bc-042d8054154d/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:22:40,537 _client 377 132945756416896 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:40,664 _client 377 132945756416896 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:41,398 _client 377 132945756416896 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:41,518 workflow_service 377 132945544214208 Created workflow 11c1b89b-0891-4cff-a4e3-0a548e3b0be2 for target e7d1c6ec-c133-401c-a3e4-c6464bf9c4dc
+INFO 2025-06-24 17:22:41,533 _client 377 132945756416896 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:41,652 workflow_service 377 132945544214208 Created workflow 0aad6615-940f-45ac-aa9c-540453c5ccfb for target 25445ce0-0370-4890-964f-c81d977a6107
+INFO 2025-06-24 17:22:41,665 _client 377 132945756416896 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:41,782 workflow_service 377 132945544214208 Created workflow fd9124ae-afdf-48c0-9219-ded421152d84 for target 83bcdfe6-2e0b-4bfe-bf92-cad4c2107f07
+INFO 2025-06-24 17:22:41,796 _client 377 132945756416896 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:22:41,819 log 377 132945634444992 Unprocessable Entity: /api/execution/workflows/fd9124ae-afdf-48c0-9219-ded421152d84/execute
+WARNING 2025-06-24 17:22:41,823 log 377 132945519036096 Unprocessable Entity: /api/execution/workflows/11c1b89b-0891-4cff-a4e3-0a548e3b0be2/execute
+WARNING 2025-06-24 17:22:41,825 log 377 132945634444992 Unprocessable Entity: /api/execution/workflows/0aad6615-940f-45ac-aa9c-540453c5ccfb/execute
+INFO 2025-06-24 17:22:41,829 _client 377 132945756416896 HTTP Request: POST http://testserver/api/execution/workflows/fd9124ae-afdf-48c0-9219-ded421152d84/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:22:41,831 _client 377 132945756416896 HTTP Request: POST http://testserver/api/execution/workflows/11c1b89b-0891-4cff-a4e3-0a548e3b0be2/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:22:41,832 _client 377 132945756416896 HTTP Request: POST http://testserver/api/execution/workflows/0aad6615-940f-45ac-aa9c-540453c5ccfb/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:22:45,374 _client 377 132945756416896 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:22:45,500 workflow_service 377 132945544214208 Created workflow 6e588a27-ed58-4080-80ed-5b814503bb41 for target 3c21a2d3-6875-41c6-a608-ba59a18fd4d3
+INFO 2025-06-24 17:22:45,512 _client 377 132945756416896 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:22:45,533 log 377 132945634444992 Not Found: /api/results/passive-recon/
+INFO 2025-06-24 17:22:45,535 _client 377 132945756416896 HTTP Request: POST http://testserver/api/results/passive-recon/ "HTTP/1.1 404 Not Found"
+INFO 2025-06-24 17:23:03,283 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:23:33,413 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:24:03,542 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:24:33,697 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:25:03,822 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:25:33,967 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:26:04,090 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:26:34,224 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:27:04,343 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:27:34,489 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:28:04,620 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:28:31,656 _client 512 140447085964160 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:31,789 workflow_service 512 140447085964160 Created workflow d2770d57-3c42-4df1-a6ad-47bde210dfb7 for target ff0f482a-5a11-4583-a2ff-042da95151c8
+INFO 2025-06-24 17:28:31,805 _client 512 140447085964160 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:31,860 execution_service 512 140447085964160 Docker client initialized successfully
+INFO 2025-06-24 17:28:31,999 workflow_service 512 140447085964160 Started execution of stage PASSIVE_RECON for workflow d2770d57-3c42-4df1-a6ad-47bde210dfb7
+INFO 2025-06-24 17:28:32,014 _client 512 140447085964160 HTTP Request: POST http://testserver/api/execution/workflows/d2770d57-3c42-4df1-a6ad-47bde210dfb7/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:32,164 _client 512 140447085964160 HTTP Request: POST http://testserver/api/results/passive-recon "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:34,731 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:28:39,031 _client 512 140447085964160 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:39,233 workflow_service 512 140446941726400 Created workflow 1e8e2a41-5215-424f-a11c-426a8a1be8b8 for target 082f6503-e2fb-4433-b7fc-1dc028f2183f
+INFO 2025-06-24 17:28:39,253 _client 512 140447085964160 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:28:39,268 log 512 140446964803264 Unprocessable Entity: /api/execution/workflows/1e8e2a41-5215-424f-a11c-426a8a1be8b8/execute
+INFO 2025-06-24 17:28:39,274 _client 512 140447085964160 HTTP Request: POST http://testserver/api/execution/workflows/1e8e2a41-5215-424f-a11c-426a8a1be8b8/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:28:44,465 _client 512 140447085964160 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:44,580 _client 512 140447085964160 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:44,711 _client 512 140447085964160 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:44,834 workflow_service 512 140446941726400 Created workflow b1ce7f55-f610-404e-8d1f-05981a125eae for target c39a1fca-3c53-411e-8317-1aed9764a996
+INFO 2025-06-24 17:28:44,846 _client 512 140447085964160 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:44,972 workflow_service 512 140446941726400 Created workflow 3f01e74f-3de8-42a7-b8a6-127b99216091 for target 4289c2fe-a179-45cc-9ff8-3b0b7c9181f8
+INFO 2025-06-24 17:28:44,985 _client 512 140447085964160 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:45,110 workflow_service 512 140446941726400 Created workflow afdd6448-ecf1-4e48-b58a-e9f4ff32fbcf for target 1bc66cb3-afe4-4eb7-a79a-e9c05dd57813
+INFO 2025-06-24 17:28:45,119 _client 512 140447085964160 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:28:45,138 log 512 140446964803264 Unprocessable Entity: /api/execution/workflows/b1ce7f55-f610-404e-8d1f-05981a125eae/execute
+WARNING 2025-06-24 17:28:45,140 log 512 140446916548288 Unprocessable Entity: /api/execution/workflows/afdd6448-ecf1-4e48-b58a-e9f4ff32fbcf/execute
+WARNING 2025-06-24 17:28:45,142 log 512 140446571427520 Unprocessable Entity: /api/execution/workflows/3f01e74f-3de8-42a7-b8a6-127b99216091/execute
+INFO 2025-06-24 17:28:45,145 _client 512 140447085964160 HTTP Request: POST http://testserver/api/execution/workflows/b1ce7f55-f610-404e-8d1f-05981a125eae/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:28:45,147 _client 512 140447085964160 HTTP Request: POST http://testserver/api/execution/workflows/afdd6448-ecf1-4e48-b58a-e9f4ff32fbcf/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:28:45,148 _client 512 140447085964160 HTTP Request: POST http://testserver/api/execution/workflows/3f01e74f-3de8-42a7-b8a6-127b99216091/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:28:51,052 _client 512 140447085964160 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:28:51,208 workflow_service 512 140446964803264 Created workflow 548f29df-a615-48ef-ab17-37094ec83e6f for target 33f13962-83a5-4b7c-957e-a9cba8cfcbc1
+INFO 2025-06-24 17:28:51,218 _client 512 140447085964160 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:28:51,239 log 512 140446571427520 Not Found: /api/results/passive-recon/
+INFO 2025-06-24 17:28:51,241 _client 512 140447085964160 HTTP Request: POST http://testserver/api/results/passive-recon/ "HTTP/1.1 404 Not Found"
+INFO 2025-06-24 17:29:04,872 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:29:34,982 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:30:05,113 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:30:35,224 basehttp 8 131334367565504 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:31:02,204 autoreload 8 131334481460096 /app/core/tasks/result_service.py changed, reloading.
+INFO 2025-06-24 17:31:08,120 autoreload 600 129425486142336 Watching for file changes with StatReloader
+INFO 2025-06-24 17:31:35,549 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:32:05,703 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:32:35,829 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:33:05,950 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:33:36,070 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:34:06,199 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:34:36,312 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:35:06,421 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:35:36,534 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:36:06,657 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:36:36,822 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:37:06,978 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:37:37,131 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:38:07,284 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:38:37,435 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:39:07,559 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:39:37,772 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:39:52,686 _client 720 132274188839808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:39:52,906 workflow_service 720 132274188839808 Created workflow 48a052d1-2bb8-4ad8-8b15-00f4393a3bcb for target 8e43b0f3-e716-43b6-8a93-3df2239f588f
+INFO 2025-06-24 17:39:52,974 _client 720 132274188839808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:39:53,019 execution_service 720 132274188839808 Docker client initialized successfully
+INFO 2025-06-24 17:39:53,202 workflow_service 720 132274188839808 Started execution of stage PASSIVE_RECON for workflow 48a052d1-2bb8-4ad8-8b15-00f4393a3bcb
+INFO 2025-06-24 17:39:53,219 _client 720 132274188839808 HTTP Request: POST http://testserver/api/execution/workflows/48a052d1-2bb8-4ad8-8b15-00f4393a3bcb/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:39:53,599 _client 720 132274188839808 HTTP Request: POST http://testserver/api/results/passive-recon "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:39:58,628 _client 720 132274188839808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:39:58,831 workflow_service 720 132273977419456 Created workflow 12865142-2532-4b96-a8b9-1c1ffe2a917a for target 506b4a6e-97b4-4a04-86c6-237cb1e8ae07
+INFO 2025-06-24 17:39:58,853 _client 720 132274188839808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:39:58,873 log 720 132274067760832 Unprocessable Entity: /api/execution/workflows/12865142-2532-4b96-a8b9-1c1ffe2a917a/execute
+INFO 2025-06-24 17:39:58,874 _client 720 132274188839808 HTTP Request: POST http://testserver/api/execution/workflows/12865142-2532-4b96-a8b9-1c1ffe2a917a/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:40:02,517 _client 720 132274188839808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:40:02,633 _client 720 132274188839808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:40:02,796 _client 720 132274188839808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:40:03,014 workflow_service 720 132273969026752 Created workflow 72998675-09b1-4e8b-b818-4b8b5990083c for target 01f6ff6d-1ef0-4a76-8a90-fc517c203a61
+INFO 2025-06-24 17:40:03,095 _client 720 132274188839808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:40:03,366 workflow_service 720 132273969026752 Created workflow e986c363-53ca-4678-8e99-9c0b9395327d for target 051ebcbe-0c1f-477d-8458-de1e31ab10a6
+INFO 2025-06-24 17:40:03,452 _client 720 132274188839808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:40:03,703 workflow_service 720 132273969026752 Created workflow b1d9ae1d-f07f-4075-be3f-ca9b04ada8e2 for target b1704a14-0225-44ef-8232-e28788964dda
+INFO 2025-06-24 17:40:03,721 _client 720 132274188839808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:40:03,746 log 720 132274067760832 Unprocessable Entity: /api/execution/workflows/72998675-09b1-4e8b-b818-4b8b5990083c/execute
+WARNING 2025-06-24 17:40:03,749 log 720 132273960634048 Unprocessable Entity: /api/execution/workflows/e986c363-53ca-4678-8e99-9c0b9395327d/execute
+WARNING 2025-06-24 17:40:03,751 log 720 132273943848640 Unprocessable Entity: /api/execution/workflows/b1d9ae1d-f07f-4075-be3f-ca9b04ada8e2/execute
+INFO 2025-06-24 17:40:03,753 _client 720 132274188839808 HTTP Request: POST http://testserver/api/execution/workflows/72998675-09b1-4e8b-b818-4b8b5990083c/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:40:03,756 _client 720 132274188839808 HTTP Request: POST http://testserver/api/execution/workflows/e986c363-53ca-4678-8e99-9c0b9395327d/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:40:03,760 _client 720 132274188839808 HTTP Request: POST http://testserver/api/execution/workflows/b1d9ae1d-f07f-4075-be3f-ca9b04ada8e2/execute "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:40:07,918 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:40:09,106 _client 720 132274188839808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:40:09,236 workflow_service 720 132274067760832 Created workflow 98a7358f-0943-4016-965c-844d1c5232e8 for target 88067656-134f-4bd8-a20a-24b7af859af4
+INFO 2025-06-24 17:40:09,249 _client 720 132274188839808 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+WARNING 2025-06-24 17:40:09,253 log 720 132273943848640 Unprocessable Entity: /api/results/passive-recon
+INFO 2025-06-24 17:40:09,255 _client 720 132274188839808 HTTP Request: POST http://testserver/api/results/passive-recon "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-24 17:40:38,106 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:41:08,276 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:41:38,412 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:42:08,546 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:42:38,707 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:43:08,810 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:43:38,938 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:44:09,085 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:44:36,929 _client 840 130448846396288 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:44:37,063 workflow_service 840 130448846396288 Created workflow dcb56497-3e63-42a4-8e06-8653b6b910fe for target d6b86777-5514-46ec-93f5-26cfb3d62b8d
+INFO 2025-06-24 17:44:37,075 _client 840 130448846396288 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:44:37,119 execution_service 840 130448846396288 Docker client initialized successfully
+INFO 2025-06-24 17:44:37,244 workflow_service 840 130448846396288 Started execution of stage passive_recon for workflow dcb56497-3e63-42a4-8e06-8653b6b910fe
+INFO 2025-06-24 17:44:37,258 _client 840 130448846396288 HTTP Request: POST http://testserver/api/execution/workflows/dcb56497-3e63-42a4-8e06-8653b6b910fe/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:44:37,318 execution_service 840 130448846396288 Docker client initialized successfully
+INFO 2025-06-24 17:44:37,484 _client 840 130448846396288 HTTP Request: GET http://testserver/api/execution/workflows/dcb56497-3e63-42a4-8e06-8653b6b910fe/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:44:39,251 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:45:09,411 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:45:39,528 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:46:06,837 _client 867 129018745461632 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:46:06,987 workflow_service 867 129018745461632 Created workflow 94902622-3ff6-4faf-90f3-c199848db843 for target db05a5e9-2332-4d17-acba-195213e125ff
+INFO 2025-06-24 17:46:07,000 _client 867 129018745461632 HTTP Request: POST http://testserver/api/workflows/ "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:46:07,036 execution_service 867 129018745461632 Docker client initialized successfully
+INFO 2025-06-24 17:46:07,134 workflow_service 867 129018745461632 Started execution of stage passive_recon for workflow 94902622-3ff6-4faf-90f3-c199848db843
+INFO 2025-06-24 17:46:07,147 _client 867 129018745461632 HTTP Request: POST http://testserver/api/execution/workflows/94902622-3ff6-4faf-90f3-c199848db843/execute "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:46:07,176 execution_service 867 129018745461632 Docker client initialized successfully
+INFO 2025-06-24 17:46:07,277 _client 867 129018745461632 HTTP Request: GET http://testserver/api/execution/workflows/94902622-3ff6-4faf-90f3-c199848db843/status "HTTP/1.1 200 OK"
+INFO 2025-06-24 17:46:09,667 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:46:39,799 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:47:09,983 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:47:40,116 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-24 17:48:14,613 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+ERROR 2025-06-25 09:39:18,408 log 600 129425372042944 Invalid HTTP_HOST header: '192.168.1.175:8000'. You may need to add '192.168.1.175' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/http/request.py", line 191, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '192.168.1.175:8000'. You may need to add '192.168.1.175' to ALLOWED_HOSTS.
+WARNING 2025-06-25 09:39:18,564 basehttp 600 129425372042944 "GET / HTTP/1.1" 400 64761
+INFO 2025-06-25 09:39:34,502 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115

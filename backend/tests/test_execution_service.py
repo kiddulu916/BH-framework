@@ -10,7 +10,7 @@ from datetime import datetime
 from core.tasks.execution_service import ExecutionService
 from core.utils.exceptions import ExecutionError, ContainerError
 from core.schemas.base import APIResponse
-from core.models.workflow import StageStatus
+from core.models.workflow import StageStatus, WorkflowStatus
 
 
 @pytest.fixture
@@ -446,7 +446,7 @@ class TestExecutionService:
         status = execution_service._determine_workflow_status(stages)
         
         # Assert
-        assert status == "pending"
+        assert status == WorkflowStatus.PENDING
 
     @pytest.mark.asyncio
     async def test_get_container_status_success(self, execution_service):

@@ -1,10 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable experimental features
-  experimental: {
-    appDir: true,
-  },
-  
   // Environment variables
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
@@ -13,7 +8,6 @@ const nextConfig = {
   
   // Development settings
   reactStrictMode: true,
-  swcMinify: true,
   
   // CORS headers for development
   async headers() {
@@ -43,4 +37,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig; 

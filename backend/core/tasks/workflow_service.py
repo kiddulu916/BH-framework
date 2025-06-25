@@ -357,17 +357,24 @@ class WorkflowService:
                 raise NotFoundError(f"Workflow with ID {workflow_id} not found")
             
             stage_name = payload.stage_name
-            
+            # Normalize stage_name to uppercase string
+            if hasattr(stage_name, 'value'):
+                stage_name_key = stage_name.value.upper()
+            else:
+                stage_name_key = str(stage_name).upper()
+            # Normalize workflow.stages keys to uppercase strings
+            normalized_stages = {str(k).upper() if not isinstance(k, str) else k.upper(): v for k, v in workflow.stages.items()}
+
             # Validate stage name
-            if stage_name not in workflow.stages:
+            if stage_name_key not in normalized_stages:
                 raise ValidationError(f"Invalid stage name: {stage_name}")
             
             # Check if stage is already running
-            if workflow.stages[stage_name] == StageStatus.RUNNING:
+            if normalized_stages[stage_name_key] == StageStatus.RUNNING:
                 raise WorkflowError(f"Stage {stage_name} is already running")
             
             # Check dependencies
-            await self._validate_stage_dependencies(workflow, stage_name)
+            await self._validate_stage_dependencies(workflow, stage_name_key, normalized_stages)
             
             # Update stage status to running
             await self.workflow_repository.update(workflow_id, **{
@@ -401,28 +408,30 @@ class WorkflowService:
             logger.error(f"Error executing stage {payload.stage_name} for workflow {workflow_id}: {str(e)}")
             return APIResponse(success=False, message="Failed to execute stage", errors=[str(e)])
     
-    async def _validate_stage_dependencies(self, workflow, stage_name: str) -> None:
+    async def _validate_stage_dependencies(self, workflow, stage_name: str, normalized_stages: dict = None) -> None:
         """
         Validate that stage dependencies are met.
         
         Args:
             workflow: Workflow object
             stage_name: Name of stage to validate
+            normalized_stages: Normalized stages dictionary
             
         Raises:
             WorkflowError: If dependencies are not met
         """
         dependencies = {
-            "active_recon": ["passive_recon"],
-            "vulnerability_scan": ["active_recon"],
-            "vulnerability_test": ["vulnerability_scan"],
-            "kill_chain_analysis": ["vulnerability_test"],
-            "report_generation": ["kill_chain_analysis"]
+            "ACTIVE_RECON": ["PASSIVE_RECON"],
+            "VULN_SCAN": ["ACTIVE_RECON"],
+            "VULN_TEST": ["VULN_SCAN"],
+            "KILL_CHAIN": ["VULN_TEST"],
+            "REPORT": ["KILL_CHAIN"]
         }
-        
+        if normalized_stages is None:
+            normalized_stages = {str(k).upper() if not isinstance(k, str) else k.upper(): v for k, v in workflow.stages.items()}
         if stage_name in dependencies:
             for dep_stage in dependencies[stage_name]:
-                if workflow.stages.get(dep_stage) != StageStatus.COMPLETED:
+                if normalized_stages.get(dep_stage) != StageStatus.COMPLETED:
                     raise WorkflowError(f"Stage {stage_name} requires {dep_stage} to be completed first")
     
     async def get_workflow_statistics(self) -> APIResponse:

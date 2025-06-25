@@ -49,22 +49,8 @@ class ResultService:
         subdomains = data.pop('subdomains', [])
         result = await self.passive_recon_repo.create_with_subdomains(subdomains=subdomains, **data)
         
-        # Convert the result to a dict and normalize enum values back to lowercase
-        result_dict = result.to_dict()
-        
-        # Normalize tools_used back to lowercase
-        if 'tools_used' in result_dict and result_dict['tools_used']:
-            result_dict['tools_used'] = [tool.lower() for tool in result_dict['tools_used']]
-        
-        # Normalize subdomain enum values back to lowercase
-        if 'subdomains' in result_dict and result_dict['subdomains']:
-            for subdomain in result_dict['subdomains']:
-                if 'status' in subdomain:
-                    subdomain['status'] = subdomain['status'].lower()
-                if 'sources' in subdomain and subdomain['sources']:
-                    subdomain['sources'] = [source.lower() for source in subdomain['sources']]
-        
-        return PassiveReconResultResponse.model_validate(result_dict)
+        # Return the response using from_attributes=True for ORM compatibility
+        return PassiveReconResultResponse.model_validate(result, from_attributes=True)
     
     async def create_active_recon_result(self, payload: ActiveReconResultCreate) -> ActiveReconResultResponse:
         """

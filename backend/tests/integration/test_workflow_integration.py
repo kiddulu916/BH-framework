@@ -64,8 +64,9 @@ class TestWorkflowIntegration:
         
         # Step 3: Execute passive recon stage
         execution_data = {
-            "workflow_id": workflow_id,
+            "workflow_id": str(workflow_id),
             "stage_name": "PASSIVE_RECON",
+            "priority": 0,
             "config_overrides": {
                 "tools": "subfinder,amass",
                 "depth": 1
@@ -77,13 +78,14 @@ class TestWorkflowIntegration:
                 success=True,
                 message="Stage execution completed",
                 data={
-                    "workflow_id": workflow_id,
+                    "workflow_id": str(workflow_id),
                     "stage_name": "passive_recon",
                     "status": "completed",
                     "message": "Passive recon completed",
                     "output": "subdomain1.test-integration.com\nsubdomain2.test-integration.com",
                     "error": None
-                }
+                },
+                errors=None
             ).model_dump()
             
             response = await api_client.post(
@@ -153,7 +155,8 @@ class TestWorkflowIntegration:
                     "message": "Active recon completed",
                     "output": "Port scan results",
                     "error": None
-                }
+                },
+                errors=None
             ).model_dump()
             
             response = await api_client.post(
@@ -209,7 +212,8 @@ class TestWorkflowIntegration:
                     "message": "Vulnerability scan completed",
                     "output": "Vulnerability scan results",
                     "error": None
-                }
+                },
+                errors=None
             ).model_dump()
             
             response = await api_client.post(
@@ -266,7 +270,8 @@ class TestWorkflowIntegration:
                     "message": "Vulnerability testing completed",
                     "output": "Vulnerability testing results",
                     "error": None
-                }
+                },
+                errors=None
             ).model_dump()
             
             response = await api_client.post(
@@ -297,7 +302,8 @@ class TestWorkflowIntegration:
                     "message": "Kill chain analysis completed",
                     "output": "Kill chain analysis results",
                     "error": None
-                }
+                },
+                errors=None
             ).model_dump()
             
             response = await api_client.post(
@@ -364,7 +370,8 @@ class TestWorkflowIntegration:
                     "message": "Report generation completed",
                     "output": "Report generated successfully",
                     "error": None
-                }
+                },
+                errors=None
             ).model_dump()
             
             response = await api_client.post(
@@ -423,8 +430,10 @@ class TestWorkflowIntegration:
         
         # Test stage execution failure
         execution_data = {
+            "workflow_id": str(workflow_id),
             "stage_name": "passive_recon",
-            "settings": {}
+            "priority": 0,
+            "config_overrides": {}
         }
         
         with patch('core.tasks.execution_service.ExecutionService.execute_stage_container') as mock_execute:
@@ -437,7 +446,8 @@ class TestWorkflowIntegration:
                     "status": "failed",
                     "message": "Tool execution failed",
                     "error": "Connection timeout"
-                }
+                },
+                errors=None
             ).model_dump()
             
             response = await api_client.post(
@@ -503,7 +513,8 @@ class TestWorkflowIntegration:
                 data={
                     "status": "completed",
                     "message": "Concurrent execution completed"
-                }
+                },
+                errors=None
             ).model_dump()
             
             # Execute all workflows concurrently
@@ -565,7 +576,7 @@ class TestWorkflowIntegration:
             "metadata": {"tools_used": ["subfinder"]}
         }
         
-        response = await api_client.post("/api/results/passive-recon/", json=passive_data)
+        response = await api_client.post("/api/results/passive-recon", json=passive_data)
         assert response.status_code == 200
         
         # Submit active recon results that reference passive recon data
