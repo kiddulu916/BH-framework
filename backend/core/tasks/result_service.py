@@ -188,6 +188,8 @@ class ResultService:
             "target_id", "execution_id", "tools_used", "configuration", "scan_type", "scan_targets", "total_findings", "critical_findings", "high_findings", "medium_findings", "low_findings", "info_findings", "raw_output", "processed_data", "execution_time", "errors"
         }
         filtered_data = {k: v for k, v in data.items() if k in vuln_fields}
+        if "execution_id" in filtered_data and isinstance(filtered_data["execution_id"], UUID):
+            filtered_data["execution_id"] = str(filtered_data["execution_id"])
         result = await self.vulnerability_repo.create(
             **filtered_data,
             findings=findings
