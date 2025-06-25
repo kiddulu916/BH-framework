@@ -3497,3 +3497,42 @@ INFO 2025-06-25 17:44:44,004 basehttp 4950 137408747140800 "GET /health/ HTTP/1.
 INFO 2025-06-25 17:44:53,390 autoreload 4950 137408928754560 /app/core/tasks/result_service.py changed, reloading.
 INFO 2025-06-25 17:44:54,115 autoreload 5106 130962841222016 Watching for file changes with StatReloader
 INFO 2025-06-25 17:45:14,039 basehttp 5106 130962659808960 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-25 10:46:10,705 execution_service 42168 43456 Docker client initialized successfully
+INFO 2025-06-25 10:46:10,764 _client 42168 43456 HTTP Request: POST http://testserver/api/execution/workflows/f419cf61-ce41-415e-ac50-69c7e9779789/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:11,302 execution_service 42168 44808 Docker client initialized successfully
+INFO 2025-06-25 10:46:11,361 _client 42168 43456 HTTP Request: POST http://testserver/api/execution/workflows/20ebad9c-8745-48db-ab23-cf0860850b3f/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:11,722 execution_service 42168 40476 Docker client initialized successfully
+INFO 2025-06-25 10:46:11,779 _client 42168 43456 HTTP Request: POST http://testserver/api/execution/workflows/b8388fac-8aba-418c-91af-e207eaebee6a/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:12,319 execution_service 42168 43320 Docker client initialized successfully
+INFO 2025-06-25 10:46:12,383 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/workflows/b10cbcd4-1334-4e05-b2ab-9840a5dffee8/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:12,746 execution_service 42168 40484 Docker client initialized successfully
+INFO 2025-06-25 10:46:12,804 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/workflows/044ebcc0-0d28-473e-9350-d42e6e072a83/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:13,416 execution_service 42168 45548 Docker client initialized successfully
+INFO 2025-06-25 10:46:13,505 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/workflows/44cb42e2-1eae-4869-95db-69578d71b45a/stages/passive_recon/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:14,071 execution_service 42168 14364 Docker client initialized successfully
+INFO 2025-06-25 10:46:14,137 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/workflows/a1536790-3b30-41c0-a1bd-4ca9e75cf557/stages/invalid_stage/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:14,712 execution_service 42168 23100 Docker client initialized successfully
+INFO 2025-06-25 10:46:14,713 _client 42168 43456 HTTP Request: POST http://testserver/api/execution/workflows/f45d1bcf-9d59-440a-ab76-60d47814d6ca/stages/passive_recon/cancel "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:15,271 execution_service 42168 45752 Docker client initialized successfully
+INFO 2025-06-25 10:46:15,332 _client 42168 43456 HTTP Request: POST http://testserver/api/execution/workflows/5f00cc70-e344-4111-8804-7d2571e110e4/stages/passive_recon/cancel "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:15,927 execution_service 42168 38972 Docker client initialized successfully
+INFO 2025-06-25 10:46:15,987 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/workflows/203a7c5e-abaf-48f1-b074-c0616b4823fb/stages/passive_recon/logs "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:16,533 execution_service 42168 21064 Docker client initialized successfully
+INFO 2025-06-25 10:46:16,592 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/workflows/cc68fb26-beb2-40a8-a3d5-6cc7a9567466/stages/invalid_stage/logs "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:16,965 execution_service 42168 35848 Docker client initialized successfully
+INFO 2025-06-25 10:46:16,966 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/containers "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:17,360 execution_service 42168 15988 Docker client initialized successfully
+INFO 2025-06-25 10:46:17,361 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/containers/test_container/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:17,734 execution_service 42168 34784 Docker client initialized successfully
+INFO 2025-06-25 10:46:17,735 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/containers/non_existent/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:18,131 execution_service 42168 36240 Docker client initialized successfully
+INFO 2025-06-25 10:46:18,133 _client 42168 43456 HTTP Request: POST http://testserver/api/execution/containers/test_container/stop "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:18,503 execution_service 42168 44168 Docker client initialized successfully
+INFO 2025-06-25 10:46:18,504 _client 42168 43456 HTTP Request: POST http://testserver/api/execution/containers/non_existent/stop "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:18,886 execution_service 42168 45548 Docker client initialized successfully
+INFO 2025-06-25 10:46:18,888 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/containers/test_container/logs "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:19,265 execution_service 42168 45500 Docker client initialized successfully
+INFO 2025-06-25 10:46:19,266 _client 42168 43456 HTTP Request: GET http://testserver/api/execution/containers/non_existent/logs "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:19,636 _client 42168 43456 HTTP Request: GET http://testserver/api/health "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:19,640 _client 42168 43456 HTTP Request: GET http://testserver/api/info "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:20,078 _client 42168 43456 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
