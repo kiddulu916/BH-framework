@@ -10732,3 +10732,4 @@ Traceback (most recent call last):
 django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '192.168.1.175:8000'. You may need to add '192.168.1.175' to ALLOWED_HOSTS.
 WARNING 2025-06-25 09:39:18,564 basehttp 600 129425372042944 "GET / HTTP/1.1" 400 64761
 INFO 2025-06-25 09:39:34,502 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-25 09:40:04,829 basehttp 600 129425372042944 "GET /health/ HTTP/1.1" 200 115
