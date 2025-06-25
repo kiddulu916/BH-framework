@@ -3536,3 +3536,8 @@ INFO 2025-06-25 10:46:19,266 _client 42168 43456 HTTP Request: GET http://testse
 INFO 2025-06-25 10:46:19,636 _client 42168 43456 HTTP Request: GET http://testserver/api/health "HTTP/1.1 200 OK"
 INFO 2025-06-25 10:46:19,640 _client 42168 43456 HTTP Request: GET http://testserver/api/info "HTTP/1.1 200 OK"
 INFO 2025-06-25 10:46:20,078 _client 42168 43456 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+WARNING 2025-06-25 10:46:20,466 log 42168 40616 Unprocessable Content: /api/targets/
+INFO 2025-06-25 10:46:20,467 _client 42168 43456 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-25 10:46:21,010 _client 42168 43456 HTTP Request: GET http://testserver/api/targets/244160ae-9564-46d0-96e0-03dd15329cc5 "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:21,454 _client 42168 43456 HTTP Request: GET http://testserver/api/targets/87ec4041-12fd-4d98-8c73-14d2cc7d69f9 "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:46:21,997 _client 42168 43456 HTTP Request: PUT http://testserver/api/targets/7993f050-1ceb-4198-8a54-d103ecf3eb7c "HTTP/1.1 200 OK"
