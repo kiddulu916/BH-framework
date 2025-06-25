@@ -3404,3 +3404,50 @@ INFO 2025-06-25 17:42:43,823 basehttp 4950 137408747140800 "GET /health/ HTTP/1.
 INFO 2025-06-25 17:43:13,858 basehttp 4950 137408747140800 "GET /health/ HTTP/1.1" 200 115
 INFO 2025-06-25 17:43:43,901 basehttp 4950 137408747140800 "GET /health/ HTTP/1.1" 200 115
 INFO 2025-06-25 17:44:13,960 basehttp 4950 137408747140800 "GET /health/ HTTP/1.1" 200 115
+INFO 2025-06-25 10:44:18,507 execution_service 40060 39808 Docker client initialized successfully
+INFO 2025-06-25 10:44:18,566 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/3efc9774-9901-4f6b-a9a0-404b45ab28cb/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:19,117 execution_service 40060 45852 Docker client initialized successfully
+INFO 2025-06-25 10:44:19,178 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/1bb71d19-0432-425b-904a-17359af9ac64/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:19,555 execution_service 40060 44408 Docker client initialized successfully
+INFO 2025-06-25 10:44:19,614 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/cef52618-3683-4cd5-b8ba-9dd4f9de312e/execute "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:20,151 execution_service 40060 33848 Docker client initialized successfully
+INFO 2025-06-25 10:44:20,216 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/workflows/81ca1a62-b86e-4884-b1a6-7525f09e63f7/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:20,586 execution_service 40060 33304 Docker client initialized successfully
+INFO 2025-06-25 10:44:20,647 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/workflows/ae802929-8c53-4a89-a053-7ddc8ea49a88/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:21,197 execution_service 40060 41952 Docker client initialized successfully
+INFO 2025-06-25 10:44:21,254 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/workflows/34967bcc-eecf-4130-819e-ac52a9674694/stages/passive_recon/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:21,803 execution_service 40060 43736 Docker client initialized successfully
+INFO 2025-06-25 10:44:21,871 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/workflows/57ca3d7d-49b8-4ced-9db3-619d6e0232e4/stages/invalid_stage/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:22,497 execution_service 40060 38608 Docker client initialized successfully
+INFO 2025-06-25 10:44:22,499 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/653fc02e-d98f-419f-9c35-a09a2f465240/stages/passive_recon/cancel "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:23,075 execution_service 40060 45592 Docker client initialized successfully
+INFO 2025-06-25 10:44:23,145 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/workflows/ac144824-595e-4f80-ba38-f0f126ec03b0/stages/passive_recon/cancel "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:23,706 execution_service 40060 45940 Docker client initialized successfully
+INFO 2025-06-25 10:44:23,766 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/workflows/917e0105-3ec8-4a91-81fe-0c067c407ab9/stages/passive_recon/logs "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:24,312 execution_service 40060 15424 Docker client initialized successfully
+INFO 2025-06-25 10:44:24,378 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/workflows/dfd3ff20-5968-4416-8849-ae8bd69d2627/stages/invalid_stage/logs "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:24,758 execution_service 40060 10792 Docker client initialized successfully
+INFO 2025-06-25 10:44:24,759 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/containers "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:25,130 execution_service 40060 38456 Docker client initialized successfully
+INFO 2025-06-25 10:44:25,131 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/containers/test_container/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:25,499 execution_service 40060 45264 Docker client initialized successfully
+INFO 2025-06-25 10:44:25,500 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/containers/non_existent/status "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:25,870 execution_service 40060 40656 Docker client initialized successfully
+INFO 2025-06-25 10:44:25,871 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/containers/test_container/stop "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:26,234 execution_service 40060 43468 Docker client initialized successfully
+INFO 2025-06-25 10:44:26,235 _client 40060 39808 HTTP Request: POST http://testserver/api/execution/containers/non_existent/stop "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:26,607 execution_service 40060 38156 Docker client initialized successfully
+INFO 2025-06-25 10:44:26,608 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/containers/test_container/logs "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:26,976 execution_service 40060 41028 Docker client initialized successfully
+INFO 2025-06-25 10:44:26,977 _client 40060 39808 HTTP Request: GET http://testserver/api/execution/containers/non_existent/logs "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:27,340 _client 40060 39808 HTTP Request: GET http://testserver/api/health "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:27,344 _client 40060 39808 HTTP Request: GET http://testserver/api/info "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:27,778 _client 40060 39808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 200 OK"
+WARNING 2025-06-25 10:44:28,138 log 40060 45640 Unprocessable Content: /api/targets/
+INFO 2025-06-25 10:44:28,138 _client 40060 39808 HTTP Request: POST http://testserver/api/targets/ "HTTP/1.1 422 Unprocessable Entity"
+INFO 2025-06-25 10:44:28,690 _client 40060 39808 HTTP Request: GET http://testserver/api/targets/39404169-f4a8-470f-b92d-aa019931b7a2 "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:29,111 _client 40060 39808 HTTP Request: GET http://testserver/api/targets/fff5ad86-e10e-4848-8bea-eb8d5cf19649 "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:29,649 _client 40060 39808 HTTP Request: PUT http://testserver/api/targets/b9066132-dc00-4dfa-bccc-7b01d564fa02 "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:30,084 _client 40060 39808 HTTP Request: PUT http://testserver/api/targets/d7e01101-a98b-4cd2-8b7f-bb5ad660b304 "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:30,641 _client 40060 39808 HTTP Request: DELETE http://testserver/api/targets/fe2022a6-4aba-4aa7-b9d2-0f7d048ec671 "HTTP/1.1 200 OK"
+INFO 2025-06-25 10:44:31,130 _client 40060 39808 HTTP Request: DELETE http://testserver/api/targets/75af618d-d35c-4094-a216-fc646a0debe9 "HTTP/1.1 200 OK"
