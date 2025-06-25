@@ -85,19 +85,26 @@ class PassiveReconResult(BaseModel):
     def to_dict(self) -> dict:
         """Convert passive recon result to dictionary."""
         base_dict = super().to_dict()
+        # Ensure metadata is always a dict
+        metadata = self.metadata
+        if not isinstance(metadata, dict):
+            try:
+                metadata = dict(metadata) if metadata is not None else {}
+            except Exception:
+                metadata = {}
         return {
             **base_dict,
             'execution_id': self.execution_id,
             'tools_used': self.tools_used,
-            'configuration': self.configuration,
             'total_subdomains': self.total_subdomains,
-            'unique_subdomains': self.unique_subdomains,
-            'active_subdomains': self.active_subdomains,
-            'raw_output': self.raw_output,
-            'processed_data': self.processed_data,
             'execution_time': self.execution_time,
-            'errors': self.errors,
+            'raw_output': self.raw_output,
+            'metadata': metadata,
             'target_id': str(self.target_id),
+            'subdomains': [s.to_dict() for s in self.subdomains],
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'id': str(self.id),
         }
 
 
@@ -155,23 +162,25 @@ class Subdomain(BaseModel):
     def to_dict(self) -> dict:
         """Convert subdomain to dictionary."""
         base_dict = super().to_dict()
+        # Ensure metadata is always a dict
+        metadata = self.metadata
+        if not isinstance(metadata, dict):
+            try:
+                metadata = dict(metadata) if metadata is not None else {}
+            except Exception:
+                metadata = {}
         return {
             **base_dict,
-            'name': self.name,
+            'id': str(self.id),
+            'target_id': str(self.passive_recon_result.target_id),
+            'subdomain': self.name,
             'domain': self.domain,
-            'subdomain_part': self.subdomain_part,
-            'status': self.status.value,
-            'is_verified': self.is_verified,
             'ip_addresses': self.ip_addresses,
-            'cname': self.cname,
-            'mx_records': self.mx_records,
-            'txt_records': self.txt_records,
-            'ns_records': self.ns_records,
-            'sources': self.sources,
-            'first_seen': self.first_seen,
-            'last_seen': self.last_seen,
-            'tags': self.tags,
-            'passive_recon_result_id': str(self.passive_recon_result_id),
+            'status': self.status.value if hasattr(self.status, 'value') else self.status,
+            'source': self.sources[0] if self.sources and isinstance(self.sources, list) else (self.sources or None),
+            'metadata': metadata,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
     
     @property

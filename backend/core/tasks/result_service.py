@@ -10,16 +10,20 @@ from uuid import UUID
 from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from core.repositories.passive_recon import PassiveReconRepository
 from core.repositories.active_recon import ActiveReconRepository
 from core.repositories.vulnerability import VulnerabilityRepository
 from core.repositories.kill_chain import KillChainRepository
 from core.schemas.passive_recon import PassiveReconResultCreate, PassiveReconResultResponse
-from core.schemas.active_recon import ActiveReconResultCreate, ActiveReconResultResponse
+from core.schemas.active_recon import ActiveReconResultCreate, ActiveReconResultResponse, PortResponse, ServiceResponse
 from core.schemas.vulnerability import VulnerabilityCreate, VulnerabilityResponse
 from core.schemas.kill_chain import KillChainCreate, KillChainResponse
 from core.utils.exceptions import NotFoundError, ValidationError
+from core.models.active_recon import Port, Service, PortStatus, ActiveReconResult
+from core.models.vulnerability import VulnerabilityFinding
 
 
 class ResultService:
@@ -49,6 +53,9 @@ class ResultService:
         subdomains = data.pop('subdomains', [])
         result = await self.passive_recon_repo.create_with_subdomains(subdomains=subdomains, **data)
         
+        # Eagerly reload with subdomains before session closes
+        result = await self.passive_recon_repo.get_by_id(result.id, include_relationships=['subdomains'])
+        
         # Convert the result to a dict and normalize enum values back to lowercase
         result_dict = result.to_dict()
         
@@ -61,8 +68,8 @@ class ResultService:
             for subdomain in result_dict['subdomains']:
                 if 'status' in subdomain:
                     subdomain['status'] = subdomain['status'].lower()
-                if 'sources' in subdomain and subdomain['sources']:
-                    subdomain['sources'] = [source.lower() for source in subdomain['sources']]
+                if 'source' in subdomain and subdomain['source']:
+                    subdomain['source'] = subdomain['source'].lower()
         
         return PassiveReconResultResponse.model_validate(result_dict)
     
@@ -79,9 +86,61 @@ class ResultService:
         # Validate target exists
         await self._validate_target_exists(payload.target_id)
         
-        # Create active recon result
-        result = await self.active_recon_repo.create(**payload.model_dump())
-        return ActiveReconResultResponse.model_validate(result, from_attributes=True)
+        data = payload.model_dump()
+        ports_data = data.pop('ports', [])
+        services_data = data.pop('services', [])
+        # Convert status string to PortStatus enum for each port
+        for port in ports_data:
+            if "status" in port and isinstance(port["status"], str):
+                port["status"] = PortStatus(port["status"])
+            # Map 'port' to 'port_number' if present
+            if "port" in port and "port_number" not in port:
+                port["port_number"] = port.pop("port")
+        port_fields = {
+            "host", "port_number", "protocol", "status", "is_open",
+            "service_name", "service_version", "service_product",
+            "banner", "script_output", "notes"
+        }
+        service_fields = {
+            "name", "version", "product", "extrainfo", "status", "is_confirmed",
+            "banner", "fingerprint", "cpe", "tags", "notes"
+        }
+        ports = [Port(**{k: v for k, v in port.items() if k in port_fields}) for port in ports_data]
+        services = [Service(**{k: v for k, v in service.items() if k in service_fields}) for service in services_data]
+        # Only keep valid fields for ActiveReconResult
+        active_recon_fields = {
+            "target_id", "execution_id", "tools_used", "hosts_scanned", "raw_output", "processed_data", "execution_time", "errors", "configuration", "scan_type",
+            "total_hosts_scanned", "hosts_with_open_ports", "total_open_ports", "total_services_detected"
+        }
+        filtered_data = {k: v for k, v in data.items() if k in active_recon_fields}
+        if "execution_id" in filtered_data and isinstance(filtered_data["execution_id"], UUID):
+            filtered_data["execution_id"] = str(filtered_data["execution_id"])
+        result = await self.active_recon_repo.create(
+            **filtered_data,
+            ports=ports,
+            services=services
+        )
+        # Eagerly load relationships using selectinload
+        stmt = (
+            select(ActiveReconResult)
+            .options(selectinload(ActiveReconResult.ports), selectinload(ActiveReconResult.services))
+            .where(ActiveReconResult.id == result.id)
+        )
+        result = (await self.session.execute(stmt)).scalar_one()
+        # Compute total_ports and total_services
+        total_ports = len(result.ports) if result.ports else 0
+        total_services = len(result.services) if result.services else 0
+        # Use metadata from input if present, else empty dict
+        metadata = data.get("metadata", {})
+        # Build response dict
+        response_dict = result.to_dict()
+        # Convert ports and services to response schemas using to_dict first
+        response_dict["ports"] = [PortResponse.model_validate(port.to_dict()).model_dump() for port in result.ports]
+        response_dict["services"] = [ServiceResponse.model_validate(service.to_dict()).model_dump() for service in result.services]
+        response_dict["total_ports"] = total_ports
+        response_dict["total_services"] = total_services
+        response_dict["metadata"] = metadata
+        return ActiveReconResultResponse(**response_dict)
     
     async def create_vulnerability_result(self, payload: VulnerabilityCreate) -> VulnerabilityResponse:
         """
@@ -95,9 +154,36 @@ class ResultService:
         """
         # Validate target exists
         await self._validate_target_exists(payload.target_id)
-        
-        # Create vulnerability result
-        result = await self.vulnerability_repo.create(**payload.model_dump())
+        data = payload.model_dump()
+        findings_data = data.pop('findings', [])
+        findings = []
+        for finding in findings_data:
+            mapped = {
+                'title': finding.get('title'),
+                'vuln_type': finding.get('vulnerability_type'),
+                'severity': finding.get('severity'),
+                'status': finding.get('status'),
+                'description': finding.get('description'),
+                'cve_id': finding.get('cve_id'),
+                'cvss_score': finding.get('cvss_score'),
+                'cvss_vector': finding.get('cvss_vector'),
+                'affected_host': finding.get('host'),
+                'affected_port': finding.get('port'),
+                'affected_service': None,
+                'affected_url': finding.get('url'),
+                'proof_of_concept': finding.get('payload') or finding.get('evidence'),
+                'remediation': None,
+                'references': finding.get('references'),
+                'detection_tool': finding.get('tool'),
+                'detection_method': None,
+                'confidence': None,
+                'is_verified': False,
+                'verification_notes': None,
+                'tags': finding.get('tags'),
+                'notes': None,
+            }
+            findings.append(VulnerabilityFinding(**{k: v for k, v in mapped.items() if v is not None}))
+        result = await self.vulnerability_repo.create(**data, findings=findings)
         return VulnerabilityResponse.model_validate(result, from_attributes=True)
     
     async def create_kill_chain_result(self, payload: KillChainCreate) -> KillChainResponse:

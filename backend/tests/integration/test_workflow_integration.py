@@ -71,27 +71,29 @@ class TestWorkflowIntegration:
                 "depth": 1
             }
         }
-        
         with patch('core.tasks.execution_service.ExecutionService.execute_stage_container') as mock_execute:
             mock_execute.return_value = APIResponse(
                 success=True,
                 message="Stage execution completed",
                 data={
                     "workflow_id": workflow_id,
-                    "stage_name": "passive_recon",
+                    "stage_name": "PASSIVE_RECON",
                     "status": "completed",
                     "message": "Passive recon completed",
                     "output": "subdomain1.test-integration.com\nsubdomain2.test-integration.com",
                     "error": None
                 }
-            ).model_dump()
-            
+            )
             response = await api_client.post(
                 f"/api/execution/workflows/{workflow_id}/execute",
                 json=execution_data
             )
             print(f"Execution response: {response.json()}")  # Debug print
             assert response.status_code == 200
+            execution_response = response.json()
+            if not execution_response["success"]:
+                print(f"FAIL: {execution_response}")
+            assert execution_response["success"] is True
         
         # Step 4: Submit passive recon results
         passive_recon_data = {
@@ -135,177 +137,228 @@ class TestWorkflowIntegration:
         
         # Step 5: Execute active recon stage
         execution_data = {
-            "stage_name": "active_recon",
-            "settings": {
+            "workflow_id": workflow_id,
+            "stage_name": "ACTIVE_RECON",
+            "config_overrides": {
                 "ports": "80,443,8080",
                 "timeout": 30
             }
         }
-        
         with patch('core.tasks.execution_service.ExecutionService.execute_stage_container') as mock_execute:
             mock_execute.return_value = APIResponse(
                 success=True,
                 message="Stage execution completed",
                 data={
                     "workflow_id": workflow_id,
-                    "stage_name": "active_recon",
+                    "stage_name": "ACTIVE_RECON",
                     "status": "completed",
                     "message": "Active recon completed",
                     "output": "Port scan results",
                     "error": None
                 }
-            ).model_dump()
-            
+            )
             response = await api_client.post(
                 f"/api/execution/workflows/{workflow_id}/execute",
                 json=execution_data
             )
+            print(f"Execution response: {response.json()}")  # Debug print
             assert response.status_code == 200
             execution_response = response.json()
+            if not execution_response["success"]:
+                print(f"FAIL: {execution_response}")
             assert execution_response["success"] is True
         
         # Step 6: Submit active recon results
         active_recon_data = {
             "target_id": target_id,
-            "workflow_id": workflow_id,
-            "live_hosts": [
+            "execution_id": str(workflow_id),
+            "tools_used": ["nmap"],
+            "hosts_scanned": ["subdomain1.test-integration.com"],
+            "ports": [
                 {
+                    "target_id": target_id,
                     "host": "subdomain1.test-integration.com",
-                    "ip_address": "192.168.1.101",
-                    "ports": [
-                        {"port": 80, "service": "http", "state": "open"},
-                        {"port": 443, "service": "https", "state": "open"}
-                    ]
+                    "port": 80,
+                    "protocol": "tcp",
+                    "status": "open",
+                    "service_name": "http",
+                    "service_version": None,
+                    "service_product": None,
+                    "service_extra_info": None,
+                    "banner": None,
+                    "metadata": {}
+                },
+                {
+                    "target_id": target_id,
+                    "host": "subdomain1.test-integration.com",
+                    "port": 443,
+                    "protocol": "tcp",
+                    "status": "open",
+                    "service_name": "https",
+                    "service_version": None,
+                    "service_product": None,
+                    "service_extra_info": None,
+                    "banner": None,
+                    "metadata": {}
                 }
             ],
+            "services": [],
+            "total_ports": 2,
+            "total_services": 0,
+            "execution_time": 45.2,
+            "scan_range": None,
+            "raw_output": {},
             "metadata": {
                 "scan_type": "tcp_connect",
                 "execution_time": 45.2
             }
         }
         
-        response = await api_client.post("/api/results/active-recon/", json=active_recon_data)
+        response = await api_client.post("/api/results/active-recon", json=active_recon_data)
         assert response.status_code == 200
         active_response = response.json()
+        if not active_response["success"]:
+            print(f"Active recon FAIL: {active_response}")
         assert active_response["success"] is True
         
         # Step 7: Execute vulnerability scan
         execution_data = {
-            "stage_name": "vulnerability_scan",
-            "settings": {
+            "workflow_id": workflow_id,
+            "stage_name": "VULN_SCAN",
+            "config_overrides": {
                 "templates": "cves,vulnerabilities",
                 "severity": "low,medium,high,critical"
             }
         }
-        
         with patch('core.tasks.execution_service.ExecutionService.execute_stage_container') as mock_execute:
             mock_execute.return_value = APIResponse(
                 success=True,
                 message="Stage execution completed",
                 data={
                     "workflow_id": workflow_id,
-                    "stage_name": "vulnerability_scan",
+                    "stage_name": "VULN_SCAN",
                     "status": "completed",
                     "message": "Vulnerability scan completed",
                     "output": "Vulnerability scan results",
                     "error": None
                 }
-            ).model_dump()
-            
+            )
             response = await api_client.post(
                 f"/api/execution/workflows/{workflow_id}/execute",
                 json=execution_data
             )
+            print(f"Execution response: {response.json()}")  # Debug print
             assert response.status_code == 200
             execution_response = response.json()
+            if not execution_response["success"]:
+                print(f"FAIL: {execution_response}")
             assert execution_response["success"] is True
         
         # Step 8: Submit vulnerability results
         vulnerability_data = {
             "target_id": target_id,
-            "workflow_id": workflow_id,
-            "vulnerabilities": [
+            "execution_id": str(workflow_id),
+            "tools_used": ["nuclei"],
+            "findings": [
                 {
+                    "target_id": target_id,
                     "title": "SQL Injection Vulnerability",
                     "description": "SQL injection found in login form",
                     "severity": "high",
-                    "cvss_score": 8.5,
-                    "affected_url": "https://subdomain1.test-integration.com/login",
+                    "status": "open",
+                    "vulnerability_type": "sql_injection",
+                    "tool": "nuclei",
+                    "host": "subdomain1.test-integration.com",
+                    "url": "https://subdomain1.test-integration.com/login",
+                    "payload": "Payload: ' OR 1=1--",
                     "evidence": "Payload: ' OR 1=1--",
-                    "status": "open"
+                    "cvss_score": 8.5
                 }
             ],
+            "total_findings": 1,
+            "critical_count": 0,
+            "high_count": 1,
+            "medium_count": 0,
+            "low_count": 0,
+            "info_count": 0,
+            "execution_time": 120.0,
+            "scan_config": {},
+            "raw_output": {},
             "metadata": {
                 "scanner": "nuclei",
                 "execution_time": 120.0
             }
         }
-        
         response = await api_client.post("/api/results/vulnerabilities/", json=vulnerability_data)
         assert response.status_code == 200
         vuln_response = response.json()
+        print(f"Vulnerability response: {vuln_response}")  # Debug print
         assert vuln_response["success"] is True
         
         # Step 9: Execute vulnerability testing
         execution_data = {
-            "stage_name": "vulnerability_test",
-            "settings": {
+            "workflow_id": workflow_id,
+            "stage_name": "VULN_TEST",
+            "config_overrides": {
                 "mode": "safe",
                 "timeout": 60
             }
         }
-        
         with patch('core.tasks.execution_service.ExecutionService.execute_stage_container') as mock_execute:
             mock_execute.return_value = APIResponse(
                 success=True,
                 message="Stage execution completed",
                 data={
                     "workflow_id": workflow_id,
-                    "stage_name": "vulnerability_test",
+                    "stage_name": "VULN_TEST",
                     "status": "completed",
                     "message": "Vulnerability testing completed",
                     "output": "Vulnerability testing results",
                     "error": None
                 }
-            ).model_dump()
-            
+            )
             response = await api_client.post(
                 f"/api/execution/workflows/{workflow_id}/execute",
                 json=execution_data
             )
+            print(f"Execution response: {response.json()}")  # Debug print
             assert response.status_code == 200
             execution_response = response.json()
+            if not execution_response["success"]:
+                print(f"FAIL: {execution_response}")
             assert execution_response["success"] is True
         
         # Step 10: Execute kill chain analysis
         execution_data = {
-            "stage_name": "kill_chain_analysis",
-            "settings": {
+            "workflow_id": workflow_id,
+            "stage_name": "KILL_CHAIN",
+            "config_overrides": {
                 "depth": 3,
                 "mode": "automated"
             }
         }
-        
         with patch('core.tasks.execution_service.ExecutionService.execute_stage_container') as mock_execute:
             mock_execute.return_value = APIResponse(
                 success=True,
                 message="Stage execution completed",
                 data={
                     "workflow_id": workflow_id,
-                    "stage_name": "kill_chain_analysis",
+                    "stage_name": "KILL_CHAIN",
                     "status": "completed",
                     "message": "Kill chain analysis completed",
                     "output": "Kill chain analysis results",
                     "error": None
                 }
-            ).model_dump()
-            
+            )
             response = await api_client.post(
                 f"/api/execution/workflows/{workflow_id}/execute",
                 json=execution_data
             )
+            print(f"Execution response: {response.json()}")  # Debug print
             assert response.status_code == 200
             execution_response = response.json()
+            if not execution_response["success"]:
+                print(f"FAIL: {execution_response}")
             assert execution_response["success"] is True
         
         # Step 11: Submit kill chain results
@@ -346,33 +399,35 @@ class TestWorkflowIntegration:
         
         # Step 12: Generate report
         execution_data = {
-            "stage_name": "report_generation",
-            "settings": {
+            "workflow_id": workflow_id,
+            "stage_name": "REPORT",
+            "config_overrides": {
                 "format": "markdown",
                 "template": "default"
             }
         }
-        
         with patch('core.tasks.execution_service.ExecutionService.execute_stage_container') as mock_execute:
             mock_execute.return_value = APIResponse(
                 success=True,
                 message="Stage execution completed",
                 data={
                     "workflow_id": workflow_id,
-                    "stage_name": "report_generation",
+                    "stage_name": "REPORT",
                     "status": "completed",
                     "message": "Report generation completed",
-                    "output": "Report generated successfully",
+                    "output": "Report file path",
                     "error": None
                 }
-            ).model_dump()
-            
+            )
             response = await api_client.post(
                 f"/api/execution/workflows/{workflow_id}/execute",
                 json=execution_data
             )
+            print(f"Execution response: {response.json()}")  # Debug print
             assert response.status_code == 200
             execution_response = response.json()
+            if not execution_response["success"]:
+                print(f"FAIL: {execution_response}")
             assert execution_response["success"] is True
         
         # Step 13: Verify workflow completion
@@ -438,7 +493,7 @@ class TestWorkflowIntegration:
                     "message": "Tool execution failed",
                     "error": "Connection timeout"
                 }
-            ).model_dump()
+            )
             
             response = await api_client.post(
                 f"/api/execution/workflows/{workflow_id}/execute",
@@ -491,11 +546,6 @@ class TestWorkflowIntegration:
             workflows.append(workflow_response["data"]["id"])
         
         # Execute workflows concurrently
-        execution_data = {
-            "stage_name": "passive_recon",
-            "settings": {"tools": "subfinder"}
-        }
-        
         with patch('core.tasks.execution_service.ExecutionService.execute_stage_container') as mock_execute:
             mock_execute.return_value = APIResponse(
                 success=True,
@@ -504,20 +554,25 @@ class TestWorkflowIntegration:
                     "status": "completed",
                     "message": "Concurrent execution completed"
                 }
-            ).model_dump()
-            
+            )
+
             # Execute all workflows concurrently
             import asyncio
             tasks = []
             for workflow_id in workflows:
+                execution_data = {
+                    "workflow_id": workflow_id,
+                    "stage_name": "passive_recon",
+                    "config_overrides": {"tools": "subfinder"}
+                }
                 task = api_client.post(
                     f"/api/execution/workflows/{workflow_id}/execute",
                     json=execution_data
                 )
                 tasks.append(task)
-            
+
             responses = await asyncio.gather(*tasks)
-            
+
             # Verify all executions completed
             for response in responses:
                 assert response.status_code == 200
@@ -582,7 +637,7 @@ class TestWorkflowIntegration:
             "metadata": {"scan_type": "tcp_connect"}
         }
         
-        response = await api_client.post("/api/results/active-recon/", json=active_data)
+        response = await api_client.post("/api/results/active-recon", json=active_data)
         assert response.status_code == 200
         
         # Verify data persistence by retrieving results
