@@ -3496,3 +3496,4 @@ INFO 2025-06-25 10:44:37,049 _client 40060 39808 HTTP Request: POST http://tests
 INFO 2025-06-25 17:44:44,004 basehttp 4950 137408747140800 "GET /health/ HTTP/1.1" 200 115
 INFO 2025-06-25 17:44:53,390 autoreload 4950 137408928754560 /app/core/tasks/result_service.py changed, reloading.
 INFO 2025-06-25 17:44:54,115 autoreload 5106 130962841222016 Watching for file changes with StatReloader
+INFO 2025-06-25 17:45:14,039 basehttp 5106 130962659808960 "GET /health/ HTTP/1.1" 200 115
