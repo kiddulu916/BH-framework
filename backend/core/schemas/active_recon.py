@@ -178,16 +178,16 @@ class ActiveReconResultCreate(BaseModel):
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
     
     @field_validator('total_ports')
-    def validate_total_ports(cls, v, values):
-        """Validate total_ports matches actual ports count."""
-        if 'ports' in values and v != len(values['ports']):
+    def validate_total_ports(cls, v, info):
+        ports = info.data.get('ports', []) if hasattr(info, 'data') and info.data else []
+        if v != len(ports):
             raise ValueError("total_ports must match the actual number of ports")
         return v
     
     @field_validator('total_services')
-    def validate_total_services(cls, v, values):
-        """Validate total_services matches actual services count."""
-        if 'services' in values and v != len(values['services']):
+    def validate_total_services(cls, v, info):
+        services = info.data.get('services', []) if hasattr(info, 'data') and info.data else []
+        if v != len(services):
             raise ValueError("total_services must match the actual number of services")
         return v
 

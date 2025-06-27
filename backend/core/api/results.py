@@ -114,6 +114,11 @@ async def submit_vulnerability_findings(request: HttpRequest, payload: Vulnerabi
         )
 
 
+@router.post("/vulnerabilities/", response=VulnerabilityCreateResponse, summary="Submit vulnerability findings (alias)")
+async def submit_vulnerability_findings_alias(request: HttpRequest, payload: VulnerabilityCreate):
+    return await submit_vulnerability_findings(request, payload)
+
+
 @router.post("/kill-chain", response=KillChainCreateResponse, summary="Submit kill chain analysis results")
 async def submit_kill_chain_results(request: HttpRequest, payload: KillChainCreate):
     """

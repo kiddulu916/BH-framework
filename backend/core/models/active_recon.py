@@ -8,7 +8,7 @@ which store the results of active reconnaissance activities.
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import Column, String, Text, Boolean, Enum, ForeignKey, Index, Integer
+from sqlalchemy import Column, String, Text, Boolean, Enum, ForeignKey, Index, Integer, Float
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, JSONB
 from sqlalchemy.orm import relationship
 
@@ -57,6 +57,7 @@ class ActiveReconResult(BaseModel):
     tools_used = Column(JSONB, nullable=True)  # List of tools used and their versions
     configuration = Column(JSONB, nullable=True)  # Configuration used for the recon
     scan_type = Column(String(100), nullable=True)  # Type of scan performed
+    hosts_scanned = Column(JSONB, nullable=False, default=list)  # List of hosts scanned
     
     # Results summary
     total_hosts_scanned = Column(Integer, default=0, nullable=False)
@@ -69,7 +70,7 @@ class ActiveReconResult(BaseModel):
     processed_data = Column(JSONB, nullable=True)  # Processed and normalized data
     
     # Execution metadata
-    execution_time = Column(String(50), nullable=True)  # Total execution time
+    execution_time = Column(Float, nullable=True)  # Total execution time in seconds
     errors = Column(JSONB, nullable=True)  # Any errors encountered
     
     # Relationships
@@ -93,6 +94,7 @@ class ActiveReconResult(BaseModel):
             'tools_used': self.tools_used,
             'configuration': self.configuration,
             'scan_type': self.scan_type,
+            'hosts_scanned': self.hosts_scanned,
             'total_hosts_scanned': self.total_hosts_scanned,
             'hosts_with_open_ports': self.hosts_with_open_ports,
             'total_open_ports': self.total_open_ports,
@@ -163,6 +165,7 @@ class Port(BaseModel):
             **base_dict,
             'host': self.host,
             'port_number': self.port_number,
+            'port': self.port_number,  # alias for schema compatibility
             'protocol': self.protocol,
             'status': self.status.value,
             'is_open': self.is_open,
@@ -172,6 +175,8 @@ class Port(BaseModel):
             'banner': self.banner,
             'script_output': self.script_output,
             'active_recon_result_id': str(self.active_recon_result_id),
+            'target_id': str(self.active_recon_result.target_id) if self.active_recon_result else None,
+            'metadata': {},  # default empty dict for compatibility
         }
     
     @property

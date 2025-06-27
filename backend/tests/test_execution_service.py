@@ -10,7 +10,12 @@ from datetime import datetime
 from core.tasks.execution_service import ExecutionService
 from core.utils.exceptions import ExecutionError, ContainerError
 from core.schemas.base import APIResponse
+<<<<<<< HEAD
 from core.models.workflow import StageStatus, WorkflowStatus
+=======
+from core.models.workflow import StageStatus
+from core.schemas.workflow import WorkflowStatus
+>>>>>>> 104107464cb0d6c74457d543e9bf7f7cb883603f
 
 
 @pytest.fixture
@@ -401,7 +406,7 @@ class TestExecutionService:
         status = execution_service._determine_workflow_status(stages)
         
         # Assert
-        assert status == "completed"
+        assert status == WorkflowStatus.COMPLETED
 
     def test_determine_workflow_status_with_failed(self, execution_service):
         """Test workflow status determination when some stages failed."""
@@ -416,7 +421,7 @@ class TestExecutionService:
         status = execution_service._determine_workflow_status(stages)
         
         # Assert
-        assert status == "failed"
+        assert status == WorkflowStatus.FAILED
 
     def test_determine_workflow_status_with_running(self, execution_service):
         """Test workflow status determination when some stages are running."""
@@ -431,7 +436,7 @@ class TestExecutionService:
         status = execution_service._determine_workflow_status(stages)
         
         # Assert
-        assert status == "running"
+        assert status == WorkflowStatus.RUNNING
 
     def test_determine_workflow_status_all_pending(self, execution_service):
         """Test workflow status determination when all stages are pending."""

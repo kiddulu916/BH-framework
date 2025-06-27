@@ -4,7 +4,6 @@ FROM postgres:15-alpine
 # Set environment variables for development
 ENV POSTGRES_DB=bug_hunting_framework
 ENV POSTGRES_USER=postgres
-ENV POSTGRES_PASSWORD=postgres
 
 # Copy initialization scripts if needed
 COPY postgres/ /docker-entrypoint-initdb.d/
