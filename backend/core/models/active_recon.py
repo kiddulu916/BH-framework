@@ -14,6 +14,7 @@ from sqlalchemy.orm import relationship
 
 from .base import BaseModel
 import enum
+import json
 
 
 class PortStatus(enum.Enum):
@@ -87,22 +88,33 @@ class ActiveReconResult(BaseModel):
     
     def to_dict(self) -> dict:
         """Convert active recon result to dictionary."""
+        # Parse JSONB fields back to Python objects
+        def parse_jsonb_field(value):
+            if value is None:
+                return value
+            if isinstance(value, str):
+                try:
+                    return json.loads(value)
+                except (json.JSONDecodeError, TypeError):
+                    return value
+            return value
+        
         base_dict = super().to_dict()
         return {
             **base_dict,
             'execution_id': self.execution_id,
-            'tools_used': self.tools_used,
-            'configuration': self.configuration,
+            'tools_used': parse_jsonb_field(self.tools_used),
+            'configuration': parse_jsonb_field(self.configuration),
             'scan_type': self.scan_type,
-            'hosts_scanned': self.hosts_scanned,
+            'hosts_scanned': parse_jsonb_field(self.hosts_scanned),
             'total_hosts_scanned': self.total_hosts_scanned,
             'hosts_with_open_ports': self.hosts_with_open_ports,
             'total_open_ports': self.total_open_ports,
             'total_services_detected': self.total_services_detected,
-            'raw_output': self.raw_output,
-            'processed_data': self.processed_data,
+            'raw_output': parse_jsonb_field(self.raw_output),
+            'processed_data': parse_jsonb_field(self.processed_data),
             'execution_time': self.execution_time,
-            'errors': self.errors,
+            'errors': parse_jsonb_field(self.errors),
             'target_id': str(self.target_id),
         }
 
@@ -161,6 +173,18 @@ class Port(BaseModel):
     def to_dict(self) -> dict:
         """Convert port to dictionary."""
         base_dict = super().to_dict()
+        
+        # Parse JSONB fields back to Python objects
+        def parse_jsonb_field(value):
+            if value is None:
+                return value
+            if isinstance(value, str):
+                try:
+                    return json.loads(value)
+                except (json.JSONDecodeError, TypeError):
+                    return value
+            return value
+        
         return {
             **base_dict,
             'host': self.host,
@@ -173,7 +197,7 @@ class Port(BaseModel):
             'service_version': self.service_version,
             'service_product': self.service_product,
             'banner': self.banner,
-            'script_output': self.script_output,
+            'script_output': parse_jsonb_field(self.script_output),
             'active_recon_result_id': str(self.active_recon_result_id),
             'target_id': str(self.active_recon_result.target_id) if self.active_recon_result else None,
             'metadata': {},  # default empty dict for compatibility
@@ -242,6 +266,18 @@ class Service(BaseModel):
     def to_dict(self) -> dict:
         """Convert service to dictionary."""
         base_dict = super().to_dict()
+        
+        # Parse JSONB fields back to Python objects
+        def parse_jsonb_field(value):
+            if value is None:
+                return value
+            if isinstance(value, str):
+                try:
+                    return json.loads(value)
+                except (json.JSONDecodeError, TypeError):
+                    return value
+            return value
+        
         return {
             **base_dict,
             'name': self.name,
@@ -251,9 +287,9 @@ class Service(BaseModel):
             'status': self.status.value,
             'is_confirmed': self.is_confirmed,
             'banner': self.banner,
-            'fingerprint': self.fingerprint,
+            'fingerprint': parse_jsonb_field(self.fingerprint),
             'cpe': self.cpe,
-            'tags': self.tags,
+            'tags': parse_jsonb_field(self.tags),
             'port_id': str(self.port_id),
             'active_recon_result_id': str(self.active_recon_result_id),
         }

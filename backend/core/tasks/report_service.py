@@ -18,7 +18,8 @@ from core.schemas.report import (
     ReportExportRequest,
     ReportTemplateResponse,
     ReportFormat,
-    ReportType
+    ReportType,
+    ReportStatus
 )
 from core.repositories.report import ReportRepository
 from core.repositories.workflow import WorkflowRepository
@@ -34,6 +35,7 @@ from core.utils.exceptions import (
     ExportError
 )
 from core.schemas.base import APIResponse
+from core.models.workflow import WorkflowStatus
 
 logger = logging.getLogger(__name__)
 
@@ -88,24 +90,67 @@ class ReportService:
             # Create report
             report_data = {
                 "workflow_id": payload.workflow_id,
-                "title": payload.title or f"Security Assessment Report - {workflow.name}",
-                "description": payload.description,
-                "template": payload.template,
-                "format": payload.format,
-                "content": report_content,
-                "status": "draft",
+                "target_id": workflow.target_id,
+                "name": payload.title or f"Security Assessment Report - {workflow.name}",
+                "report_type": ReportType.TECHNICAL_DETAILED.name,
+                "format": payload.format.name if hasattr(payload.format, 'name') else str(payload.format).upper(),
+                "content": json.dumps(report_content),
+                "status": ReportStatus.GENERATING.name,
+                "template_used": payload.template,
+                "configuration": {"template": payload.template, "format": payload.format.name if hasattr(payload.format, 'name') else str(payload.format).upper()},
                 "created_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc)
             }
             
-            report = await self.report_repository.create(report_data)
+            report = await self.report_repository.create(**report_data)
             
+            # Update workflow status to COMPLETED after report creation
+            await self.workflow_repository.update(report.workflow_id, status=WorkflowStatus.COMPLETED, updated_at=datetime.now(timezone.utc))
+            
+            # Ensure the session is committed so the workflow status change is persisted
+            await self.workflow_repository.session.commit()
+
             logger.info(f"Created report {report.id} for workflow {payload.workflow_id}")
             
+            # Parse report content for required fields
+            content = json.loads(report.content)
+            sections = list(content.get("sections", {}).keys())
+            # Use defaults for include_* fields
+            if hasattr(report.status, 'value'):
+                status_value = report.status.value
+            else:
+                status_value = str(report.status)
+            report_response = ReportResponse(
+                id=report.id,
+                target_id=report.target_id,
+                execution_id=report.workflow_id,
+                user_id=report.user_id,
+                title=report.name,
+                description=report.description or "",
+                report_type=ReportType.TECHNICAL_DETAILED,
+                format=ReportFormat.MARKDOWN,
+                status=ReportStatus(status_value),
+                sections=sections,
+                include_passive_recon=True,
+                include_active_recon=True,
+                include_vulnerabilities=True,
+                include_kill_chain=True,
+                include_screenshots=True,
+                include_raw_data=False,
+                custom_template=None,
+                file_path=report.file_path,
+                file_size=report.file_size,
+                generation_time=None,
+                error_message=None,
+                metadata={},
+                created_at=report.created_at,
+                updated_at=report.updated_at,
+                generated_at=None
+            )
             return APIResponse(
                 success=True,
                 message="Report created successfully",
-                data=ReportResponse.model_validate(report, from_attributes=True).model_dump()
+                data=report_response.model_dump()
             )
             
         except (ValidationError, NotFoundError) as e:
@@ -309,9 +354,9 @@ class ReportService:
             if existing_report:
                 # Update existing report
                 update_data = {
-                    "content": report_content,
-                    "template": template,
-                    "status": "generated",
+                    "content": json.dumps(report_content),
+                    "template_used": template,
+                    "status": ReportStatus.COMPLETED.name,
                     "updated_at": datetime.now(timezone.utc)
                 }
                 report = await self.report_repository.update(existing_report.id, **update_data)
@@ -319,17 +364,23 @@ class ReportService:
                 # Create new report
                 report_data = {
                     "workflow_id": workflow_id,
-                    "title": f"Security Assessment Report - {workflow.name}",
-                    "description": f"Automated security assessment report for {workflow.name}",
-                    "template": template,
-                    "format": ReportFormat.MARKDOWN,
-                    "content": report_content,
-                    "status": "generated",
+                    "target_id": workflow.target_id,
+                    "name": f"Security Assessment Report - {workflow.name}",
+                    "report_type": ReportType.TECHNICAL_DETAILED.name,
+                    "format": ReportFormat.MARKDOWN.name,
+                    "content": json.dumps(report_content),
+                    "status": ReportStatus.COMPLETED.name,
+                    "template_used": template,
+                    "configuration": {"template": template, "format": ReportFormat.MARKDOWN.name},
                     "created_at": datetime.now(timezone.utc),
                     "updated_at": datetime.now(timezone.utc)
                 }
-                report = await self.report_repository.create(report_data)
+                report = await self.report_repository.create(**report_data)
             
+            # Update workflow status to COMPLETED after report generation
+            await self.workflow_repository.update(workflow_id, status=WorkflowStatus.COMPLETED, updated_at=datetime.now(timezone.utc))
+            await self.workflow_repository.session.commit()
+
             logger.info(f"Generated report {report.id} for workflow {workflow_id}")
             
             return APIResponse(
@@ -436,11 +487,11 @@ class ReportService:
     
     async def _generate_report_content(self, workflow, template: str) -> Dict[str, Any]:
         """
-        Generate report content by aggregating data from all stages.
+        Generate report content based on workflow data and template.
         
         Args:
-            workflow: Workflow object
-            template: Report template
+            workflow: Workflow instance
+            template: Report template name
             
         Returns:
             Report content dictionary
@@ -511,46 +562,45 @@ class ReportService:
     
     def _generate_executive_summary(self, target, workflow, vulnerabilities, kill_chains) -> Dict[str, Any]:
         """Generate executive summary section."""
-        critical_count = sum(1 for v in vulnerabilities if v.severity == "critical")
-        high_count = sum(1 for v in vulnerabilities if v.severity == "high")
-        medium_count = sum(1 for v in vulnerabilities if v.severity == "medium")
-        low_count = sum(1 for v in vulnerabilities if v.severity == "low")
-        
         return {
-            "target_overview": f"Security assessment conducted for {target.value}",
-            "assessment_scope": "Comprehensive security testing including reconnaissance, vulnerability scanning, and attack path analysis",
+            "target_overview": f"Security assessment for {target.name} ({target.value})",
+            "assessment_scope": f"Comprehensive security assessment covering {len(vulnerabilities)} vulnerabilities and {len(kill_chains)} attack paths",
             "key_findings": {
-                "critical_vulnerabilities": critical_count,
-                "high_vulnerabilities": high_count,
-                "medium_vulnerabilities": medium_count,
-                "low_vulnerabilities": low_count,
+                "critical_vulnerabilities": len([v for v in vulnerabilities if getattr(v, 'severity', '').lower() == 'critical']),
+                "high_vulnerabilities": len([v for v in vulnerabilities if getattr(v, 'severity', '').lower() == 'high']),
+                "medium_vulnerabilities": len([v for v in vulnerabilities if getattr(v, 'severity', '').lower() == 'medium']),
+                "low_vulnerabilities": len([v for v in vulnerabilities if getattr(v, 'severity', '').lower() == 'low']),
                 "attack_paths": len(kill_chains)
             },
-            "risk_level": "High" if critical_count > 0 or high_count > 5 else "Medium" if high_count > 0 else "Low"
+            "risk_level": "High" if len([v for v in vulnerabilities if getattr(v, 'severity', '').lower() in ['critical', 'high']]) > 0 else "Medium"
         }
+    
+    def _generate_executive_summary_simple(self, target, workflow, vulnerabilities, kill_chains) -> Dict[str, Any]:
+        """Generate executive summary section (alias for compatibility)."""
+        return self._generate_executive_summary(target, workflow, vulnerabilities, kill_chains)
     
     def _generate_methodology_section(self, workflow, passive_recon, active_recon) -> Dict[str, Any]:
         """Generate methodology section."""
         return {
-            "approach": "Automated security assessment using industry-standard tools and methodologies",
+            "approach": "Comprehensive security assessment using industry-standard tools and methodologies",
             "stages": [
                 {
                     "name": "Passive Reconnaissance",
-                    "description": "Information gathering without direct interaction",
+                    "description": "Information gathering without direct interaction with target systems",
                     "tools_used": ["subfinder", "amass", "assetfinder"],
                     "results_count": len(passive_recon)
                 },
                 {
-                    "name": "Active Reconnaissance",
-                    "description": "Direct interaction with target systems",
+                    "name": "Active Reconnaissance", 
+                    "description": "Direct interaction with target systems to identify open ports and services",
                     "tools_used": ["nmap", "httpx"],
                     "results_count": len(active_recon)
                 },
                 {
                     "name": "Vulnerability Assessment",
-                    "description": "Automated vulnerability scanning and testing",
-                    "tools_used": ["nuclei", "custom_scripts"],
-                    "results_count": "See findings section"
+                    "description": "Automated and manual testing for security vulnerabilities",
+                    "tools_used": ["nuclei", "sqlmap", "custom scripts"],
+                    "results_count": 0  # Will be updated when vulnerabilities are processed
                 }
             ]
         }
@@ -560,82 +610,125 @@ class ReportService:
         return {
             "vulnerabilities": [
                 {
-                    "id": str(v.id),
-                    "title": v.title,
-                    "severity": v.severity,
-                    "description": v.description,
-                    "cvss_score": v.cvss_score,
-                    "status": v.status
+                    "id": str(getattr(v, 'id', uuid4())),
+                    "title": getattr(v, 'title', 'Unknown Vulnerability'),
+                    "severity": getattr(v, 'severity', 'unknown'),
+                    "description": getattr(v, 'description', 'No description available'),
+                    "cvss_score": getattr(v, 'cvss_score', 0.0),
+                    "status": getattr(v, 'status', 'open'),
+                    "affected_components": getattr(v, 'affected_components', []),
+                    "proof_of_concept": getattr(v, 'proof_of_concept', ''),
+                    "remediation": getattr(v, 'remediation', '')
                 }
                 for v in vulnerabilities
             ],
             "attack_paths": [
                 {
-                    "id": str(kc.id),
-                    "name": kc.name,
-                    "description": kc.description,
-                    "risk_level": kc.risk_level,
-                    "steps": kc.steps
+                    "id": str(getattr(kc, 'id', uuid4())),
+                    "name": getattr(kc, 'name', 'Unknown Attack Path'),
+                    "description": getattr(kc, 'description', 'No description available'),
+                    "risk_level": getattr(kc, 'risk_level', 'unknown'),
+                    "steps": getattr(kc, 'steps', []),
+                    "status": getattr(kc, 'status', 'identified')
                 }
                 for kc in kill_chains
             ]
         }
     
+    def _generate_findings_section_simple(self, vulnerabilities, kill_chains) -> Dict[str, Any]:
+        """Generate findings section (alias for compatibility)."""
+        return self._generate_findings_section(vulnerabilities, kill_chains)
+    
     def _generate_recommendations_section(self, vulnerabilities, kill_chains) -> Dict[str, Any]:
         """Generate recommendations section."""
         recommendations = []
         
-        # Add vulnerability-based recommendations
+        # Add recommendations for critical and high vulnerabilities
         for vuln in vulnerabilities:
-            if vuln.severity in ["critical", "high"]:
+            severity = getattr(vuln, 'severity', '').lower()
+            if severity in ['critical', 'high']:
                 recommendations.append({
+                    "title": f"Fix {getattr(vuln, 'title', 'Vulnerability')}",
+                    "priority": severity,
                     "type": "vulnerability_remediation",
-                    "priority": "high",
-                    "title": f"Fix {vuln.title}",
-                    "description": f"Address {vuln.title} vulnerability with {vuln.severity} severity",
-                    "affected_systems": vuln.affected_systems
+                    "description": f"Address the {severity} severity vulnerability: {getattr(vuln, 'description', 'No description available')}",
+                    "affected_component": getattr(vuln, 'affected_component', 'Unknown'),
+                    "estimated_effort": "Medium" if severity == 'high' else "High"
                 })
         
-        # Add attack path-based recommendations
+        # Add recommendations for high-risk attack paths
         for kc in kill_chains:
-            if kc.risk_level in ["high", "critical"]:
+            risk_level = getattr(kc, 'risk_level', '').lower()
+            if risk_level == 'high':
                 recommendations.append({
-                    "type": "attack_path_mitigation",
+                    "title": f"Mitigate {getattr(kc, 'name', 'Attack Path')}",
                     "priority": "high",
-                    "title": f"Mitigate {kc.name} attack path",
-                    "description": f"Implement controls to prevent {kc.name} attack path",
-                    "controls": ["network_segmentation", "access_controls", "monitoring"]
+                    "type": "attack_path_mitigation",
+                    "description": f"Implement controls to prevent the high-risk attack path: {getattr(kc, 'description', 'No description available')}",
+                    "affected_component": "System-wide",
+                    "estimated_effort": "High"
                 })
         
-        return {"recommendations": recommendations}
+        return {
+            "recommendations": recommendations,
+            "priority_summary": {
+                "critical": len([r for r in recommendations if r["priority"] == "critical"]),
+                "high": len([r for r in recommendations if r["priority"] == "high"]),
+                "medium": len([r for r in recommendations if r["priority"] == "medium"]),
+                "low": len([r for r in recommendations if r["priority"] == "low"])
+            }
+        }
+    
+    def _generate_recommendations_section_simple(self, vulnerabilities, kill_chains) -> Dict[str, Any]:
+        """Generate recommendations section (alias for compatibility)."""
+        return self._generate_recommendations_section(vulnerabilities, kill_chains)
     
     def _generate_appendix_section(self, passive_recon, active_recon, vulnerabilities) -> Dict[str, Any]:
-        """Generate appendix section."""
+        """Generate appendix section with detailed results."""
+        # Aggregate subdomains from passive recon
+        subdomains = []
+        for pr in passive_recon:
+            if hasattr(pr, 'subdomains') and pr.subdomains:
+                # Handle both list and dict formats
+                if isinstance(pr.subdomains, list):
+                    subdomains.extend([s.name if hasattr(s, 'name') else str(s) for s in pr.subdomains])
+                elif isinstance(pr.subdomains, dict):
+                    subdomains.extend([s.get('name', str(s)) for s in pr.subdomains.values()])
+            elif hasattr(pr, 'subdomain') and pr.subdomain:
+                subdomains.append(pr.subdomain)
+        
         return {
+            "discovered_subdomains": list(set(subdomains)),  # Remove duplicates
+            "active_recon_summary": f"{len(active_recon)} active recon results",
+            "vulnerability_summary": f"{len(vulnerabilities)} vulnerability scan results",
             "detailed_results": {
                 "passive_reconnaissance": [
                     {
-                        "id": str(pr.id),
-                        "subdomain": pr.subdomain,
-                        "ip_address": pr.ip_address,
-                        "source": pr.source
+                        "id": str(getattr(pr, 'id', uuid4())),
+                        "subdomain": getattr(pr, 'subdomain', 'Unknown'),
+                        "ip_address": getattr(pr, 'ip_address', 'Unknown'),
+                        "source": getattr(pr, 'source', 'Unknown'),
+                        "discovered_at": getattr(pr, 'created_at', datetime.now(timezone.utc)).isoformat()
                     }
                     for pr in passive_recon
                 ],
                 "active_reconnaissance": [
                     {
-                        "id": str(ar.id),
-                        "host": ar.host,
-                        "port": ar.port,
-                        "service": ar.service,
-                        "status": ar.status
+                        "id": str(getattr(ar, 'id', uuid4())),
+                        "host": getattr(ar, 'host', 'Unknown'),
+                        "port": getattr(ar, 'port', 0),
+                        "service": getattr(ar, 'service', 'Unknown'),
+                        "status": getattr(ar, 'status', 'Unknown'),
+                        "scanned_at": getattr(ar, 'created_at', datetime.now(timezone.utc)).isoformat()
                     }
                     for ar in active_recon
                 ]
             },
-            "tools_used": [
-                "subfinder", "amass", "assetfinder", "nmap", "httpx", "nuclei"
-            ]
+            "tools_used": {
+                "passive_recon": ["subfinder", "amass", "assetfinder"],
+                "active_recon": ["nmap", "httpx"],
+                "vulnerability_scan": ["nuclei", "custom_scripts"]
+            }
         }
     
     async def _export_report_content(self, report, format_type: str) -> str:

@@ -53,25 +53,31 @@ class KillChain(BaseModel):
     )
     
     # Analysis identification
-    execution_id = Column(String(255), nullable=False, index=True)  # Link to workflow execution
+    execution_id = Column(String(255), nullable=True, index=True)  # Link to workflow execution
     
-    # Analysis details
+    # Results summary - updated to match schema
+    total_paths_identified = Column(Integer, default=0, nullable=False)  # total_attack_paths in schema
+    critical_paths = Column(Integer, default=0, nullable=False)
+    high_paths = Column(Integer, default=0, nullable=False)
+    medium_paths = Column(Integer, default=0, nullable=False)
+    low_paths = Column(Integer, default=0, nullable=False)
+    info_paths = Column(Integer, default=0, nullable=False)
+    verified_paths = Column(Integer, default=0, nullable=False)
+    
+    # Analysis results - updated field names to match schema
+    execution_time = Column(Float, nullable=True)  # Changed from String to Float
+    analysis_config = Column(JSONB, nullable=True)  # configuration in schema
+    raw_output = Column(JSONB, nullable=True)  # raw_analysis in schema
+    kill_chain_metadata = Column(JSONB, nullable=True)  # Additional metadata (renamed from metadata)
+    
+    # Legacy fields for backward compatibility
     analysis_type = Column(String(100), nullable=True)  # Type of kill chain analysis
     methodology = Column(String(255), nullable=True)  # Analysis methodology used
     configuration = Column(JSONB, nullable=True)  # Configuration used for the analysis
-    
-    # Results summary
-    total_paths_identified = Column(Integer, default=0, nullable=False)
-    verified_paths = Column(Integer, default=0, nullable=False)
     exploitable_paths = Column(Integer, default=0, nullable=False)
     blocked_paths = Column(Integer, default=0, nullable=False)
-    
-    # Analysis results
     raw_analysis = Column(JSONB, nullable=True)  # Raw analysis data
     processed_paths = Column(JSONB, nullable=True)  # Processed attack paths
-    
-    # Execution metadata
-    execution_time = Column(String(50), nullable=True)  # Total execution time
     errors = Column(JSONB, nullable=True)  # Any errors encountered
     
     # Relationships
@@ -91,17 +97,17 @@ class KillChain(BaseModel):
         return {
             **base_dict,
             'execution_id': self.execution_id,
-            'analysis_type': self.analysis_type,
-            'methodology': self.methodology,
-            'configuration': self.configuration,
             'total_paths_identified': self.total_paths_identified,
+            'critical_paths': self.critical_paths,
+            'high_paths': self.high_paths,
+            'medium_paths': self.medium_paths,
+            'low_paths': self.low_paths,
+            'info_paths': self.info_paths,
             'verified_paths': self.verified_paths,
-            'exploitable_paths': self.exploitable_paths,
-            'blocked_paths': self.blocked_paths,
-            'raw_analysis': self.raw_analysis,
-            'processed_paths': self.processed_paths,
             'execution_time': self.execution_time,
-            'errors': self.errors,
+            'analysis_config': self.analysis_config,
+            'raw_output': self.raw_output,
+            'kill_chain_metadata': self.kill_chain_metadata,
             'target_id': str(self.target_id),
         }
 
@@ -129,18 +135,27 @@ class AttackPath(BaseModel):
     description = Column(Text, nullable=True)  # Detailed description
     status = Column(Enum(AttackPathStatus), nullable=False, default=AttackPathStatus.IDENTIFIED, index=True)
     
-    # Path details
-    phases = Column(JSONB, nullable=True)  # Kill chain phases involved
-    techniques = Column(JSONB, nullable=True)  # MITRE ATT&CK techniques
-    tactics = Column(JSONB, nullable=True)  # MITRE ATT&CK tactics
-    
-    # Path components
+    # Schema-compatible fields
+    attack_path_type = Column(String(100), nullable=True)  # Type of attack path
+    severity = Column(String(50), nullable=True)  # Attack path severity
+    stages = Column(JSONB, nullable=True)  # Kill chain stages involved (phases in schema)
     entry_points = Column(JSONB, nullable=True)  # Entry points for the attack
     exit_points = Column(JSONB, nullable=True)  # Exit points for the attack
-    intermediate_nodes = Column(JSONB, nullable=True)  # Intermediate nodes in the path
-    
-    # Risk assessment
+    prerequisites = Column(JSONB, nullable=True)  # Prerequisites for the attack
+    techniques = Column(JSONB, nullable=True)  # MITRE ATT&CK techniques
+    tools_required = Column(JSONB, nullable=True)  # Tools required for the attack
+    evidence = Column(Text, nullable=True)  # Evidence supporting this attack path
+    proof_of_concept = Column(Text, nullable=True)  # Proof of concept for the attack
+    screenshots = Column(JSONB, nullable=True)  # Screenshot file paths
     risk_score = Column(Float, nullable=True)  # Overall risk score
+    impact_assessment = Column(Text, nullable=True)  # Impact assessment
+    remediation = Column(Text, nullable=True)  # Remediation recommendations
+    attack_path_metadata = Column(JSONB, nullable=True)  # Additional metadata (renamed from metadata)
+    
+    # Legacy fields for backward compatibility
+    phases = Column(JSONB, nullable=True)  # Kill chain phases involved
+    tactics = Column(JSONB, nullable=True)  # MITRE ATT&CK tactics
+    intermediate_nodes = Column(JSONB, nullable=True)  # Intermediate nodes in the path
     likelihood = Column(String(50), nullable=True)  # Likelihood of success
     impact = Column(String(50), nullable=True)  # Potential impact
     
@@ -178,24 +193,21 @@ class AttackPath(BaseModel):
             'name': self.name,
             'description': self.description,
             'status': self.status.value,
-            'phases': self.phases,
-            'techniques': self.techniques,
-            'tactics': self.tactics,
+            'attack_path_type': self.attack_path_type,
+            'severity': self.severity,
+            'stages': self.stages,
             'entry_points': self.entry_points,
             'exit_points': self.exit_points,
-            'intermediate_nodes': self.intermediate_nodes,
+            'prerequisites': self.prerequisites,
+            'techniques': self.techniques,
+            'tools_required': self.tools_required,
+            'evidence': self.evidence,
+            'proof_of_concept': self.proof_of_concept,
+            'screenshots': self.screenshots,
             'risk_score': self.risk_score,
-            'likelihood': self.likelihood,
-            'impact': self.impact,
-            'is_verified': self.is_verified,
-            'verification_evidence': self.verification_evidence,
-            'verification_notes': self.verification_notes,
-            'is_exploitable': self.is_exploitable,
-            'exploitation_evidence': self.exploitation_evidence,
-            'exploitation_notes': self.exploitation_notes,
-            'mitigation_controls': self.mitigation_controls,
-            'recommended_controls': self.recommended_controls,
-            'tags': self.tags,
+            'impact_assessment': self.impact_assessment,
+            'remediation': self.remediation,
+            'attack_path_metadata': self.attack_path_metadata,
             'kill_chain_id': str(self.kill_chain_id),
         }
     

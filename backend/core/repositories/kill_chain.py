@@ -5,10 +5,12 @@ This module provides the KillChainRepository and AttackPathRepository
 classes which handle all database operations related to kill chain analysis.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
+from sqlalchemy.orm import selectinload
 
 from ..models.kill_chain import KillChain, AttackPath, AttackPathStatus
 from .base import BaseRepository
@@ -27,6 +29,53 @@ class KillChainRepository(BaseRepository):
     async def get_by_execution_id(self, execution_id: str) -> Optional[KillChain]:
         """Get kill chain result by execution ID."""
         return await self.find_one({'execution_id': execution_id})
+    
+    async def count_by_target(self, target_id: UUID) -> int:
+        """Count kill chain results for a target."""
+        return await self.count(filters={'target_id': target_id})
+    
+    async def get_latest_by_target(self, target_id: UUID) -> Optional[KillChain]:
+        """Get the latest kill chain result for a target."""
+        query = select(self.model_class).where(
+            self.model_class.target_id == target_id
+        ).order_by(desc(self.model_class.created_at)).limit(1)
+        
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+    
+    async def list_by_target_with_pagination(
+        self, 
+        target_id: UUID, 
+        page: int = 1, 
+        per_page: int = 10
+    ) -> Tuple[List[KillChain], int]:
+        """Get paginated kill chain results for a target."""
+        offset = (page - 1) * per_page
+        
+        # Get total count
+        total = await self.count(filters={'target_id': target_id})
+        
+        # Get paginated results
+        results = await self.list(
+            filters={'target_id': target_id},
+            limit=per_page,
+            offset=offset,
+            order_by=['created_at']
+        )
+        
+        return results, total
+
+    async def get_by_workflow_id(self, workflow_id: UUID):
+        """Get all kill chain records for a workflow ID with attack paths preloaded."""
+        stmt = (
+            select(KillChain)
+            .options(selectinload(KillChain.attack_paths))
+            .where(KillChain.execution_id == str(workflow_id))
+            .order_by(KillChain.created_at)
+        )
+        
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
 
 
 class AttackPathRepository(BaseRepository):

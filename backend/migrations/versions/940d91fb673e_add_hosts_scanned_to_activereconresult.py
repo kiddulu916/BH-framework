@@ -20,9 +20,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.add_column('active_recon_results', sa.Column('hosts_scanned', postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default='[]'))
+#    op.add_column('active_recon_results', sa.Column('hosts_scanned', postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default='[]'))
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_column('active_recon_results', 'hosts_scanned')
+#    op.drop_column('active_recon_results', 'hosts_scanned')

@@ -132,6 +132,36 @@ class Target(BaseModel):
         # or in the application layer
         return value.strip()
     
+    @validates('scope')
+    def validate_scope(self, key, value):
+        """Validate and serialize scope enum."""
+        if isinstance(value, TargetScope):
+            return value
+        elif isinstance(value, str):
+            try:
+                return TargetScope(value.upper())
+            except ValueError:
+                # Let SQLAlchemy handle database-level validation for invalid values
+                return value
+        else:
+            # Let SQLAlchemy handle database-level validation for invalid types
+            return value
+    
+    @validates('status')
+    def validate_status(self, key, value):
+        """Validate and serialize status enum."""
+        if isinstance(value, TargetStatus):
+            return value
+        elif isinstance(value, str):
+            try:
+                return TargetStatus(value.lower())
+            except ValueError:
+                # Let SQLAlchemy handle database-level validation for invalid values
+                return value
+        else:
+            # Let SQLAlchemy handle database-level validation for invalid types
+            return value
+    
     def _is_valid_domain(self, domain: str) -> bool:
         """Validate domain format."""
         if not domain:

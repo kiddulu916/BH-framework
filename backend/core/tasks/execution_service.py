@@ -370,6 +370,13 @@ class ExecutionService:
                 "updated_at": datetime.now(timezone.utc)
             })
             
+            # If all stages are completed and this is the REPORT stage, ensure workflow is marked COMPLETED
+            if stage_name.upper() == "REPORT" and new_workflow_status == WorkflowStatus.COMPLETED:
+                await self.workflow_repository.update(workflow_id, **{
+                    "status": WorkflowStatus.COMPLETED,
+                    "updated_at": datetime.now(timezone.utc)
+                })
+            
             logger.info(f"Updated workflow {workflow_id} status: {new_workflow_status}")
             
         except Exception as e:

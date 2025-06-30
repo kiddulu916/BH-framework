@@ -1,4 +1,6 @@
 from core.models.base import Base
+# Import all model modules so Alembic can detect all tables for autogenerate
+from core.models import passive_recon, active_recon, kill_chain, report, target, user, vulnerability, workflow
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config

@@ -31,7 +31,7 @@ from core.repositories.kill_chain import KillChainRepository
 router = Router(tags=["Reports"])
 
 
-@router.post("/reports", response=APIResponse, summary="Create report")
+@router.post("", response=APIResponse, summary="Create report")
 async def create_report(request, payload: ReportCreateRequest):
     """
     Create a new report for a workflow.
@@ -66,7 +66,7 @@ async def create_report(request, payload: ReportCreateRequest):
         return await report_service.create_report(payload)
 
 
-@router.get("/reports/{report_id}", response=APIResponse, summary="Get report")
+@router.get("/{report_id}", response=APIResponse, summary="Get report")
 async def get_report(request, report_id: UUID):
     """
     Get report by ID.
@@ -101,7 +101,7 @@ async def get_report(request, report_id: UUID):
         return await report_service.get_report(report_id)
 
 
-@router.get("/reports", response=APIResponse, summary="List reports")
+@router.get("", response=APIResponse, summary="List reports")
 async def list_reports(
     request,
     limit: int = 10,
@@ -150,7 +150,7 @@ async def list_reports(
         )
 
 
-@router.put("/reports/{report_id}", response=APIResponse, summary="Update report")
+@router.put("/{report_id}", response=APIResponse, summary="Update report")
 async def update_report(request, report_id: UUID, payload: ReportUpdateRequest):
     """
     Update report.
@@ -186,7 +186,7 @@ async def update_report(request, report_id: UUID, payload: ReportUpdateRequest):
         return await report_service.update_report(report_id, payload)
 
 
-@router.delete("/reports/{report_id}", response=APIResponse, summary="Delete report")
+@router.delete("/{report_id}", response=APIResponse, summary="Delete report")
 async def delete_report(request, report_id: UUID):
     """
     Delete report.
@@ -221,7 +221,7 @@ async def delete_report(request, report_id: UUID):
         return await report_service.delete_report(report_id)
 
 
-@router.post("/reports/generate/{workflow_id}", response=APIResponse, summary="Generate report")
+@router.post("/generate/{workflow_id}", response=APIResponse, summary="Generate report")
 async def generate_report(request, workflow_id: UUID, template: str = "default"):
     """
     Generate a new report for a workflow.
@@ -257,7 +257,7 @@ async def generate_report(request, workflow_id: UUID, template: str = "default")
         return await report_service.generate_report(workflow_id, template)
 
 
-@router.post("/reports/{report_id}/export", response=APIResponse, summary="Export report")
+@router.post("/{report_id}/export", response=APIResponse, summary="Export report")
 async def export_report(request, report_id: UUID, payload: ReportExportRequest):
     """
     Export report in specified format.
@@ -293,7 +293,7 @@ async def export_report(request, report_id: UUID, payload: ReportExportRequest):
         return await report_service.export_report(report_id, payload)
 
 
-@router.get("/reports/templates", response=APIResponse, summary="Get report templates")
+@router.get("/templates", response=APIResponse, summary="Get report templates")
 async def get_report_templates(request):
     """
     Get available report templates.

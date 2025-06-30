@@ -1,0 +1,58 @@
+---
+description: 
+globs: backend/tests/**/*.*, backend/core/tests/**/*.*, frontend/tests/**/*.*
+alwaysApply: false
+---
+---
+description: Test writing, evaluation, and maintenance rules; prioritize code correctness to pass tests, not test changes
+globs: backend/tests/**/*.*, backend/core/tests/**/*.*, frontend/tests/**/*.*
+alwaysApply: true
+---
+# Test Writing and Evaluation Rules
+
+## Purpose
+Establish a consistent, reliable approach to writing, evaluating, and maintaining tests. Ensure tests serve as the specification for intended system behavior, and that code is corrected to pass tests unless the test is clearly wrong or requirements have changed.
+
+## Core Principles
+- **Tests are the specification.** Tests should reflect the intended and documented behavior of the system, based on requirements, architecture docs, and API contracts.
+- **Code correctness:** When a test fails, the default action is to correct the implementation code so that it passes the test.
+- **Test changes are exceptional:** Only adjust or rewrite a test if:
+  - The test is clearly incorrect (contradicts requirements, documentation, or contains a logic error), or
+  - The requirements or architecture have changed, and the test is now outdated.
+- **No "test bending":** Do not "fix" a test just to make it pass with the current code if the code is not meeting the intended behavior.
+- **Justification required:** All changes to tests must be justified in the test code comments or commit message, referencing the requirement, bug, or architectural change being addressed.
+- **Tests as safety net:** This rule ensures that tests serve as a reliable specification and safety net, not as a moving target for code changes.
+
+## Best Practices
+- Write tests before or alongside implementation (TDD/BDD encouraged).
+- Use clear, descriptive test names and docstrings.
+- Cover both success and failure cases, including edge cases.
+- Use fixtures and factories for test data setup.
+- Isolate tests to avoid side effects and interdependencies.
+- Maintain high coverage, but prioritize meaningful assertions over coverage metrics alone.
+- Review and update tests when requirements or architecture change.
+- Document any test that intentionally deviates from requirements (e.g., for legacy support).
+
+## Workflow for Test/Code Changes
+1. **Test fails:** Investigate the failure.
+2. **Check the test:**
+   - If the test matches requirements and documentation, fix the code.
+   - If the test is wrong or outdated, update the test and document why.
+3. **Justify changes:**
+   - Reference the requirement, bug, or change in comments/commits.
+4. **Review:**
+   - All test changes should be reviewed for alignment with requirements and architecture.
+
+## Exceptions
+- Legacy code with unclear requirements: Add clarifying comments and seek consensus before changing tests.
+- Experimental features: Clearly mark tests as experimental and document their temporary nature.
+
+## Enforcement
+- PRs that change tests must include justification.
+- Automated checks may flag test changes for review.
+
+---
+# [2024-06-30] Initial version, expanded from global rules.
+
+
+

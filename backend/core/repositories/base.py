@@ -52,6 +52,11 @@ class BaseRepository:
             DatabaseError: If creation fails
         """
         try:
+            # Debug: Print the kwargs being passed to create
+            print(f"Debug: BaseRepository.create() called with kwargs: {kwargs}")
+            for k, v in kwargs.items():
+                print(f"  {k}: type={type(v)}, value={v}")
+            
             instance = self.model_class(**kwargs)
             self.session.add(instance)
             await self.session.flush()
@@ -59,6 +64,8 @@ class BaseRepository:
             return instance
         except Exception as e:
             await self.session.rollback()
+            print(f"Debug: Exception in BaseRepository.create(): {e}")
+            print(f"Debug: Exception type: {type(e)}")
             raise DatabaseError(f"Failed to create {self.model_class.__name__}: {str(e)}")
     
     async def get_by_id(self, id: Union[str, UUID], include_relationships: Optional[List[str]] = None) -> Optional[T]:

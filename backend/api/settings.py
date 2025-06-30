@@ -55,7 +55,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # CORS middleware
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    'django.middleware.common.CommonMiddleware',  # This enables APPEND_SLASH
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -213,3 +213,5 @@ RATE_LIMIT_PER_HOUR = int(os.getenv('RATE_LIMIT_PER_HOUR', '1000'))
 
 # Outputs directory for stage results
 OUTPUTS_DIR = BASE_DIR.parent / 'outputs'
+
+APPEND_SLASH = True

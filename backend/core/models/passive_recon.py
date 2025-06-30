@@ -71,6 +71,9 @@ class PassiveReconResult(BaseModel):
     execution_time = Column(String(50), nullable=True)  # Total execution time
     errors = Column(JSONB, nullable=True)  # Any errors encountered
     
+    # Extra metadata
+    extra_metadata = Column(JSONB, nullable=True)  # Arbitrary metadata storage
+    
     # Relationships
     target_id = Column(PGUUID(as_uuid=True), ForeignKey("public.targets.id"), nullable=False)
     target = relationship("Target", back_populates="passive_recon_results")
@@ -85,13 +88,6 @@ class PassiveReconResult(BaseModel):
     def to_dict(self) -> dict:
         """Convert passive recon result to dictionary."""
         base_dict = super().to_dict()
-        # Ensure metadata is always a dict
-        metadata = self.metadata
-        if not isinstance(metadata, dict):
-            try:
-                metadata = dict(metadata) if metadata is not None else {}
-            except Exception:
-                metadata = {}
         return {
             **base_dict,
             'execution_id': self.execution_id,
@@ -99,7 +95,7 @@ class PassiveReconResult(BaseModel):
             'total_subdomains': self.total_subdomains,
             'execution_time': self.execution_time,
             'raw_output': self.raw_output,
-            'metadata': metadata,
+            'extra_metadata': self.extra_metadata,
             'target_id': str(self.target_id),
             'subdomains': [s.to_dict() for s in self.subdomains],
             'created_at': self.created_at.isoformat() if self.created_at else None,
@@ -151,6 +147,9 @@ class Subdomain(BaseModel):
     tags = Column(JSONB, nullable=True)  # Tags for categorization
     notes = Column(Text, nullable=True)  # Additional notes
     
+    # Extra metadata
+    extra_metadata = Column(JSONB, nullable=True)  # Arbitrary metadata storage
+    
     # Relationships
     passive_recon_result_id = Column(PGUUID(as_uuid=True), ForeignKey("public.passive_recon_results.id"), nullable=False)
     passive_recon_result = relationship("PassiveReconResult", back_populates="subdomains")
@@ -162,13 +161,6 @@ class Subdomain(BaseModel):
     def to_dict(self) -> dict:
         """Convert subdomain to dictionary."""
         base_dict = super().to_dict()
-        # Ensure metadata is always a dict
-        metadata = self.metadata
-        if not isinstance(metadata, dict):
-            try:
-                metadata = dict(metadata) if metadata is not None else {}
-            except Exception:
-                metadata = {}
         return {
             **base_dict,
             'id': str(self.id),
@@ -178,7 +170,7 @@ class Subdomain(BaseModel):
             'ip_addresses': self.ip_addresses,
             'status': self.status.value if hasattr(self.status, 'value') else self.status,
             'source': self.sources[0] if self.sources and isinstance(self.sources, list) else (self.sources or None),
-            'metadata': metadata,
+            'extra_metadata': self.extra_metadata,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }

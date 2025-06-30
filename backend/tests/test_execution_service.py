@@ -10,12 +10,7 @@ from datetime import datetime
 from core.tasks.execution_service import ExecutionService
 from core.utils.exceptions import ExecutionError, ContainerError
 from core.schemas.base import APIResponse
-<<<<<<< HEAD
-from core.models.workflow import StageStatus, WorkflowStatus
-=======
-from core.models.workflow import StageStatus
-from core.schemas.workflow import WorkflowStatus
->>>>>>> 104107464cb0d6c74457d543e9bf7f7cb883603f
+from core.schemas.workflow import StageStatus, WorkflowStatus
 
 
 @pytest.fixture
@@ -397,9 +392,9 @@ class TestExecutionService:
         """Test workflow status determination when all stages are completed."""
         # Arrange
         stages = {
-            "passive_recon": "completed",
-            "active_recon": "completed",
-            "vulnerability_scan": "completed"
+            "passive_recon": StageStatus.COMPLETED,
+            "active_recon": StageStatus.COMPLETED,
+            "vulnerability_scan": StageStatus.COMPLETED
         }
         
         # Act
@@ -412,9 +407,9 @@ class TestExecutionService:
         """Test workflow status determination when some stages failed."""
         # Arrange
         stages = {
-            "passive_recon": "completed",
-            "active_recon": "failed",
-            "vulnerability_scan": "pending"
+            "passive_recon": StageStatus.COMPLETED,
+            "active_recon": StageStatus.FAILED,
+            "vulnerability_scan": StageStatus.PENDING
         }
         
         # Act
@@ -427,9 +422,9 @@ class TestExecutionService:
         """Test workflow status determination when some stages are running."""
         # Arrange
         stages = {
-            "passive_recon": "completed",
-            "active_recon": "running",
-            "vulnerability_scan": "pending"
+            "passive_recon": StageStatus.COMPLETED,
+            "active_recon": StageStatus.RUNNING,
+            "vulnerability_scan": StageStatus.PENDING
         }
         
         # Act
@@ -442,9 +437,9 @@ class TestExecutionService:
         """Test workflow status determination when all stages are pending."""
         # Arrange
         stages = {
-            "passive_recon": "pending",
-            "active_recon": "pending",
-            "vulnerability_scan": "pending"
+            "passive_recon": StageStatus.PENDING,
+            "active_recon": StageStatus.PENDING,
+            "vulnerability_scan": StageStatus.PENDING
         }
         
         # Act
@@ -558,4 +553,59 @@ class TestExecutionService:
         assert "retrieved successfully" in result.message
         assert len(result.data["containers"]) == 2
         assert result.data["containers"][0]["name"] == "test-container-1"
-        assert result.data["containers"][1]["name"] == "test-container-2" 
+        assert result.data["containers"][1]["name"] == "test-container-2"
+
+    def test_determine_workflow_status_debug(self, execution_service):
+        """Debug test to understand enum comparison issues."""
+        # Arrange
+        stages = {
+            "passive_recon": StageStatus.COMPLETED,
+            "active_recon": StageStatus.COMPLETED,
+            "vulnerability_scan": StageStatus.COMPLETED
+        }
+        
+        print(f"StageStatus.COMPLETED: {StageStatus.COMPLETED}")
+        print(f"StageStatus.COMPLETED.value: {StageStatus.COMPLETED.value}")
+        print(f"stages values: {[status for status in stages.values()]}")
+        print(f"stages values types: {[type(status) for status in stages.values()]}")
+        print(f"All completed check: {all(status == StageStatus.COMPLETED for status in stages.values())}")
+        
+        # Act
+        status = execution_service._determine_workflow_status(stages)
+        
+        # Assert
+        print(f"Returned status: {status}")
+        print(f"Returned status type: {type(status)}")
+        print(f"WorkflowStatus.COMPLETED: {WorkflowStatus.COMPLETED}")
+        print(f"Status == WorkflowStatus.COMPLETED: {status == WorkflowStatus.COMPLETED}")
+        
+        assert status == WorkflowStatus.COMPLETED 
+
+    def test_determine_workflow_status_direct(self):
+        """Test workflow status determination directly without fixtures."""
+        from core.tasks.execution_service import ExecutionService
+        from unittest.mock import AsyncMock
+        
+        # Create service directly
+        service = ExecutionService(
+            workflow_repository=AsyncMock(),
+            target_repository=AsyncMock()
+        )
+        
+        # Test the method directly
+        stages = {
+            "passive_recon": StageStatus.COMPLETED,
+            "active_recon": StageStatus.COMPLETED,
+            "vulnerability_scan": StageStatus.COMPLETED
+        }
+        
+        print(f"Testing with stages: {stages}")
+        print(f"Stage values: {[status.value for status in stages.values()]}")
+        
+        result = service._determine_workflow_status(stages)
+        
+        print(f"Result: {result}")
+        print(f"Expected: {WorkflowStatus.COMPLETED}")
+        print(f"Result == Expected: {result == WorkflowStatus.COMPLETED}")
+        
+        assert result == WorkflowStatus.COMPLETED 

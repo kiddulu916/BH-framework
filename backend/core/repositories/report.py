@@ -46,4 +46,8 @@ class ReportRepository(BaseRepository):
     
     async def get_by_access_token(self, access_token: str) -> Optional[Report]:
         """Get report by access token."""
-        return await self.find_one({'access_token': access_token}) 
+        return await self.find_one({'access_token': access_token})
+    
+    async def get_by_workflow_id(self, workflow_id: UUID) -> Optional[Report]:
+        """Get the first report for a workflow ID, or None if not found."""
+        return await self.find_one({'workflow_id': workflow_id}) 

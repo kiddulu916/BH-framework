@@ -93,6 +93,9 @@ class Report(BaseModel):
     user_id = Column(PGUUID(as_uuid=True), ForeignKey("public.users.id"), nullable=True)
     user = relationship("User", backref="reports")
     
+    workflow_id = Column(PGUUID(as_uuid=True), ForeignKey("public.workflows.id"), nullable=False, index=True)
+    workflow = relationship("Workflow", back_populates="reports")
+    
     # Indexes
     __table_args__ = (
         Index('idx_reports_name', 'name'),
@@ -101,6 +104,7 @@ class Report(BaseModel):
         Index('idx_reports_status', 'status'),
         Index('idx_reports_target', 'target_id'),
         Index('idx_reports_user', 'user_id'),
+        Index('idx_reports_workflow', 'workflow_id'),
         Index('idx_reports_created', 'created_at'),
         {'schema': 'public'}
     )

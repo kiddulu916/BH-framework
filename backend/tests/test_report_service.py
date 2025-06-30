@@ -53,23 +53,29 @@ def sample_workflow():
     """Create a sample workflow for testing."""
     workflow_id = uuid4()
     target_id = uuid4()
-    return MagicMock(
-        id=workflow_id,
-        target_id=target_id,
-        name="Test Workflow",
-        description="Test workflow description"
-    )
+    
+    class MockWorkflow:
+        def __init__(self):
+            self.id = workflow_id
+            self.target_id = target_id
+            self.name = "Test Workflow"
+            self.description = "Test workflow description"
+    
+    return MockWorkflow()
 
 
 @pytest.fixture
 def sample_target():
     """Create a sample target for testing."""
     target_id = uuid4()
-    return MagicMock(
-        id=target_id,
-        value="example.com",
-        name="Test Target"
-    )
+    
+    class MockTarget:
+        def __init__(self):
+            self.id = target_id
+            self.value = "example.com"
+            self.name = "Test Target"
+    
+    return MockTarget()
 
 
 @pytest.fixture
@@ -80,34 +86,37 @@ def sample_report():
     execution_id = uuid4()
     user_id = uuid4()
     workflow_id = uuid4()
-    return MagicMock(
-        id=report_id,
-        target_id=target_id,
-        execution_id=execution_id,
-        user_id=user_id,
-        workflow_id=workflow_id,
-        title="Test Report",
-        description="Test report description",
-        report_type=ReportType.EXECUTIVE_SUMMARY,
-        format=ReportFormat.MARKDOWN,
-        status=ReportStatus.COMPLETED,
-        sections=[],
-        include_passive_recon=True,
-        include_active_recon=True,
-        include_vulnerabilities=True,
-        include_kill_chain=True,
-        include_screenshots=True,
-        include_raw_data=False,
-        custom_template=None,
-        file_path="/path/to/report.md",
-        file_size=1024,
-        generation_time=5.0,
-        error_message=None,
-        metadata={},
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
-        generated_at=datetime.now(timezone.utc)
-    )
+    
+    class MockReport:
+        def __init__(self):
+            self.id = report_id
+            self.target_id = target_id
+            self.execution_id = execution_id
+            self.user_id = user_id
+            self.workflow_id = workflow_id
+            self.title = "Test Report"
+            self.description = "Test report description"
+            self.report_type = ReportType.EXECUTIVE_SUMMARY
+            self.format = ReportFormat.MARKDOWN
+            self.status = ReportStatus.COMPLETED
+            self.sections = []
+            self.include_passive_recon = True
+            self.include_active_recon = True
+            self.include_vulnerabilities = True
+            self.include_kill_chain = True
+            self.include_screenshots = True
+            self.include_raw_data = False
+            self.custom_template = None
+            self.file_path = "/path/to/report.md"
+            self.file_size = 1024
+            self.generation_time = 5.0
+            self.error_message = None
+            self.metadata = {}
+            self.created_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(timezone.utc)
+            self.generated_at = datetime.now(timezone.utc)
+    
+    return MockReport()
 
 
 class TestReportService:
@@ -130,34 +139,56 @@ class TestReportService:
         mock_repositories['workflow_repo'].get_by_id.return_value = sample_workflow
         mock_repositories['report_repo'].get_by_workflow_id.return_value = None
         
-        # Create a proper mock with real values for ReportResponse
-        created_report = MagicMock()
-        created_report.id = uuid4()
-        created_report.target_id = uuid4()
-        created_report.execution_id = None
-        created_report.user_id = None
-        created_report.title = "Test Report"
-        created_report.description = "Test description"
-        created_report.report_type = ReportType.EXECUTIVE_SUMMARY
-        created_report.format = ReportFormat.MARKDOWN
-        created_report.status = ReportStatus.PENDING
-        created_report.sections = []
-        created_report.include_passive_recon = True
-        created_report.include_active_recon = True
-        created_report.include_vulnerabilities = True
-        created_report.include_kill_chain = True
-        created_report.include_screenshots = True
-        created_report.include_raw_data = False
-        created_report.custom_template = None
-        created_report.file_path = None
-        created_report.file_size = None
-        created_report.generation_time = None
-        created_report.error_message = None
-        created_report.metadata = {}
-        created_report.created_at = datetime.now(timezone.utc)
-        created_report.updated_at = datetime.now(timezone.utc)
-        created_report.generated_at = None
+        # Mock the target repository to return a proper object
+        class MockTarget:
+            def __init__(self):
+                self.id = uuid4()
+                self.value = "example.com"
+                self.name = "Test Target"
         
+        mock_repositories['target_repo'].get_by_id.return_value = MockTarget()
+        
+        # Mock other repositories to return empty lists
+        mock_repositories['passive_recon_repo'].get_by_workflow_id.return_value = []
+        mock_repositories['active_recon_repo'].get_by_workflow_id.return_value = []
+        mock_repositories['vulnerability_repo'].get_by_workflow_id.return_value = []
+        mock_repositories['kill_chain_repo'].get_by_workflow_id.return_value = []
+        
+        # Create a proper object with real values for ReportResponse
+        class MockCreatedReport:
+            def __init__(self):
+                self.id = uuid4()
+                self.target_id = uuid4()
+                self.workflow_id = workflow_id
+                self.name = "Test Report"
+                self.description = "Test description"
+                self.report_type = ReportType.TECHNICAL_DETAILED
+                self.format = ReportFormat.MARKDOWN
+                self.status = ReportStatus.GENERATING
+                self.content = '{"sections": {"executive_summary": {}, "findings": {}}}'
+                self.template_used = "default"
+                self.configuration = {"template": "default", "format": "MARKDOWN"}
+                self.file_path = None
+                self.file_size = None
+                self.created_at = datetime.now(timezone.utc)
+                self.updated_at = datetime.now(timezone.utc)
+                self.user_id = None
+                # Add missing required fields for ReportResponse
+                self.title = "Test Report"
+                self.sections = ["executive_summary", "findings"]
+                self.include_passive_recon = True
+                self.include_active_recon = True
+                self.include_vulnerabilities = True
+                self.include_kill_chain = True
+                self.include_screenshots = True
+                self.include_raw_data = False
+                self.custom_template = None
+                self.generation_time = None
+                self.error_message = None
+                self.metadata = {}
+                self.generated_at = None
+        
+        created_report = MockCreatedReport()
         mock_repositories['report_repo'].create.return_value = created_report
         
         # Act
@@ -340,24 +371,41 @@ class TestReportService:
         mock_repositories['kill_chain_repo'].get_by_workflow_id.return_value = []
         mock_repositories['report_repo'].get_by_workflow_id.return_value = None
         
-        # Create a proper mock with real values for all required fields
-        created_report = MagicMock()
-        created_report.id = uuid4()
-        created_report.target_id = sample_target.id
-        created_report.execution_id = uuid4()
-        created_report.user_id = uuid4()
-        created_report.title = "Generated Report"
-        created_report.description = "Auto-generated report"
-        created_report.report_type = ReportType.EXECUTIVE_SUMMARY
-        created_report.format = ReportFormat.MARKDOWN
-        created_report.status = ReportStatus.COMPLETED
-        created_report.custom_template = template
-        created_report.file_path = "/path/to/report.md"
-        created_report.error_message = None
-        created_report.metadata = {}
-        created_report.created_at = datetime.now(timezone.utc)
-        created_report.updated_at = datetime.now(timezone.utc)
+        # Create a proper object with real values for all required fields
+        class MockGeneratedReport:
+            def __init__(self):
+                self.id = uuid4()
+                self.target_id = sample_target.id
+                self.workflow_id = workflow_id
+                self.name = "Generated Report"
+                self.description = "Auto-generated report"
+                self.report_type = ReportType.TECHNICAL_DETAILED
+                self.format = ReportFormat.MARKDOWN
+                self.status = ReportStatus.GENERATING
+                self.content = '{"sections": {"executive_summary": {}, "findings": {}}}'
+                self.template_used = template
+                self.configuration = {"template": template, "format": "MARKDOWN"}
+                self.file_path = "/path/to/report.md"
+                self.file_size = None
+                self.error_message = None
+                self.metadata = {}
+                self.created_at = datetime.now(timezone.utc)
+                self.updated_at = datetime.now(timezone.utc)
+                self.user_id = None
+                # Add missing required fields for ReportResponse
+                self.title = "Generated Report"
+                self.sections = ["executive_summary", "findings"]
+                self.include_passive_recon = True
+                self.include_active_recon = True
+                self.include_vulnerabilities = True
+                self.include_kill_chain = True
+                self.include_screenshots = True
+                self.include_raw_data = False
+                self.custom_template = None
+                self.generation_time = None
+                self.generated_at = None
         
+        created_report = MockGeneratedReport()
         mock_repositories['report_repo'].create.return_value = created_report
         
         # Act
@@ -391,17 +439,19 @@ class TestReportService:
         report_id = sample_report.id
         payload = ReportExportRequest(format="json")
         
-        # Create a proper mock report with serializable content
-        mock_report = MagicMock()
-        mock_report.id = report_id
-        mock_report.content = {
-            "target": {"domain": "example.com"},
-            "sections": {
-                "executive_summary": {"overview": "Test summary"},
-                "findings": {"vulnerabilities": []}
-            }
-        }
+        # Create a proper object with serializable content
+        class MockExportReport:
+            def __init__(self):
+                self.id = report_id
+                self.content = {
+                    "target": {"domain": "example.com"},
+                    "sections": {
+                        "executive_summary": {"overview": "Test summary"},
+                        "findings": {"vulnerabilities": []}
+                    }
+                }
         
+        mock_report = MockExportReport()
         mock_repositories['report_repo'].get_by_id.return_value = mock_report
         
         # Act

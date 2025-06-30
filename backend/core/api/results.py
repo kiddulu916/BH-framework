@@ -131,7 +131,6 @@ async def submit_kill_chain_results(request: HttpRequest, payload: KillChainCrea
         async with get_db_session() as session:
             result_service = ResultService(session)
             result = await result_service.create_kill_chain_result(payload)
-            
             return KillChainCreateResponse(
                 success=True,
                 message="Kill chain analysis results submitted successfully",
@@ -139,6 +138,13 @@ async def submit_kill_chain_results(request: HttpRequest, payload: KillChainCrea
                 errors=None
             )
     except Exception as e:
+        import traceback
+        import sys
+        print("[DEBUG] Kill chain submission error:", file=sys.stderr)
+        traceback.print_exc()
+        print(f"[DEBUG] Exception: {e}", file=sys.stderr)
+        if hasattr(e, 'errors'):
+            print(f"[DEBUG] Pydantic errors: {e.errors()}", file=sys.stderr)
         return KillChainCreateResponse(
             success=False,
             message="Failed to submit kill chain analysis results",

@@ -81,6 +81,9 @@ class Workflow(BaseModel):
     # Executions
     executions = relationship("WorkflowExecution", back_populates="workflow", cascade="all, delete-orphan")
     
+    # Reports
+    reports = relationship("Report", back_populates="workflow", cascade="all, delete-orphan")
+    
     # Indexes
     __table_args__ = (
         Index('idx_workflows_target', 'target_id'),

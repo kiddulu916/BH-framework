@@ -9,6 +9,9 @@ from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from sqlalchemy.future import select
+from sqlalchemy import func
 
 from ..models.active_recon import ActiveReconResult, Port, Service
 from .base import BaseRepository
@@ -27,6 +30,42 @@ class ActiveReconRepository(BaseRepository):
     async def get_by_execution_id(self, execution_id: str) -> Optional[ActiveReconResult]:
         """Get active recon result by execution ID."""
         return await self.find_one({'execution_id': execution_id})
+
+    async def get_by_workflow_id(self, workflow_id: UUID):
+        """Get all active recon results for a workflow ID with ports and services preloaded."""
+        stmt = (
+            select(ActiveReconResult)
+            .options(
+                selectinload(ActiveReconResult.ports),
+                selectinload(ActiveReconResult.services)
+            )
+            .where(ActiveReconResult.execution_id == str(workflow_id))
+            .order_by(ActiveReconResult.created_at)
+        )
+        
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+
+    async def list_by_target_with_pagination(self, target_id: UUID, page: int = 1, per_page: int = 10):
+        offset = (page - 1) * per_page
+        stmt = (
+            select(ActiveReconResult)
+            .options(
+                selectinload(ActiveReconResult.ports),
+                selectinload(ActiveReconResult.services)
+            )
+            .where(ActiveReconResult.target_id == target_id)
+            .order_by(ActiveReconResult.created_at.desc())
+            .offset(offset)
+            .limit(per_page)
+        )
+        result = await self.session.execute(stmt)
+        items = result.scalars().all()
+        # Use func.count for efficient counting
+        count_stmt = select(func.count()).where(ActiveReconResult.target_id == target_id)
+        count_result = await self.session.execute(count_stmt)
+        total = count_result.scalar_one()
+        return items, total
 
 
 class PortRepository(BaseRepository):

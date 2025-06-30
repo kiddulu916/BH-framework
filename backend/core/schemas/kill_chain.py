@@ -162,9 +162,9 @@ class KillChainCreate(BaseModel):
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
     
     @field_validator('total_attack_paths')
-    def validate_total_attack_paths(cls, v, values):
+    def validate_total_attack_paths(cls, v, info):
         """Validate total_attack_paths matches actual attack paths count."""
-        if 'attack_paths' in values and v != len(values['attack_paths']):
+        if 'attack_paths' in info.data and v != len(info.data['attack_paths']):
             raise ValueError("total_attack_paths must match the actual number of attack paths")
         return v
 
