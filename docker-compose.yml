@@ -73,6 +73,44 @@ services:
       start_period: 40s
 
   # =============================================================================
+  # JWT ROTATOR SERVICE
+  # =============================================================================
+  jwt_rotator:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.jwt-rotator
+    volumes:
+      - ./backend/.env:/app/backend.env
+      - ./stages:/app/stages
+    restart: always
+    
+  # =============================================================================
+  # STAGE SERVICES
+  # =============================================================================
+  # Passive Recon Stage: Orchestrates all passive recon tools, saves raw/parsed outputs, and submits results to backend API using JWT auth.
+  # - Raw outputs: /outputs/passive_recon/<TARGET>/<TOOL>.*
+  # - Parsed outputs: /outputs/passive_recon/<TARGET>/parsed/<TOOL>_subdomains.json (or similar)
+  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN from .env
+  # - Error handling: Each runner and API submission is wrapped in try/except; failures are logged and do not halt the overall process. A summary is printed at the end.
+  passive_recon:
+    build: ./stages/passive_recon
+    container_name: bug-hunting-passive-recon
+    env_files:
+      - ./stages/passive_recon/.env
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./stages/passive_recon:/app
+      - ./outputs:/app/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - bug-hunting-network
+
+  # =============================================================================
   # FRONTEND SERVICE
   # =============================================================================
   frontend:

@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install python-dotenv pyjwt
+
+# Copy rotation and generation scripts
+COPY backend/utils/rotate_jwt_secret.py /app/rotate_jwt_secret.py
+COPY stages/utils/generate_jwt.py /app/generate_jwt.py
+COPY scripts/auto_rotate_jwt.sh /app/auto_rotate_jwt.sh
+
+# Copy all .env files and stages for access (adjust as needed)
+COPY backend/.env /app/backend.env
+COPY stages /app/stages
+
+RUN chmod +x /app/auto_rotate_jwt.sh
+
+CMD ["/app/auto_rotate_jwt.sh"] 

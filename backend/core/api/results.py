@@ -8,12 +8,17 @@ including passive recon, active recon, vulnerability, and kill chain results.
 from typing import Optional
 from uuid import UUID
 
-from ninja import Router
-from django.http import HttpRequest
+from ninja import Router, File, Form
+from ninja.files import UploadedFile
+from ninja.security import HttpBearer
+from django.http import HttpRequest, JsonResponse
+import jwt
+import os
+from datetime import datetime, timezone
 
 from core.schemas.base import APIResponse
 from core.schemas.passive_recon import (
-    PassiveReconResultCreate, PassiveReconResultCreateResponse
+    PassiveReconResultCreate, PassiveReconResultCreateResponse, PassiveReconResultSchema
 )
 from core.schemas.active_recon import (
     ActiveReconResultCreate, ActiveReconResultCreateResponse
@@ -27,36 +32,56 @@ from core.schemas.kill_chain import (
 from core.tasks.result_service import ResultService
 from core.utils.database import get_db_session
 
-router = Router()
+router = Router(tags=["Passive Recon"])
 
+JWT_SECRET = os.environ.get("JWT_SECRET", "dev-secret")
+JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
-@router.post("/passive-recon", response=PassiveReconResultCreateResponse, summary="Submit passive reconnaissance results")
-async def submit_passive_recon_results(request: HttpRequest, payload: PassiveReconResultCreate):
+class JWTAuth(HttpBearer):
+    def authenticate(self, request, token):
+        """
+        Decode and validate JWT. Checks signature and expiry.
+        """
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            exp = payload.get("exp")
+            if exp and datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(timezone.utc):
+                return None
+            # Optionally, check claims/roles here
+            return payload
+        except Exception as e:
+            return None
+
+auth = JWTAuth()
+
+@router.post("/api/v1/results/passive-recon", auth=auth, response=APIResponse, summary="Submit parsed passive recon results", description="Accepts parsed passive recon results as JSON, validates, and stores them.\n\nExpected fields in raw_output: subdomains, ipv4s, protocols, cidrs, etc. from all tools.\nExtra fields from new tools should be included in raw_output or metadata.")
+def submit_passive_recon_result(request, payload: PassiveReconResultSchema):
     """
-    Submit passive reconnaissance results from stage containers.
-    
-    This endpoint accepts results from passive reconnaissance tools like
-    subfinder, amass, and assetfinder, and stores them in the database.
+    Accept parsed passive recon results as JSON.
+    - raw_output: Should include all tool outputs, including keys like 'ipv4s', 'protocols', 'cidrs', etc.
+    - metadata: Can include any extra fields from new tools (e.g., Cero).
     """
     try:
-        async with get_db_session() as session:
-            result_service = ResultService(session)
-            result = await result_service.create_passive_recon_result(payload)
-            
-            return PassiveReconResultCreateResponse(
-                success=True,
-                message="Passive reconnaissance results submitted successfully",
-                data=result,
-                errors=None
-            )
+        result = ResultService.save_passive_recon_result(payload)
+        return APIResponse(success=True, message="Parsed output saved", data=result)
     except Exception as e:
-        return PassiveReconResultCreateResponse(
-            success=False,
-            message="Failed to submit passive reconnaissance results",
-            data=None,
-            errors=[str(e)]
-        )
+        return APIResponse(success=False, message="Failed to save parsed output", errors=[str(e)])
 
+@router.post("/api/v1/results/passive-recon/raw", auth=auth, response=APIResponse, summary="Submit raw passive recon output", description="Accepts raw passive recon output as a file upload, validates, and stores it.")
+def submit_passive_recon_raw(request, file: UploadedFile = File(...), tool: str = Form(...), target: str = Form(...)):
+    """
+    Accept raw passive recon output as a file upload.
+    """
+    try:
+        # Save file to disk or storage (implement as needed)
+        file_path = f"/outputs/passive_recon/{target}/{tool}_raw_{file.name}"
+        with open(file_path, "wb") as out:
+            for chunk in file.chunks():
+                out.write(chunk)
+        # Optionally, link file to DB/model here
+        return APIResponse(success=True, message="Raw output saved", data={"file_path": file_path})
+    except Exception as e:
+        return APIResponse(success=False, message="Failed to save raw output", errors=[str(e)])
 
 @router.post("/active-recon", response=ActiveReconResultCreateResponse, summary="Submit active reconnaissance results")
 async def submit_active_recon_results(request: HttpRequest, payload: ActiveReconResultCreate):

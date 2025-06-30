@@ -31,10 +31,14 @@ class PassiveReconTool(str, Enum):
     HACKERTARGET = "hackertarget"
     SHODAN = "shodan"
     CENSYS = "censys"
+    CERO = "cero"
 
 
 class SubdomainCreate(BaseModel):
-    """Schema for creating a subdomain record."""
+    """
+    Schema for creating a subdomain record.
+    - metadata: Can include protocol, CIDR, or any extra info from tools like Cero.
+    """
     
     target_id: UUID = Field(..., description="Target ID")
     subdomain: str = Field(..., min_length=1, max_length=255, description="Subdomain name")
@@ -42,7 +46,7 @@ class SubdomainCreate(BaseModel):
     ip_addresses: List[str] = Field(default_factory=list, description="Associated IP addresses")
     status: SubdomainStatus = Field(default=SubdomainStatus.UNKNOWN, description="Subdomain status")
     source: PassiveReconTool = Field(..., description="Tool that discovered this subdomain")
-    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata (e.g., protocol, CIDR, etc.)")
     
     @field_validator('subdomain')
     def validate_subdomain(cls, v):
@@ -96,16 +100,21 @@ class SubdomainListResponse(BaseModel):
 
 
 class PassiveReconResultCreate(BaseModel):
-    """Schema for creating passive reconnaissance results."""
+    """
+    Schema for creating passive reconnaissance results.
     
+    - raw_output: Should include all tool outputs, including keys like 'ipv4s', 'protocols', 'cidrs', etc.
+    - metadata: Can include any extra fields from new tools (e.g., Cero).
+    - subdomains: Should include all discovered subdomains, with their IPs and metadata.
+    """
     target_id: UUID = Field(..., description="Target ID")
     execution_id: Optional[str] = Field(None, description="Workflow execution ID")
     tools_used: List[PassiveReconTool] = Field(..., description="Tools used in reconnaissance")
     subdomains: List[SubdomainCreate] = Field(default_factory=list, description="Discovered subdomains")
     total_subdomains: int = Field(default=0, ge=0, description="Total number of subdomains discovered")
     execution_time: Optional[str] = Field(None, description="Execution time in seconds")
-    raw_output: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Raw tool outputs")
-    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
+    raw_output: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Raw tool outputs (e.g., {'amass': {...}, 'cero': {'ipv4s': [...], 'protocols': [...], 'cidrs': [...], ...}})")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata (e.g., summary stats, error logs, etc.)")
     
     @field_validator('total_subdomains')
     def validate_total_subdomains(cls, v, info):

@@ -253,3 +253,27 @@ Domains are mapped to epics and phases as tracked in `epics.mdc`. Each domain is
 - [ ] Document integration and usage patterns
 - [ ] Add/expand tests and documentation as needed
 - [ ] Review for security, performance, and maintainability
+
+---
+# [2024-06-24] Passive Recon Stage Orchestration & API Submission Pattern
+
+## Passive Recon Stage Patterns
+- All passive recon tools (Sublist3r, Amass, Subfinder, Assetfinder, Gau) are orchestrated from a single script (`run_passive_recon.py`).
+- Each tool runner saves raw output to `/outputs/passive_recon/<TARGET>/<TOOL>.*`.
+- Parsed data is saved to `/outputs/passive_recon/<TARGET>/parsed/<TOOL>_subdomains.json` (or similar).
+- Both raw and parsed outputs are submitted to the backend API using JWT authentication (`BACKEND_JWT_TOKEN` from `.env`).
+- Tool paths are configured in `.env` and must be kept up to date with installation locations.
+- Error handling: Each runner and API submission is wrapped in try/except; failures are logged and do not halt the overall process. A summary of successes/failures is printed at the end.
+- All environment variables and tool paths must be documented in the stage `.env` file.
+
+## Output Directory Convention
+- Raw outputs: `/outputs/passive_recon/<TARGET>/<TOOL>.*`
+- Parsed outputs: `/outputs/passive_recon/<TARGET>/parsed/<TOOL>_subdomains.json` (or similar)
+- Wordlists: `/usr/share/wordlists/seclists/`
+
+## Security & Auth
+- All API submissions use JWT Bearer tokens, loaded from `.env`.
+- JWT secrets must be rotated regularly and never committed to version control.
+- See `.env` for up-to-date tool paths and API/JWT usage instructions.
+
+---

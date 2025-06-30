@@ -164,7 +164,7 @@ class Subdomain(BaseModel):
         return {
             **base_dict,
             'id': str(self.id),
-            'target_id': str(self.passive_recon_result.target_id),
+            'target_id': str(self.passive_recon_result.target_id) if self.passive_recon_result else None,
             'subdomain': self.name,
             'domain': self.domain,
             'ip_addresses': self.ip_addresses,

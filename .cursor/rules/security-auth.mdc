@@ -1,21 +1,31 @@
 ---
 description: 
-globs: backend/**/*.*,frontend/**/*
+globs: backend/**/*.*,frontend/**/*,stages/**/*
 alwaysApply: false
 ---
 ---
 description: Security, authentication, and authorization rules
-globs: backend/**/*.*, frontend/**/*
+globs: backend/**/*.*, frontend/**/*, stages/**/*
 alwaysApply: true
 ---
 # Security & Authentication Rules
 
 ## Authentication
-- Use JWT for authentication, stored in HTTP-only cookies.
-- Access tokens expire in 30 minutes, refresh tokens in 7 days.
+- Use JWT for authentication, stored in HTTP-only cookies or as Bearer tokens for service-to-service auth.
+- Access tokens expire in 30 minutes (user-facing) or as configured (service tokens, e.g., 1 hour for stage containers).
 - Implement token rotation and session invalidation.
 - All authentication logic must be covered by tests (Pytest).
 - Document all authentication flows in the architecture or rules files.
+
+## JWT Secret & Token Management
+- All JWT secrets (`JWT_SECRET`) must be long, random, and never committed to version control.
+- Use the provided rotation script (`backend/utils/rotate_jwt_secret.py`) to rotate the secret and update `backend/.env`.
+- After rotation, update the same secret in all stage containers' `.env` files.
+- Use the universal JWT generation script (`stages/utils/generate_jwt.py`) to generate tokens for any stage or backend, specifying the correct `.env`.
+- All tokens must be generated with the same `JWT_SECRET` as the backend.
+- Tokens must be short-lived (e.g., 1 hour for service-to-service, 30 min for user-facing).
+- Never store long-lived tokens or secrets on disk; use environment variables and rotate regularly.
+- Never commit secrets or tokens to version control.
 
 ## Authorization
 - (Planned) Implement role-based access control (RBAC) for admin/user separation.
@@ -46,6 +56,16 @@ alwaysApply: true
 - [ ] Document integration and usage patterns
 - [ ] Add/expand tests and documentation as needed
 - [ ] Review for security, performance, and maintainability
+
+---
+# [2024-06-24] Passive Recon Stage Security & API Submission Update
+
+- All stage containers (including passive_recon) must use JWT Bearer tokens (from BACKEND_JWT_TOKEN in .env) for all API submissions to the backend.
+- Raw and parsed outputs must be saved to the appropriate /outputs/passive_recon/<TARGET>/<TOOL>.* and /outputs/passive_recon/<TARGET>/parsed/ directories before API submission.
+- Error handling: All runner and API submission logic must be wrapped in try/except; errors must be logged and not halt the overall process.
+- See stages/passive_recon/.env for the latest tool path, JWT, and API usage conventions.
+
+---
 
 
 
