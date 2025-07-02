@@ -1,0 +1,59 @@
+---
+description: 
+globs: stages/*/test_*.py
+alwaysApply: false
+---
+---
+description: Rule for robust, isolated, and reproducible testing of stage containers (e.g., passive_recon, active_recon, etc.)
+globs: stages/*/test_*.py
+alwaysApply: true
+---
+# Stage Container Testing Rule
+
+## Purpose
+Ensure all stage containers (e.g., passive_recon, active_recon, vuln_scan, etc.) are tested in a robust, isolated, and reproducible manner, following best practices for mocking, output validation, and backend integration.
+
+## Test Patterns & Requirements
+
+- **Isolated Test Design:**
+  - All tests must run without requiring real tool binaries or a live backend.
+  - Use `pytest` for all test suites.
+  - Use fixtures to set up temp output directories and environment variables.
+
+- **Mocking Runners/Tools:**
+  - All runner/tool functions (e.g., `run_amass`, `run_sublist3r`, etc.) must be monkeypatched in the orchestration module (e.g., `run_passive_recon`) to return dummy data.
+  - Mocks must also create the expected raw output files in the temp output directory so orchestration logic is fully exercised.
+
+- **Mocking Backend Submission:**
+  - Patch backend submission functions (`save_raw_to_db`, `save_parsed_to_db`) in the orchestration module, not in the utility module, to ensure all calls are intercepted.
+  - Use counters or assertions to verify that backend submission is attempted for each tool.
+
+- **Output Validation:**
+  - Assert that all expected raw and parsed output files are created in the temp output directory.
+  - Validate that aggregated/parsed outputs (e.g., `all_subdomains.json`) are present and correct.
+
+- **Error Handling:**
+  - Simulate runner/tool failures by monkeypatching a runner to raise an exception and assert that the orchestration continues and logs the error.
+
+- **Accessibility for Other Stages:**
+  - Assert that all outputs required by downstream stages are present and accessible in the output directory.
+
+- **No Real Backend or Tool Execution:**
+  - Tests must not require a real backend or real tool binaries. All external calls must be mocked.
+
+- **Cross-Reference:**
+  - Always cross-reference with architecture, security, and global rules for consistency and compliance.
+
+## Example Test Structure
+
+- Use `pytest` fixtures for temp output directories and environment setup.
+- Patch runner functions in the orchestration module to return dummy data and create raw files.
+- Patch backend submission functions in the orchestration module to count calls or return True.
+- Validate output file creation, backend submission, error handling, and accessibility for other stages.
+
+## Rule Enforcement
+- All new or updated stage container test suites must follow this pattern.
+- Review and update this rule as new patterns or requirements emerge.
+
+
+

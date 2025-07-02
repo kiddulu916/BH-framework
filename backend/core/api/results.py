@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 
 from core.schemas.base import APIResponse
 from core.schemas.passive_recon import (
-    PassiveReconResultCreate, PassiveReconResultCreateResponse, PassiveReconResultSchema
+    PassiveReconResultCreate, PassiveReconResultCreateResponse
 )
 from core.schemas.active_recon import (
     ActiveReconResultCreate, ActiveReconResultCreateResponse
@@ -55,7 +55,7 @@ class JWTAuth(HttpBearer):
 auth = JWTAuth()
 
 @router.post("/api/v1/results/passive-recon", auth=auth, response=APIResponse, summary="Submit parsed passive recon results", description="Accepts parsed passive recon results as JSON, validates, and stores them.\n\nExpected fields in raw_output: subdomains, ipv4s, protocols, cidrs, etc. from all tools.\nExtra fields from new tools should be included in raw_output or metadata.")
-def submit_passive_recon_result(request, payload: PassiveReconResultSchema):
+def submit_passive_recon_result(request, payload: PassiveReconResultCreate):
     """
     Accept parsed passive recon results as JSON.
     - raw_output: Should include all tool outputs, including keys like 'ipv4s', 'protocols', 'cidrs', etc.

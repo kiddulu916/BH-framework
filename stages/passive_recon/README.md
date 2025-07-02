@@ -11,6 +11,7 @@ This container orchestrates multiple passive reconnaissance tools to enumerate s
   - Assetfinder
   - Gau
   - Cero
+  - Waybackurls
 - Aggregates and deduplicates subdomains and other findings
 - Saves both raw and parsed outputs to standardized directories
 - Submits results to the backend API using JWT authentication
@@ -23,6 +24,7 @@ This container orchestrates multiple passive reconnaissance tools to enumerate s
 - [Assetfinder](https://github.com/tomnomnom/assetfinder)
 - [Gau](https://github.com/lc/gau)
 - [Cero](https://github.com/glebarez/cero)
+- [Waybackurls](https://github.com/tomnomnom/waybackurls)
 - [SecLists](https://github.com/danielmiessler/SecLists) (wordlists)
 
 ## Installation & Build

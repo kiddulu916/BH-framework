@@ -1,0 +1,46 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# General Stage Container Patterns & Rule
+
+## Tool Orchestration & Execution
+- Each stage container must have a single entrypoint script (e.g., `run_<stage>.py`) that orchestrates all tools and logic for that stage.
+- All tool runners must save raw output to `/outputs/<stage>/<TARGET>/<TOOL>.*`.
+- Parsed/normalized data must be saved to `/outputs/<stage>/<TARGET>/parsed/` as JSON or other structured formats.
+- Both raw and parsed outputs must be submitted to the backend API using JWT authentication (`BACKEND_JWT_TOKEN` from `.env`).
+- Tool paths and environment variables must be configured in the stage `.env` file and kept up to date.
+
+## Output Directory Convention
+- Raw outputs: `/outputs/<stage>/<TARGET>/<TOOL>.*`
+- Parsed outputs: `/outputs/<stage>/<TARGET>/parsed/<TOOL>_results.json` (or similar)
+- Wordlists: `/usr/share/wordlists/seclists/` (if applicable)
+
+## API Submission
+- All API submissions must use JWT Bearer tokens, loaded from `.env` (`BACKEND_JWT_TOKEN`).
+- API endpoints must be versioned and follow the pattern `/api/v1/results/<stage>`.
+- Use the standardized `APIResponse` model for all responses.
+- All input/output data must be validated using Pydantic schemas.
+
+## Error Handling
+- All runner and API submission logic must be wrapped in try/except; errors must be logged and must not halt the overall process.
+- A summary of successes/failures should be printed at the end of execution.
+
+## Environment Variables & Tool Paths
+- All tool paths and environment variables must be documented in the stage `.env` file.
+- The `PATH` variable must include all tool directories required for the stage.
+- JWT secrets and tokens must never be committed to version control.
+
+## Security & Auth
+- All API submissions must use JWT Bearer tokens for authentication.
+- JWT secrets must be rotated regularly and never committed to version control.
+- Use the provided scripts (`generate_jwt.py`, `rotate_jwt_secret.py`) for token management.
+- All authentication logic must be covered by tests.
+
+## Checklist for Stage Container Changes
+- [ ] Cross-reference with architecture and epic plans
+- [ ] Update this rule and relevant documentation when patterns change
+- [ ] Document integration and usage patterns for new tools
+- [ ] Add/expand tests and error handling as needed
+- [ ] Review for security, performance, and maintainability

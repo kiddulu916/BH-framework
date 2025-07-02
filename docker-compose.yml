@@ -93,10 +93,10 @@ services:
   # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN from .env
   # - Error handling: Each runner and API submission is wrapped in try/except; failures are logged and do not halt the overall process. A summary is printed at the end.
   passive_recon:
-    build: ./stages/passive_recon
+    build:
+      context: ./stages/passive_recon
+      dockerfile: Dockerfile
     container_name: bug-hunting-passive-recon
-    env_files:
-      - ./stages/passive_recon/.env
     ports:
       - "8001:8001"
     restart: unless-stopped

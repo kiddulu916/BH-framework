@@ -1,0 +1,46 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Passive Recon Stage Patterns & Rule
+
+## Tool Orchestration
+- All passive recon tools (e.g., Amass, Subfinder, Assetfinder, Gau, Sublist3r, Cero) are orchestrated from a single script (e.g., `run_passive_recon.py`).
+- Each tool runner must save raw output to `/outputs/passive_recon/<TARGET>/<TOOL>.*`.
+- Parsed data must be saved to `/outputs/passive_recon/<TARGET>/parsed/<TOOL>_subdomains.json` (or similar).
+- Both raw and parsed outputs must be submitted to the backend API using JWT authentication (`BACKEND_JWT_TOKEN` from `.env`).
+- Tool paths are configured in `.env` and must be kept up to date with installation locations.
+
+## Output Directory Convention
+- Raw outputs: `/outputs/passive_recon/<TARGET>/<TOOL>.*`
+- Parsed outputs: `/outputs/passive_recon/<TARGET>/parsed/<TOOL>_subdomains.json` (or similar)
+- Wordlists: `/usr/share/wordlists/seclists/`
+
+## API Submission
+- All API submissions use JWT Bearer tokens, loaded from `.env` (`BACKEND_JWT_TOKEN`).
+- API endpoint for parsed results: `${BACKEND_API_URL}` (e.g., `/api/v1/results/passive-recon`).
+- Use the standardized `APIResponse` model for all responses.
+- All input/output data must be validated using Pydantic schemas.
+
+## Error Handling
+- Each runner and API submission must be wrapped in try/except; failures must be logged and must not halt the overall process.
+- A summary of successes/failures should be printed at the end of execution.
+
+## Environment Variables & Tool Paths
+- All tool paths and environment variables must be documented in the stage `.env` file.
+- The `PATH` variable must include all tool directories (e.g., `/root/go/bin/`, `/opt/Sublist3r/`).
+- JWT secrets and tokens must never be committed to version control.
+
+## Security & Auth
+- All API submissions must use JWT Bearer tokens for authentication.
+- JWT secrets must be rotated regularly and never committed to version control.
+- Use the provided scripts (`generate_jwt.py`, `rotate_jwt_secret.py`) for token management.
+- All authentication logic must be covered by tests.
+
+## Checklist for Passive Recon Stage Changes
+- [ ] Cross-reference with architecture and epic plans
+- [ ] Update this rule and relevant documentation when patterns change
+- [ ] Document integration and usage patterns for new tools
+- [ ] Add/expand tests and error handling as needed
+- [ ] Review for security, performance, and maintainability

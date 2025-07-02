@@ -8,6 +8,7 @@ from runners.run_subfinder import run_subfinder
 from runners.run_assetfinder import run_assetfinder
 from runners.run_gau import run_gau
 from runners.run_cero import run_cero
+from runners.run_waybackurls import run_waybackurls
 from runners.utils import save_raw_to_db, save_parsed_to_db
 
 def setup_output_dirs(stage: str, target: str):
@@ -129,6 +130,20 @@ def main():
     except Exception as e:
         print(f"[ERROR] Cero runner failed: {e}")
         summary["cero"] = {"runner": False, "error": str(e)}
+
+    # Waybackurls
+    try:
+        waybackurls_subdomains = run_waybackurls(args.target, output_dir)
+        waybackurls_raw_path = os.path.join(output_dir, f"waybackurls_{args.target}.txt")
+        save_json(waybackurls_subdomains, os.path.join(parsed_dir, "waybackurls_subdomains.json"))
+        all_results["waybackurls"] = {"subdomains": waybackurls_subdomains}
+        all_subdomains.update(waybackurls_subdomains)
+        raw_ok = save_raw_to_db("waybackurls", args.target, waybackurls_raw_path, api_url, jwt_token)
+        parsed_ok = save_parsed_to_db("waybackurls", args.target, {"subdomains": waybackurls_subdomains}, api_url, jwt_token)
+        summary["waybackurls"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+    except Exception as e:
+        print(f"[ERROR] waybackurls runner failed: {e}")
+        summary["waybackurls"] = {"runner": False, "error": str(e)}
 
     # Aggregate all subdomains
     all_subdomains = sorted(all_subdomains)
