@@ -23,8 +23,8 @@ The Bug Hunting Framework is built with a containerized, microservices architect
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd bug-hunting-framework
+   git clone https://github.com/kiddulu916/BH-framework.git
+   cd BH-framework
    ```
 
 2. **Configure environment variables**
