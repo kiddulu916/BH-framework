@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: 
+globs: stages/passive_recon/**/*.*
 alwaysApply: false
 ---
 # Passive Recon Stage Patterns & Rule

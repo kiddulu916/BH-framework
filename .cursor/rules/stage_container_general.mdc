@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: 
+globs: stages/**/*.*
 alwaysApply: false
 ---
 # General Stage Container Patterns & Rule

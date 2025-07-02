@@ -1,6 +1,6 @@
 ---
 description: 
-globs: backend/**/*.*,frontend/**/*,stages/**/*
+globs: backend/**/*.*,frontend/**/*.*,stages/**/*.*
 alwaysApply: false
 ---
 ---

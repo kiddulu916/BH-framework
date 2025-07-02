@@ -85,6 +85,152 @@ services:
     restart: always
     
   # =============================================================================
+  # BACKGROUND AGENT SERVICES
+  # =============================================================================
+  
+  # Main Background Agent Coordinator
+  agent_coordinator:
+    build:
+      context: .
+      dockerfile: .cursor/Dockerfile
+    container_name: bug-hunting-agent-coordinator
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      # Agent Identity
+      - AGENT_ID=${AGENT_ID:-bug-hunting-agent-001}
+      - AGENT_NAME=${AGENT_NAME:-Bug Hunting Framework Agent}
+      - AGENT_VERSION=${AGENT_VERSION:-1.0.0}
+      - AGENT_ENVIRONMENT=${AGENT_ENVIRONMENT:-development}
+      
+      # Runtime Settings
+      - AGENT_MAX_CONCURRENT_TASKS=${AGENT_MAX_CONCURRENT_TASKS:-5}
+      - AGENT_TASK_TIMEOUT_SECONDS=${AGENT_TASK_TIMEOUT_SECONDS:-3600}
+      - AGENT_HEARTBEAT_INTERVAL_SECONDS=${AGENT_HEARTBEAT_INTERVAL_SECONDS:-30}
+      - AGENT_RETRY_ATTEMPTS=${AGENT_RETRY_ATTEMPTS:-3}
+      - AGENT_RETRY_DELAY_SECONDS=${AGENT_RETRY_DELAY_SECONDS:-60}
+      
+      # Resource Limits
+      - AGENT_MAX_MEMORY_MB=${AGENT_MAX_MEMORY_MB:-2048}
+      - AGENT_MAX_CPU_PERCENT=${AGENT_MAX_CPU_PERCENT:-80}
+      - AGENT_DISK_QUOTA_GB=${AGENT_DISK_QUOTA_GB:-10}
+      
+      # Communication
+      - AGENT_API_ENDPOINT=${AGENT_API_ENDPOINT:-http://backend:8000/api/v1/agents}
+      - AGENT_WEBSOCKET_ENDPOINT=${AGENT_WEBSOCKET_ENDPOINT:-ws://backend:8000/ws/agents}
+      - AGENT_POLLING_INTERVAL_SECONDS=${AGENT_POLLING_INTERVAL_SECONDS:-10}
+      
+      # Security
+      - AGENT_JWT_TOKEN_ROTATION_INTERVAL_HOURS=${AGENT_JWT_TOKEN_ROTATION_INTERVAL_HOURS:-1}
+      - AGENT_TOKEN_REFRESH_THRESHOLD_MINUTES=${AGENT_TOKEN_REFRESH_THRESHOLD_MINUTES:-15}
+      - AGENT_ENABLE_SSL_VERIFICATION=${AGENT_ENABLE_SSL_VERIFICATION:-true}
+      
+      # Logging and Monitoring
+      - AGENT_LOG_LEVEL=${AGENT_LOG_LEVEL:-INFO}
+      - AGENT_LOG_FILE=${AGENT_LOG_FILE:-/var/log/agent.log}
+      - AGENT_ENABLE_METRICS_COLLECTION=${AGENT_ENABLE_METRICS_COLLECTION:-true}
+      - AGENT_METRICS_PORT=${AGENT_METRICS_PORT:-9091}
+      
+      # Health and Recovery
+      - AGENT_HEALTH_CHECK_INTERVAL_SECONDS=${AGENT_HEALTH_CHECK_INTERVAL_SECONDS:-60}
+      - AGENT_AUTO_RECOVERY_ENABLED=${AGENT_AUTO_RECOVERY_ENABLED:-true}
+      - AGENT_RECOVERY_MAX_ATTEMPTS=${AGENT_RECOVERY_MAX_ATTEMPTS:-5}
+      
+      # Performance Tuning
+      - AGENT_WORKER_PROCESSES=${AGENT_WORKER_PROCESSES:-4}
+      - AGENT_WORKER_THREADS=${AGENT_WORKER_THREADS:-8}
+      - AGENT_QUEUE_SIZE=${AGENT_QUEUE_SIZE:-100}
+      - AGENT_BATCH_SIZE=${AGENT_BATCH_SIZE:-10}
+      
+      # Development
+      - AGENT_DEBUG_MODE=${AGENT_DEBUG_MODE:-false}
+      - AGENT_PROFILING_ENABLED=${AGENT_PROFILING_ENABLED:-false}
+      - AGENT_ENABLE_REMOTE_DEBUG=${AGENT_ENABLE_REMOTE_DEBUG:-false}
+      
+      # Backend Integration
+      - PYTHONPATH=/home/ubuntu/projects/bug-hunting-framework/backend
+      - DJANGO_SETTINGS_MODULE=api.settings
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      
+    ports:
+      - "9091:9091"  # Agent metrics
+      - "6060:6060"  # Profiling (if enabled)
+      - "5678:5678"  # Remote debug (if enabled)
+    volumes:
+      - ./:/home/ubuntu/projects/bug-hunting-framework
+      - ./outputs:/home/ubuntu/projects/bug-hunting-framework/outputs
+      - ./data:/home/ubuntu/projects/bug-hunting-framework/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - agent_logs:/var/log
+      - agent_cache:/var/cache/agent
+    networks:
+      - bug-hunting-network
+    deploy:
+      resources:
+        limits:
+          memory: ${AGENT_MAX_MEMORY_MB:-2048}M
+          cpus: '${AGENT_MAX_CPU_PERCENT:-80}%'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Task Worker Agents (Scalable)
+  agent_worker:
+    build:
+      context: .
+      dockerfile: .cursor/Dockerfile
+    container_name: bug-hunting-agent-worker-${AGENT_WORKER_ID:-1}
+    restart: unless-stopped
+    depends_on:
+      - agent_coordinator
+      - backend
+    environment:
+      # Worker Identity
+      - AGENT_ID=bug-hunting-worker-${AGENT_WORKER_ID:-1}
+      - AGENT_NAME=Bug Hunting Worker ${AGENT_WORKER_ID:-1}
+      - AGENT_ROLE=worker
+      - AGENT_COORDINATOR_URL=http://agent_coordinator:9091
+      
+      # Worker Settings
+      - AGENT_WORKER_PROCESSES=${AGENT_WORKER_PROCESSES:-2}
+      - AGENT_WORKER_THREADS=${AGENT_WORKER_THREADS:-4}
+      - AGENT_TASK_TIMEOUT_SECONDS=${AGENT_TASK_TIMEOUT_SECONDS:-1800}
+      - AGENT_HEARTBEAT_INTERVAL_SECONDS=${AGENT_HEARTBEAT_INTERVAL_SECONDS:-15}
+      
+      # Backend Integration
+      - PYTHONPATH=/home/ubuntu/projects/bug-hunting-framework/backend
+      - DJANGO_SETTINGS_MODULE=api.settings
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      
+    volumes:
+      - ./:/home/ubuntu/projects/bug-hunting-framework
+      - ./outputs:/home/ubuntu/projects/bug-hunting-framework/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - agent_logs:/var/log
+      - agent_cache:/var/cache/agent
+    networks:
+      - bug-hunting-network
+    deploy:
+      replicas: ${AGENT_WORKER_REPLICAS:-2}
+      resources:
+        limits:
+          memory: ${AGENT_WORKER_MEMORY_MB:-1024}M
+          cpus: '${AGENT_WORKER_CPU_PERCENT:-50}%'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://agent_coordinator:9091/worker/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # =============================================================================
   # STAGE SERVICES
   # =============================================================================
   # Passive Recon Stage: Orchestrates all passive recon tools, saves raw/parsed outputs, and submits results to backend API using JWT auth.
@@ -149,6 +295,10 @@ volumes:
   frontend_node_modules:
     driver: local
   frontend_next_cache:
+    driver: local
+  agent_logs:
+    driver: local
+  agent_cache:
     driver: local
 
 # =============================================================================

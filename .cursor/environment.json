@@ -1,3 +1,107 @@
 {
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "description": "Bug Hunting Framework Development Environment with Background Agent Support",
+  "allowComments": true,
+  "allowTrailingCommas": false,
+  "name": "Bug Hunting Framework Agent",
+  "user": "ubuntu",
+  "install": "cd /home/ubuntu/projects/bug-hunting-framework && pip install -r backend/requirements.txt && cd frontend && pnpm install",
+  "start": "echo 'Bug Hunting Framework Agent Ready' && echo 'Python: $(python --version)' && echo 'Node: $(node --version)' && echo 'Docker: $(docker --version)'",
+  "repositoryDependencies": [
+    "github.com/cursor-ai/cursor",
+    "github.com/django/django",
+    "github.com/vitalik/django-ninja",
+    "github.com/vercel/next.js",
+    "github.com/docker/docker",
+    "github.com/docker/compose",
+    "github.com/docker/docker-compose"
+  ],
+  "ports": [
+    {
+      "name": "bug-hunting-backend",
+      "port": 8000
+    },
+    {
+      "name": "bug-hunting-frontend",
+      "port": 3000
+    },
+    {
+      "name": "bug-hunting-db",
+      "port": 5432
+    },
+    {
+      "name": "bug-hunting-passive-recon",
+      "port": 8001
+    },
+    {
+      "name": "Agent Metrics",
+      "port": 9092
+    },
+    {
+      "name": "Agent Profiling",
+      "port": 6060
+    },
+    {
+      "name": "Agent Debug",
+      "port": 5679
+    }
+  ],
+  "terminals": [
+    {
+      "name": "Initial Setup",
+      "command": "cd /home/ubuntu/projects/bug-hunting-framework && docker compose up -d",
+      "description": "Initializes the bug hunting framework with all services running in the background"
+    },
+    {
+      "name": "Backend Development",
+      "command": "cd /home/ubuntu/projects/bug-hunting-framework/backend && pip install -r requirements.txt && docker exec -it bug-hunting-backend bash",
+      "description": "Runs the Django backend development server with hot reloading"
+    },
+    {
+      "name": "Frontend Development",
+      "command": "cd /home/ubuntu/projects/bug-hunting-framework/frontend && npm install && docker exec -it bug-hunting-frontend bash",
+      "description": "Runs the Next.js frontend development server with hot reloading"
+    },
+    {
+      "name": "Database Management",
+      "command": "cd /home/ubuntu/projects/bug-hunting-framework && docker exec -it bug-hunting-db psql -U postgres -d bug_hunting_framework",
+      "description": "Opens PostgreSQL command line interface for database management"
+    },
+    {
+      "name": "Passive Recon",
+      "command": "cd /home/ubuntu/projects/bug-hunting-framework/passive-recon && docker exec -it bug-hunting-passive-recon bash",
+      "description": "Runs the passive recon service"
+    },
+    {
+      "name": "Agent Monitoring",
+      "command": "cd /home/ubuntu/projects/bug-hunting-framework && ./scripts/configure_agents.sh status",
+      "description": "Shows the status of background agents and their health"
+    },
+    {
+      "name": "Agent Logs",
+      "command": "cd /home/ubuntu/projects/bug-hunting-framework && ./scripts/configure_agents.sh logs",
+      "description": "Displays real-time logs from background agents"
+    },
+    {
+      "name": "Docker Services",
+      "command": "cd /home/ubuntu/projects/bug-hunting-framework && docker-compose ps",
+      "description": "Shows the status of all Docker services in the bug hunting framework"
+    },
+    {
+      "name": "Backend Test Runner",
+      "command": "cd /home/ubuntu/projects/bug-hunting-framework/backend && python -m pytest tests/ -v",
+      "description": "Runs the backend test suite with verbose output"
+    },
+    {
+      "name": "Code Quality",
+      "command": "cd /home/ubuntu/projects/bug-hunting-framework/backend && black . && flake8 . && mypy .",
+      "description": "Runs code formatting, linting, and type checking"
+    }
+  ],
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "snapshot": "bug-hunting-framework-agent-v1.0.0",
   "agentCanUpdateSnapshot": true
 }
