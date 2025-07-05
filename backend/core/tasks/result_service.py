@@ -30,6 +30,7 @@ from core.utils.exceptions import NotFoundError, ValidationError
 from core.models.active_recon import Port, Service, PortStatus, ServiceStatus, ActiveReconResult
 from core.models.vulnerability import VulnerabilityFinding
 from core.models.passive_recon import SubdomainStatus
+from core.repositories.target import TargetRepository
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class ResultService:
         self.kill_chain_repo = KillChainRepository(session)
         self.attack_path_repo = AttackPathRepository(session)
         self.workflow_repo = WorkflowRepository(session)
+        self.target_repo = TargetRepository(session)
     
     async def create_passive_recon_result(self, payload: PassiveReconResultCreate) -> PassiveReconResultResponse:
         """
@@ -851,17 +853,14 @@ class ResultService:
     async def _validate_target_exists(self, target_id: UUID) -> None:
         """
         Validate that a target exists.
-        
         Args:
             target_id: Target UUID
-            
         Raises:
             NotFoundError: If target not found
         """
-        # TODO: Implement target validation
-        # This would typically check against the target repository
-        # For now, we'll assume the target exists
-        pass 
+        target = await self.target_repo.find_one({'id': target_id})
+        if not target:
+            raise NotFoundError("Target not found")
 
     async def _update_workflow_stage_status(self, execution_id: UUID, stage: str, status: StageStatus) -> None:
         """

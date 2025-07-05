@@ -50,4 +50,8 @@ class ReportRepository(BaseRepository):
     
     async def get_by_workflow_id(self, workflow_id: UUID) -> Optional[Report]:
         """Get the first report for a workflow ID, or None if not found."""
-        return await self.find_one({'workflow_id': workflow_id}) 
+        return await self.find_one({'workflow_id': workflow_id})
+    
+    async def count_by_workflow(self, workflow_id: UUID) -> int:
+        """Count reports for a workflow."""
+        return await self.count(filters={'workflow_id': workflow_id}) 

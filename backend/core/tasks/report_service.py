@@ -19,7 +19,8 @@ from core.schemas.report import (
     ReportTemplateResponse,
     ReportFormat,
     ReportType,
-    ReportStatus
+    ReportStatus,
+    ReportSection
 )
 from core.repositories.report import ReportRepository
 from core.repositories.workflow import WorkflowRepository
@@ -174,10 +175,48 @@ class ReportService:
             if not report:
                 raise NotFoundError(f"Report with ID {report_id} not found")
             
+            # Parse content to get sections
+            sections = []
+            if report.content:
+                try:
+                    content_data = json.loads(report.content)
+                    sections = list(content_data.get("sections", {}).keys())
+                except (json.JSONDecodeError, KeyError):
+                    sections = []
+            
+            # Create ReportResponse with proper field mapping
+            report_response = ReportResponse(
+                id=report.id,
+                target_id=report.target_id,
+                execution_id=report.workflow_id,
+                user_id=report.user_id,
+                title=report.name,  # Map name to title
+                description=report.summary or "",  # Map summary to description
+                report_type=ReportType(report.report_type.value) if hasattr(report.report_type, 'value') else ReportType.TECHNICAL_DETAILED,
+                format=ReportFormat(report.format.value) if hasattr(report.format, 'value') else ReportFormat.PDF,
+                status=ReportStatus(report.status.value) if hasattr(report.status, 'value') else ReportStatus.PENDING,
+                sections=sections,
+                include_passive_recon=True,  # Default values
+                include_active_recon=True,
+                include_vulnerabilities=True,
+                include_kill_chain=True,
+                include_screenshots=True,
+                include_raw_data=False,
+                custom_template=report.template_used,
+                file_path=report.file_path,
+                file_size=report.file_size,
+                generation_time=report.generation_time,
+                error_message=str(report.errors) if report.errors else None,
+                metadata=report.configuration or {},
+                created_at=report.created_at,
+                updated_at=report.updated_at,
+                generated_at=report.updated_at if report.status == ReportStatus.COMPLETED else None
+            )
+            
             return APIResponse(
                 success=True,
                 message="Report retrieved successfully",
-                data=ReportResponse.model_validate(report, from_attributes=True).model_dump()
+                data=report_response.model_dump()
             )
             
         except NotFoundError as e:
@@ -206,29 +245,75 @@ class ReportService:
             APIResponse with report list
         """
         try:
+            # Build filters dictionary
+            filters = {}
+            if workflow_id:
+                filters['workflow_id'] = workflow_id
+            if status:
+                # Convert status to uppercase to match database enum values
+                filters['status'] = status.upper()
+            
             reports = await self.report_repository.list(
                 limit=limit,
                 offset=offset,
-                workflow_id=workflow_id,
-                status=status
+                filters=filters
             )
             
-            total_count = await self.report_repository.count(
-                workflow_id=workflow_id,
-                status=status
-            )
+            total_count = await self.report_repository.count(filters=filters)
             
-            report_list = [ReportResponse.model_validate(r, from_attributes=True).model_dump() for r in reports]
+            # Convert database models to schema responses
+            report_list = []
+            for r in reports:
+                # Parse content to get sections
+                sections = []
+                if r.content:
+                    try:
+                        content_data = json.loads(r.content)
+                        sections = list(content_data.get("sections", {}).keys())
+                    except (json.JSONDecodeError, KeyError):
+                        sections = []
+                
+                # Create ReportResponse with proper field mapping
+                report_response = ReportResponse(
+                    id=r.id,
+                    target_id=r.target_id,
+                    execution_id=r.workflow_id,
+                    user_id=r.user_id,
+                    title=r.name,  # Map name to title
+                    description=r.summary or "",  # Map summary to description
+                    report_type=ReportType(r.report_type.value) if hasattr(r.report_type, 'value') else ReportType.TECHNICAL_DETAILED,
+                    format=ReportFormat(r.format.value) if hasattr(r.format, 'value') else ReportFormat.PDF,
+                    status=ReportStatus(r.status.value) if hasattr(r.status, 'value') else ReportStatus.PENDING,
+                    sections=sections,
+                    include_passive_recon=True,  # Default values
+                    include_active_recon=True,
+                    include_vulnerabilities=True,
+                    include_kill_chain=True,
+                    include_screenshots=True,
+                    include_raw_data=False,
+                    custom_template=r.template_used,
+                    file_path=r.file_path,
+                    file_size=r.file_size,
+                    generation_time=r.generation_time,
+                    error_message=str(r.errors) if r.errors else None,
+                    metadata=r.configuration or {},
+                    created_at=r.created_at,
+                    updated_at=r.updated_at,
+                    generated_at=r.updated_at if r.status == ReportStatus.COMPLETED else None
+                )
+                report_list.append(report_response.model_dump())
             
             return APIResponse(
                 success=True,
                 message="Reports retrieved successfully",
-                data=ReportListResponse(
-                    reports=report_list,
-                    total=total_count,
-                    page=offset // limit + 1 if limit > 0 else 1,
-                    per_page=limit
-                ).model_dump()
+                data={
+                    "reports": report_list,
+                    "pagination": {
+                        "page": offset // limit + 1 if limit > 0 else 1,
+                        "per_page": limit,
+                        "total": total_count
+                    }
+                }
             )
             
         except Exception as e:
@@ -254,9 +339,9 @@ class ReportService:
             # Update fields
             update_data = {}
             if payload.title is not None:
-                update_data["title"] = payload.title
+                update_data["name"] = payload.title  # Map title to name field
             if payload.description is not None:
-                update_data["description"] = payload.description
+                update_data["summary"] = payload.description  # Map description to summary field
             if payload.report_type is not None:
                 update_data["report_type"] = payload.report_type
             if payload.format is not None:
@@ -286,10 +371,48 @@ class ReportService:
             
             logger.info(f"Updated report {report_id}")
             
+            # Parse content to get sections
+            sections = []
+            if updated_report.content:
+                try:
+                    content_data = json.loads(updated_report.content)
+                    sections = list(content_data.get("sections", {}).keys())
+                except (json.JSONDecodeError, KeyError):
+                    sections = []
+            
+            # Create ReportResponse with proper field mapping
+            report_response = ReportResponse(
+                id=updated_report.id,
+                target_id=updated_report.target_id,
+                execution_id=updated_report.workflow_id,
+                user_id=updated_report.user_id,
+                title=updated_report.name,  # Map name to title
+                description=updated_report.summary or "",  # Map summary to description
+                report_type=ReportType(updated_report.report_type.value) if hasattr(updated_report.report_type, 'value') else ReportType.TECHNICAL_DETAILED,
+                format=ReportFormat(updated_report.format.value) if hasattr(updated_report.format, 'value') else ReportFormat.PDF,
+                status=ReportStatus(updated_report.status.value) if hasattr(updated_report.status, 'value') else ReportStatus.PENDING,
+                sections=sections,
+                include_passive_recon=getattr(updated_report, 'include_passive_recon', True),
+                include_active_recon=getattr(updated_report, 'include_active_recon', True),
+                include_vulnerabilities=getattr(updated_report, 'include_vulnerabilities', True),
+                include_kill_chain=getattr(updated_report, 'include_kill_chain', True),
+                include_screenshots=getattr(updated_report, 'include_screenshots', True),
+                include_raw_data=getattr(updated_report, 'include_raw_data', False),
+                custom_template=getattr(updated_report, 'custom_template', None),
+                file_path=updated_report.file_path,
+                file_size=updated_report.file_size,
+                generation_time=getattr(updated_report, 'generation_time', None),
+                error_message=getattr(updated_report, 'error_message', None),
+                metadata=updated_report.configuration or {},
+                created_at=updated_report.created_at,
+                updated_at=updated_report.updated_at,
+                generated_at=getattr(updated_report, 'generated_at', None)
+            )
+            
             return APIResponse(
                 success=True,
                 message="Report updated successfully",
-                data=ReportResponse.model_validate(updated_report, from_attributes=True).model_dump()
+                data=report_response.model_dump()
             )
             
         except NotFoundError as e:
@@ -383,10 +506,51 @@ class ReportService:
 
             logger.info(f"Generated report {report.id} for workflow {workflow_id}")
             
+            # Parse content to get sections
+            sections = []
+            if report.content:
+                try:
+                    content_data = json.loads(report.content)
+                    sections = list(content_data.get("sections", {}).keys())
+                except (json.JSONDecodeError, KeyError):
+                    sections = []
+            
+            # Create ReportResponse with proper field mapping
+            report_response = ReportResponse(
+                id=report.id,
+                target_id=report.target_id,
+                execution_id=report.workflow_id,
+                user_id=report.user_id,
+                title=report.name,  # Map name to title
+                description=report.summary or "",  # Map summary to description
+                report_type=ReportType(report.report_type.value) if hasattr(report.report_type, 'value') else ReportType.TECHNICAL_DETAILED,
+                format=ReportFormat(report.format.value) if hasattr(report.format, 'value') else ReportFormat.MARKDOWN,
+                status=ReportStatus(report.status.value) if hasattr(report.status, 'value') else ReportStatus.COMPLETED,
+                sections=sections,
+                include_passive_recon=getattr(report, 'include_passive_recon', True),
+                include_active_recon=getattr(report, 'include_active_recon', True),
+                include_vulnerabilities=getattr(report, 'include_vulnerabilities', True),
+                include_kill_chain=getattr(report, 'include_kill_chain', True),
+                include_screenshots=getattr(report, 'include_screenshots', True),
+                include_raw_data=getattr(report, 'include_raw_data', False),
+                custom_template=getattr(report, 'custom_template', None),
+                file_path=report.file_path,
+                file_size=report.file_size,
+                generation_time=getattr(report, 'generation_time', None),
+                error_message=getattr(report, 'error_message', None),
+                metadata=report.configuration or {},
+                created_at=report.created_at,
+                updated_at=report.updated_at,
+                generated_at=getattr(report, 'generated_at', None)
+            )
+            
             return APIResponse(
                 success=True,
-                message="Report generated successfully",
-                data=ReportResponse.model_validate(report, from_attributes=True).model_dump()
+                message="Report generation started successfully",
+                data={
+                    "report_id": str(report.id),
+                    "status": report.status.value if hasattr(report.status, 'value') else report.status
+                }
             )
             
         except NotFoundError as e:
@@ -394,6 +558,79 @@ class ReportService:
         except Exception as e:
             logger.error(f"Error generating report for workflow {workflow_id}: {str(e)}")
             return APIResponse(success=False, message="Failed to generate report", errors=[str(e)])
+    
+    async def generate_workflow_report(self, workflow_id: UUID, template: str = "default") -> APIResponse:
+        """
+        Generate a report for a specific workflow (workflow-specific endpoint).
+        
+        Args:
+            workflow_id: Workflow ID
+            template: Report template to use
+            
+        Returns:
+            APIResponse with generated report data
+        """
+        try:
+            workflow = await self.workflow_repository.get_by_id(workflow_id)
+            if not workflow:
+                raise NotFoundError(f"Workflow with ID {workflow_id} not found")
+            
+            # Generate report content
+            report_content = await self._generate_report_content(workflow, template)
+            
+            # Check if report already exists for this workflow
+            existing_reports = await self.report_repository.list(
+                filters={"workflow_id": workflow_id},
+                limit=1
+            )
+            
+            if existing_reports:
+                existing_report = existing_reports[0]
+                # Update existing report
+                update_data = {
+                    "content": json.dumps(report_content),
+                    "template_used": template,
+                    "status": ReportStatus.COMPLETED.name,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+                report = await self.report_repository.update(existing_report.id, **update_data)
+            else:
+                # Create new report
+                report_data = {
+                    "workflow_id": workflow_id,
+                    "target_id": workflow.target_id,
+                    "name": f"Security Assessment Report - {workflow.name}",
+                    "report_type": ReportType.TECHNICAL_DETAILED.name,
+                    "format": ReportFormat.MARKDOWN.name,
+                    "content": json.dumps(report_content),
+                    "status": ReportStatus.COMPLETED.name,
+                    "template_used": template,
+                    "configuration": {"template": template, "format": ReportFormat.MARKDOWN.name},
+                    "created_at": datetime.now(timezone.utc),
+                    "updated_at": datetime.now(timezone.utc)
+                }
+                report = await self.report_repository.create(**report_data)
+            
+            # Update workflow status to COMPLETED after report generation
+            await self.workflow_repository.update(workflow_id, status=WorkflowStatus.COMPLETED, updated_at=datetime.now(timezone.utc))
+            await self.workflow_repository.session.commit()
+
+            logger.info(f"Generated workflow report {report.id} for workflow {workflow_id}")
+            
+            return APIResponse(
+                success=True,
+                message="Workflow report generation started successfully",
+                data={
+                    "report_id": str(report.id),
+                    "status": report.status.value if hasattr(report.status, 'value') else report.status
+                }
+            )
+            
+        except NotFoundError as e:
+            return APIResponse(success=False, message=str(e), errors=[str(e)])
+        except Exception as e:
+            logger.error(f"Error generating workflow report for workflow {workflow_id}: {str(e)}")
+            return APIResponse(success=False, message="Failed to generate workflow report", errors=[str(e)])
     
     async def export_report(self, report_id: UUID, payload: ReportExportRequest) -> APIResponse:
         """
@@ -416,9 +653,11 @@ class ReportService:
             
             return APIResponse(
                 success=True,
-                message="Report exported successfully",
+                message="Report export started successfully",
                 data={
                     "report_id": report_id,
+                    "export_id": str(report_id),
+                    "status": "pending",
                     "format": payload.format,
                     "content": export_data,
                     "filename": f"report_{report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.{payload.format}"
@@ -439,50 +678,103 @@ class ReportService:
             APIResponse with available templates
         """
         try:
-            templates = [
-                ReportTemplateResponse(
-                    id=uuid4(),
-                    name="default",
-                    description="Standard security assessment report template",
-                    report_type=ReportType.EXECUTIVE_SUMMARY,
-                    format=ReportFormat.MARKDOWN,
-                    sections=["executive_summary", "methodology", "findings", "recommendations", "appendix"],
-                    is_default=True
-                ),
-                ReportTemplateResponse(
-                    id=uuid4(),
-                    name="executive",
-                    description="Executive summary focused report template",
-                    report_type=ReportType.EXECUTIVE_SUMMARY,
-                    format=ReportFormat.MARKDOWN,
-                    sections=["executive_summary", "findings", "recommendations"]
-                ),
-                ReportTemplateResponse(
-                    id=uuid4(),
-                    name="technical",
-                    description="Technical detailed report template",
-                    report_type=ReportType.TECHNICAL_DETAILED,
-                    format=ReportFormat.MARKDOWN,
-                    sections=["methodology", "findings", "vulnerabilities", "attack_paths", "recommendations", "appendix"]
-                ),
-                ReportTemplateResponse(
-                    id=uuid4(),
-                    name="compliance",
-                    description="Compliance focused report template",
-                    report_type=ReportType.COMPLIANCE,
-                    format=ReportFormat.MARKDOWN,
-                    sections=["executive_summary", "findings", "recommendations", "appendix"]
-                )
-            ]
+            logger.info("Creating report templates...")
+            
+            # Use enum values for sections
+            template1 = ReportTemplateResponse(
+                id=uuid4(),
+                name="default",
+                description="Standard security assessment report template",
+                report_type=ReportType.EXECUTIVE_SUMMARY,
+                format=ReportFormat.MARKDOWN,
+                sections=[
+                    ReportSection.EXECUTIVE_SUMMARY,
+                    ReportSection.METHODOLOGY,
+                    ReportSection.FINDINGS,
+                    ReportSection.RECOMMENDATIONS,
+                    ReportSection.APPENDIX
+                ],
+                is_default=True,
+                version="1.0"
+            )
+            logger.info(f"Created template1: {template1.model_dump()}")
+            
+            template2 = ReportTemplateResponse(
+                id=uuid4(),
+                name="executive",
+                description="Executive summary focused report template",
+                report_type=ReportType.EXECUTIVE_SUMMARY,
+                format=ReportFormat.MARKDOWN,
+                sections=[
+                    ReportSection.EXECUTIVE_SUMMARY,
+                    ReportSection.FINDINGS,
+                    ReportSection.RECOMMENDATIONS
+                ],
+                version="1.0"
+            )
+            logger.info(f"Created template2: {template2.model_dump()}")
+            
+            template3 = ReportTemplateResponse(
+                id=uuid4(),
+                name="technical",
+                description="Technical detailed report template",
+                report_type=ReportType.TECHNICAL_DETAILED,
+                format=ReportFormat.MARKDOWN,
+                sections=[
+                    ReportSection.METHODOLOGY,
+                    ReportSection.FINDINGS,
+                    ReportSection.VULNERABILITIES,
+                    ReportSection.ATTACK_PATHS,
+                    ReportSection.RECOMMENDATIONS,
+                    ReportSection.APPENDIX
+                ],
+                version="1.0"
+            )
+            logger.info(f"Created template3: {template3.model_dump()}")
+            
+            template4 = ReportTemplateResponse(
+                id=uuid4(),
+                name="compliance",
+                description="Compliance focused report template",
+                report_type=ReportType.COMPLIANCE,
+                format=ReportFormat.MARKDOWN,
+                sections=[
+                    ReportSection.EXECUTIVE_SUMMARY,
+                    ReportSection.FINDINGS,
+                    ReportSection.RECOMMENDATIONS,
+                    ReportSection.APPENDIX
+                ],
+                version="1.0"
+            )
+            logger.info(f"Created template4: {template4.model_dump()}")
+            
+            templates = [template1, template2, template3, template4]
+            
+            # Convert to dict with debug logging
+            template_dicts = []
+            for i, template in enumerate(templates):
+                try:
+                    template_dict = template.model_dump()
+                    template_dicts.append(template_dict)
+                    logger.info(f"Successfully converted template {i+1} to dict")
+                except Exception as e:
+                    logger.error(f"Error converting template {i+1} to dict: {str(e)}")
+                    raise
+            
+            response_data = {"templates": template_dicts}
+            logger.info(f"Final response data: {response_data}")
             
             return APIResponse(
                 success=True,
                 message="Report templates retrieved successfully",
-                data={"templates": [t.model_dump() for t in templates]}
+                data=response_data
             )
             
         except Exception as e:
             logger.error(f"Error retrieving report templates: {str(e)}")
+            logger.error(f"Exception type: {type(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return APIResponse(success=False, message="Failed to retrieve report templates", errors=[str(e)])
     
     async def _generate_report_content(self, workflow, template: str) -> Dict[str, Any]:
@@ -743,14 +1035,20 @@ class ReportService:
             Exported content as string
         """
         try:
+            # Parse the JSON content if it's a string
+            if isinstance(report.content, str):
+                content_data = json.loads(report.content)
+            else:
+                content_data = report.content
+            
             if format_type == "json":
-                return json.dumps(report.content, indent=2)
+                return json.dumps(content_data, indent=2)
             
             elif format_type == "csv":
                 # Convert report content to CSV format
                 csv_data = []
-                if "findings" in report.content.get("sections", {}):
-                    findings = report.content["sections"]["findings"]
+                if "findings" in content_data.get("sections", {}):
+                    findings = content_data["sections"]["findings"]
                     if "vulnerabilities" in findings:
                         for vuln in findings["vulnerabilities"]:
                             csv_data.append({
@@ -774,7 +1072,13 @@ class ReportService:
                     return "No data to export"
             
             elif format_type == "markdown":
-                return self._convert_to_markdown(report.content)
+                return self._convert_to_markdown(content_data)
+            
+            elif format_type == "pdf":
+                # For now, return markdown content as PDF is not fully implemented
+                # In a real implementation, you would use a library like weasyprint or reportlab
+                markdown_content = self._convert_to_markdown(content_data)
+                return f"PDF Export (Markdown content):\n\n{markdown_content}"
             
             else:
                 raise ExportError(f"Unsupported export format: {format_type}")
@@ -844,4 +1148,48 @@ class ReportService:
                 md_lines.append(f"{rec['description']}")
                 md_lines.append("")
         
-        return "\n".join(md_lines) 
+        return "\n".join(md_lines)
+
+    async def get_workflow_reports(
+        self,
+        workflow_id: UUID,
+        limit: int = 10,
+        offset: int = 0
+    ) -> APIResponse:
+        """
+        Get reports for a specific workflow.
+        
+        Args:
+            workflow_id: Workflow ID
+            limit: Number of reports to return
+            offset: Number of reports to skip
+            
+        Returns:
+            APIResponse with workflow reports
+        """
+        try:
+            # Check if workflow exists
+            workflow = await self.workflow_repository.get_by_id(workflow_id)
+            if not workflow:
+                return APIResponse(
+                    success=False,
+                    message=f"Workflow with ID {workflow_id} not found",
+                    errors=[f"Workflow with ID {workflow_id} not found"]
+                )
+            
+            # Use the existing get_reports method with workflow_id filter
+            result = await self.get_reports(
+                limit=limit,
+                offset=offset,
+                workflow_id=workflow_id
+            )
+            
+            # Update the message to be workflow-specific
+            if result.success:
+                result.message = "Workflow reports retrieved successfully"
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error retrieving workflow reports: {str(e)}")
+            return APIResponse(success=False, message="Failed to retrieve workflow reports", errors=[str(e)]) 

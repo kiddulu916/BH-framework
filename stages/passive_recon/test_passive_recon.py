@@ -26,7 +26,7 @@ def temp_outputs(monkeypatch):
 
 @pytest.fixture(scope="function")
 def mock_env(monkeypatch):
-    monkeypatch.setenv("BACKEND_API_URL", "http://mock-backend/api/v1/results/passive-recon")
+    monkeypatch.setenv("BACKEND_API_URL", "http://mock-backend/api/results/passive-recon")
     monkeypatch.setenv("BACKEND_JWT_TOKEN", "testtoken")
     # Set tool paths to echo for fast test
     monkeypatch.setenv("AMASS_PATH", "echo")

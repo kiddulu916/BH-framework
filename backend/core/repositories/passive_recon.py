@@ -101,6 +101,22 @@ class PassiveReconRepository(BaseRepository):
         total_count = count_result.scalar_one()
         return items, total_count
 
+    async def count_by_target(self, target_id: UUID) -> int:
+        """Count passive recon results for a target."""
+        return await self.count(filters={'target_id': target_id})
+
+    async def get_latest_by_target(self, target_id: UUID) -> Optional[PassiveReconResult]:
+        """Get the latest passive recon result for a target."""
+        query = select(self.model_class).where(
+            self.model_class.target_id == target_id
+        ).order_by(self.model_class.created_at.desc()).limit(1)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+
+    async def count_by_workflow(self, workflow_id: UUID) -> int:
+        """Count passive recon results for a workflow."""
+        return await self.count(filters={'execution_id': str(workflow_id)})
+
 
 class SubdomainRepository(BaseRepository):
     """Repository for Subdomain model operations."""

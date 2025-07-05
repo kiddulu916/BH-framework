@@ -318,4 +318,5 @@ class ReportTemplateResponse(BaseModel):
     report_type: ReportType = Field(..., description="Report type")
     format: ReportFormat = Field(..., description="Report format")
     sections: List[ReportSection] = Field(..., description="Template sections")
-    is_default: bool = Field(default=False, description="Is default template") 
+    is_default: bool = Field(default=False, description="Is default template")
+    version: str = Field(default="1.0", description="Template version") 

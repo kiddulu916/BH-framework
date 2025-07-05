@@ -43,31 +43,42 @@ class JWTAuth(HttpBearer):
         Decode and validate JWT. Checks signature and expiry.
         """
         try:
+            print(f"[DEBUG] JWT Auth: Attempting to decode token: {token[:20]}...")
+            print(f"[DEBUG] JWT Auth: Using secret: {JWT_SECRET[:20]}...")
+            print(f"[DEBUG] JWT Auth: Using algorithm: {JWT_ALGORITHM}")
+            
             payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            print(f"[DEBUG] JWT Auth: Decoded payload: {payload}")
+            
             exp = payload.get("exp")
             if exp and datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(timezone.utc):
+                print(f"[DEBUG] JWT Auth: Token expired")
                 return None
+            print(f"[DEBUG] JWT Auth: Authentication successful")
             # Optionally, check claims/roles here
             return payload
         except Exception as e:
+            print(f"[DEBUG] JWT Auth: Authentication failed with error: {e}")
             return None
 
 auth = JWTAuth()
 
-@router.post("/api/v1/results/passive-recon", auth=auth, response=APIResponse, summary="Submit parsed passive recon results", description="Accepts parsed passive recon results as JSON, validates, and stores them.\n\nExpected fields in raw_output: subdomains, ipv4s, protocols, cidrs, etc. from all tools.\nExtra fields from new tools should be included in raw_output or metadata.")
-def submit_passive_recon_result(request, payload: PassiveReconResultCreate):
+@router.post("/passive-recon", auth=auth, response=APIResponse, summary="Submit parsed passive recon results", description="Accepts parsed passive recon results as JSON, validates, and stores them.\n\nExpected fields in raw_output: subdomains, ipv4s, protocols, cidrs, etc. from all tools.\nExtra fields from new tools should be included in raw_output or metadata.")
+async def submit_passive_recon_result(request, payload: PassiveReconResultCreate):
     """
     Accept parsed passive recon results as JSON.
     - raw_output: Should include all tool outputs, including keys like 'ipv4s', 'protocols', 'cidrs', etc.
     - metadata: Can include any extra fields from new tools (e.g., Cero).
     """
     try:
-        result = ResultService.save_passive_recon_result(payload)
-        return APIResponse(success=True, message="Parsed output saved", data=result)
+        async with get_db_session() as session:
+            result_service = ResultService(session)
+            result = await result_service.create_passive_recon_result(payload)
+            return APIResponse(success=True, message="Parsed output saved", data=result.model_dump())
     except Exception as e:
         return APIResponse(success=False, message="Failed to save parsed output", errors=[str(e)])
 
-@router.post("/api/v1/results/passive-recon/raw", auth=auth, response=APIResponse, summary="Submit raw passive recon output", description="Accepts raw passive recon output as a file upload, validates, and stores it.")
+@router.post("/passive-recon/raw", auth=auth, response=APIResponse, summary="Submit raw passive recon output", description="Accepts raw passive recon output as a file upload, validates, and stores it.")
 def submit_passive_recon_raw(request, file: UploadedFile = File(...), tool: str = Form(...), target: str = Form(...)):
     """
     Accept raw passive recon output as a file upload.
@@ -182,7 +193,6 @@ async def submit_kill_chain_results(request: HttpRequest, payload: KillChainCrea
 async def get_target_results_summary(request: HttpRequest, target_id: UUID):
     """
     Get a summary of all results for a specific target.
-    
     Returns aggregated information about reconnaissance results,
     vulnerability findings, and kill chain analysis for the target.
     """
@@ -190,7 +200,6 @@ async def get_target_results_summary(request: HttpRequest, target_id: UUID):
         async with get_db_session() as session:
             result_service = ResultService(session)
             summary = await result_service.get_target_results_summary(target_id)
-            
             return APIResponse(
                 success=True,
                 message="Target results summary retrieved successfully",
@@ -198,6 +207,14 @@ async def get_target_results_summary(request: HttpRequest, target_id: UUID):
                 errors=None
             )
     except Exception as e:
+        # If the error is NotFoundError, return success: False
+        if hasattr(e, 'args') and e.args and 'not found' in str(e.args[0]).lower():
+            return APIResponse(
+                success=False,
+                message="Target not found",
+                data=None,
+                errors=[str(e)]
+            )
         return APIResponse(
             success=False,
             message="Failed to retrieve target results summary",

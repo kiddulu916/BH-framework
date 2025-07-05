@@ -68,6 +68,38 @@ async def create_workflow(request, payload: WorkflowCreateRequest):
         return await workflow_service.create_workflow(payload)
 
 
+@router.get("/statistics", response=APIResponse, summary="Get workflow statistics")
+async def get_workflow_statistics(request):
+    """
+    Get workflow statistics.
+    
+    Returns:
+        APIResponse with workflow statistics
+    """
+    async with get_db_session() as session:
+        # Initialize repositories
+        workflow_repo = WorkflowRepository(session)
+        target_repo = TargetRepository(session)
+        passive_recon_repo = PassiveReconRepository(session)
+        active_recon_repo = ActiveReconRepository(session)
+        vulnerability_repo = VulnerabilityRepository(session)
+        kill_chain_repo = KillChainRepository(session)
+        report_repo = ReportRepository(session)
+        
+        # Initialize services
+        workflow_service = WorkflowService(
+            workflow_repository=workflow_repo,
+            target_repository=target_repo,
+            passive_recon_repository=passive_recon_repo,
+            active_recon_repository=active_recon_repo,
+            vulnerability_repository=vulnerability_repo,
+            kill_chain_repository=kill_chain_repo,
+            report_repository=report_repo
+        )
+        
+        return await workflow_service.get_workflow_statistics()
+
+
 @router.get("/{workflow_id}", response=APIResponse, summary="Get workflow")
 async def get_workflow(request, workflow_id: UUID):
     """
@@ -309,112 +341,10 @@ async def execute_workflow_stage(request, workflow_id: UUID, payload: WorkflowEx
                 workflow_id=workflow_id,
                 stage_name=payload.stage_name,
                 target_id=workflow.target_id,
-                execution_config=payload.config
+                execution_config=payload.config_overrides
             )
         
         return workflow_result
 
 
-@router.get("/statistics", response=APIResponse, summary="Get workflow statistics")
-async def get_workflow_statistics(request):
-    """
-    Get workflow statistics.
-    
-    Returns:
-        APIResponse with workflow statistics
-    """
-    async with get_db_session() as session:
-        # Initialize repositories
-        workflow_repo = WorkflowRepository(session)
-        target_repo = TargetRepository(session)
-        passive_recon_repo = PassiveReconRepository(session)
-        active_recon_repo = ActiveReconRepository(session)
-        vulnerability_repo = VulnerabilityRepository(session)
-        kill_chain_repo = KillChainRepository(session)
-        report_repo = ReportRepository(session)
-        
-        # Initialize services
-        workflow_service = WorkflowService(
-            workflow_repository=workflow_repo,
-            target_repository=target_repo,
-            passive_recon_repository=passive_recon_repo,
-            active_recon_repository=active_recon_repo,
-            vulnerability_repository=vulnerability_repo,
-            kill_chain_repository=kill_chain_repo,
-            report_repository=report_repo
-        )
-        
-        return await workflow_service.get_workflow_statistics()
-
-
-# Container management endpoints
-@router.get("/containers", response=APIResponse, summary="List running containers")
-async def list_running_containers(request):
-    """
-    List all running stage containers.
-    
-    Returns:
-        APIResponse with list of running containers
-    """
-    async with get_db_session() as session:
-        # Initialize repositories
-        workflow_repo = WorkflowRepository(session)
-        target_repo = TargetRepository(session)
-        
-        # Initialize services
-        execution_service = ExecutionService(
-            workflow_repository=workflow_repo,
-            target_repository=target_repo
-        )
-        
-        return await execution_service.list_running_containers()
-
-
-@router.get("/containers/{container_name}/status", response=APIResponse, summary="Get container status")
-async def get_container_status(request, container_name: str):
-    """
-    Get status of a running container.
-    
-    Args:
-        container_name: Name of the container
-        
-    Returns:
-        APIResponse with container status
-    """
-    async with get_db_session() as session:
-        # Initialize repositories
-        workflow_repo = WorkflowRepository(session)
-        target_repo = TargetRepository(session)
-        
-        # Initialize services
-        execution_service = ExecutionService(
-            workflow_repository=workflow_repo,
-            target_repository=target_repo
-        )
-        
-        return await execution_service.get_container_status(container_name)
-
-
-@router.post("/containers/{container_name}/stop", response=APIResponse, summary="Stop container")
-async def stop_container(request, container_name: str):
-    """
-    Stop a running container.
-    
-    Args:
-        container_name: Name of the container
-        
-    Returns:
-        APIResponse with stop confirmation
-    """
-    async with get_db_session() as session:
-        # Initialize repositories
-        workflow_repo = WorkflowRepository(session)
-        target_repo = TargetRepository(session)
-        
-        # Initialize services
-        execution_service = ExecutionService(
-            workflow_repository=workflow_repo,
-            target_repository=target_repo
-        )
-        
-        return await execution_service.stop_container(container_name) 
+ 

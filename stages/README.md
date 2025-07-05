@@ -22,7 +22,7 @@
 
 ### .env Setup Example
 ```
-BACKEND_API_URL=http://backend:8000/api/v1/results/passive-recon
+BACKEND_API_URL=http://backend:8000/api/results/passive-recon
 BACKEND_JWT_TOKEN=  # Set by generate_jwt.py
 JWT_SECRET=         # Set by backend/utils/rotate_jwt_secret.py
 JWT_ALGORITHM=HS256

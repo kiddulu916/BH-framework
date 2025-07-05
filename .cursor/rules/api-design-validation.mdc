@@ -11,20 +11,50 @@ alwaysApply: true
 # API Design & Validation Rules
 
 ## RESTful Endpoints
-- All endpoints must be RESTful and versioned under `/api/v1/`.
+- All endpoints must be RESTful and versioned under `/api`.
 - Use resource-based URLs and appropriate HTTP methods.
+
+## URL Routing & Organization
+- **Static routes must be defined before parameterized routes** to prevent conflicts.
+- Example: Define `/statistics` before `/{workflow_id}` to avoid `/statistics` being treated as a workflow ID.
+- **Resource-specific endpoints** should be grouped logically (e.g., all workflow endpoints in workflow_api.py).
+- **Cross-cutting concerns** (like statistics, containers) should be placed in appropriate API modules.
+- **Container management endpoints** belong in execution_api.py, not workflow_api.py.
+- **Endpoint ordering** matters - more specific routes must come before generic ones.
 
 ## Validation
 - Use Pydantic schemas for all request and response validation.
 - All input data must be validated and sanitized before processing.
+- **Required fields** in schemas must be provided in all API calls and test payloads.
+- **Enum values** must match the expected format (lowercase for API schemas).
+- **Schema validation errors** must return HTTP 422 with detailed error messages.
+
+## Schema & Response Patterns
+- **ReportResponse objects** must include all required fields (title, sections, format, etc.).
+- **Enum fields** must use proper enum types (e.g., `ReportSection` enum, not strings).
+- **Response schemas** must match the actual data structure returned by services.
+- **Model-to-schema mapping** must handle enum conversions and field transformations.
+- **Pagination responses** must follow the standardized format with `items`, `total`, `page`, `size`.
 
 ## Error Handling
 - All errors must be handled by the global exception handler.
 - API responses must use the standardized `APIResponse` model.
+- **Business logic errors** should return HTTP 200 with `success=False` in APIResponse.
+- **Framework errors** should use appropriate HTTP status codes (422, 404, 401, etc.).
+- **Validation errors** must include specific field names and error messages.
+- **Database constraint violations** must be caught and converted to user-friendly messages.
+
+## Authentication & Authorization
+- **JWT authentication** must be properly configured for protected endpoints.
+- **Auth decorators** (`auth=auth`) must be applied consistently across related endpoints.
+- **Token validation** must handle timezone-aware timestamps correctly.
+- **Unauthorized requests** must return HTTP 401 with clear error messages.
 
 ## Documentation
 - API documentation must be auto-generated via OpenAPI/Swagger.
 - All endpoints must have summary and description fields for docs.
+- **Response examples** should be provided for complex endpoints.
+- **Error responses** should be documented with possible status codes and messages.
 
 
 

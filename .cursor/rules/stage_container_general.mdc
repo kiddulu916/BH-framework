@@ -19,7 +19,7 @@ alwaysApply: false
 
 ## API Submission
 - All API submissions must use JWT Bearer tokens, loaded from `.env` (`BACKEND_JWT_TOKEN`).
-- API endpoints must be versioned and follow the pattern `/api/v1/results/<stage>`.
+- API endpoints must be versioned and follow the pattern `/api/results/<stage>`.
 - Use the standardized `APIResponse` model for all responses.
 - All input/output data must be validated using Pydantic schemas.
 

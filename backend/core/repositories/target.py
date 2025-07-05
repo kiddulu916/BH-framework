@@ -195,28 +195,32 @@ class TargetRepository(BaseRepository):
         }
     
     async def list_with_pagination(self, pagination=None, filters=None, search_expr=None) -> (List[Target], int):
+        """
+        List targets with pagination and filtering.
+        
+        Args:
+            pagination: Pagination object
+            filters: Dictionary of field filters
+            search_expr: Search expression
+            
+        Returns:
+            Tuple of (items, total_count)
+        """
         # Use the base list method for pagination
         limit = getattr(pagination, 'per_page', 10) if pagination else 10
         offset = ((getattr(pagination, 'page', 1) - 1) * limit) if pagination else 0
-        query = select(self.model_class)
-        if filters:
-            for field, value in filters.items():
-                if hasattr(self.model_class, field):
-                    query = query.where(getattr(self.model_class, field) == value)
-        if search_expr is not None:
-            query = query.where(search_expr)
-        query = query.offset(offset).limit(limit)
-        result = await self.session.execute(query)
-        items = result.scalars().all()
-        # Count total with same filters/search
-        count_query = select(func.count(self.model_class.id))
-        if filters:
-            for field, value in filters.items():
-                if hasattr(self.model_class, field):
-                    count_query = count_query.where(getattr(self.model_class, field) == value)
-        if search_expr is not None:
-            count_query = count_query.where(search_expr)
-        total = (await self.session.execute(count_query)).scalar_one()
+        
+        # Get items using base repository list method
+        items = await self.list(
+            limit=limit,
+            offset=offset,
+            filters=filters,
+            order_by=['created_at']
+        )
+        
+        # Count total with same filters
+        total = await self.count(filters=filters)
+        
         return items, total
     
     async def get_counts_by_status(self) -> dict:

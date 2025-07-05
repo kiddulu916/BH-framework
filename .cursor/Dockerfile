@@ -43,24 +43,8 @@ RUN apt-get update && apt-get install -y \
     netcat \
     telnet \
     jq \
-    yq \
     docker \
     docker-compose \
-    django \
-    django-rest-framework \
-    django-ninja \
-    django-cors-headers \
-    typescript \
-    @types/node \
-    postgres \
-    python-dotenv \
-    redux \
-    react \
-    react-dom \
-    react-router \
-    react-router-dom \
-    nextjs \
-    tailwindcss
 
 # Set up Python virtual environment
 RUN python3 -m venv /home/ubuntu/venv
@@ -89,12 +73,16 @@ RUN pip3 install --no-cache-dir \
     asyncpg \
     
     # Web framework and API
-    django \
+    django-rest-framework \
     django-ninja \
+    django \
     django-cors-headers \
-    django-filter \
-    django-storages \
-    dj-database-url \
+    typescript \
+    @types/node \
+    postgres \
+    python-dotenv \
+    redux \
+    react \
     
     # Data validation and serialization
     pydantic \
@@ -111,9 +99,8 @@ RUN pip3 install --no-cache-dir \
     python-jose \
     
     # Environment and configuration
-    drf-spectacular
+    drf-spectacular \
     sentry-sdk \
-    python-dotenv \
     tenacity \
     
     # Development and testing utilities
@@ -138,7 +125,13 @@ RUN pip3 install --no-cache-dir \
     safety \
     
     # Performance testing
-    locust
+    locust \
+    
+    # Bug hunting tools
+    arjun \
+    ffuf \
+    trufflehog \
+    amass
 
 # Install Node.js packages globally
 RUN npm install -g \
@@ -146,7 +139,12 @@ RUN npm install -g \
     eslint \
     prettier \
     typescript \
-    @types/node
+    redux \
+    react \
+    react-dom \
+    react-router \
+    react-router-dom \
+    nextjs
 
 # Create common directories
 RUN mkdir -p /home/ubuntu/projects \
@@ -170,5 +168,3 @@ CMD ["/bin/bash"]
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
-
-

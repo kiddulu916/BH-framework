@@ -66,6 +66,38 @@ async def create_report(request, payload: ReportCreateRequest):
         return await report_service.create_report(payload)
 
 
+@router.get("/templates", response=APIResponse, summary="Get report templates")
+async def get_report_templates(request):
+    """
+    Get available report templates.
+    
+    Returns:
+        APIResponse with available templates
+    """
+    async with get_db_session() as session:
+        # Initialize repositories
+        report_repo = ReportRepository(session)
+        workflow_repo = WorkflowRepository(session)
+        target_repo = TargetRepository(session)
+        passive_recon_repo = PassiveReconRepository(session)
+        active_recon_repo = ActiveReconRepository(session)
+        vulnerability_repo = VulnerabilityRepository(session)
+        kill_chain_repo = KillChainRepository(session)
+        
+        # Initialize services
+        report_service = ReportService(
+            report_repository=report_repo,
+            workflow_repository=workflow_repo,
+            target_repository=target_repo,
+            passive_recon_repository=passive_recon_repo,
+            active_recon_repository=active_recon_repo,
+            vulnerability_repository=vulnerability_repo,
+            kill_chain_repository=kill_chain_repo
+        )
+        
+        return await report_service.get_report_templates()
+
+
 @router.get("/{report_id}", response=APIResponse, summary="Get report")
 async def get_report(request, report_id: UUID):
     """
@@ -293,38 +325,6 @@ async def export_report(request, report_id: UUID, payload: ReportExportRequest):
         return await report_service.export_report(report_id, payload)
 
 
-@router.get("/templates", response=APIResponse, summary="Get report templates")
-async def get_report_templates(request):
-    """
-    Get available report templates.
-    
-    Returns:
-        APIResponse with available templates
-    """
-    async with get_db_session() as session:
-        # Initialize repositories
-        report_repo = ReportRepository(session)
-        workflow_repo = WorkflowRepository(session)
-        target_repo = TargetRepository(session)
-        passive_recon_repo = PassiveReconRepository(session)
-        active_recon_repo = ActiveReconRepository(session)
-        vulnerability_repo = VulnerabilityRepository(session)
-        kill_chain_repo = KillChainRepository(session)
-        
-        # Initialize services
-        report_service = ReportService(
-            report_repository=report_repo,
-            workflow_repository=workflow_repo,
-            target_repository=target_repo,
-            passive_recon_repository=passive_recon_repo,
-            active_recon_repository=active_recon_repo,
-            vulnerability_repository=vulnerability_repo,
-            kill_chain_repository=kill_chain_repo
-        )
-        
-        return await report_service.get_report_templates()
-
-
 # Convenience endpoints for workflow-based report operations
 @router.get("/workflows/{workflow_id}/reports", response=APIResponse, summary="Get workflow reports")
 async def get_workflow_reports(
@@ -365,10 +365,10 @@ async def get_workflow_reports(
             kill_chain_repository=kill_chain_repo
         )
         
-        return await report_service.get_reports(
+        return await report_service.get_workflow_reports(
+            workflow_id=workflow_id,
             limit=limit,
-            offset=offset,
-            workflow_id=workflow_id
+            offset=offset
         )
 
 
@@ -405,4 +405,4 @@ async def generate_workflow_report(request, workflow_id: UUID, template: str = "
             kill_chain_repository=kill_chain_repo
         )
         
-        return await report_service.generate_report(workflow_id, template) 
+        return await report_service.generate_workflow_report(workflow_id, template)

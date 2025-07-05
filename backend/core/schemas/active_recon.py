@@ -41,6 +41,7 @@ class ActiveReconTool(str, Enum):
     NUCLEI = "nuclei"
     WHATWEB = "whatweb"
     WAFW00F = "wafw00f"
+    NAABU = "naabu"
 
 
 class PortCreate(BaseModel):

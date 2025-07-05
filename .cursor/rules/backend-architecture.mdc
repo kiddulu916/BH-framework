@@ -32,6 +32,56 @@ alwaysApply: true
 - Success: `success=True`, `data` contains payload, `errors=None`.
 - Error: `success=False`, `data=None`, `errors` contains error details.
 
+## URL Routing Patterns
+- **Static routes must come before parameterized routes** to avoid conflicts.
+- Example: `/statistics` must be defined before `/{workflow_id}` to prevent `/statistics` from being treated as a workflow ID.
+- **Container management endpoints** should be in the execution API, not workflow API.
+- **Resource-specific endpoints** should be grouped logically (e.g., all workflow endpoints together).
+- **Cross-cutting concerns** (like statistics) should be placed at the appropriate level in the URL hierarchy.
+
+## Enum Handling & Schema Validation
+- **Database enums** must use uppercase values (e.g., `GENERATING`, `COMPLETED`).
+- **API schemas** must use lowercase values (e.g., `generating`, `completed`).
+- **Enum conversion** must be handled explicitly in service layer when mapping between DB and API.
+- **Pydantic schemas** must use proper enum types (e.g., `ReportSection` enum, not strings).
+- **Schema validation errors** must be caught and returned as standardized APIResponse with `success=False`.
+- **Required fields** in schemas must be provided in all test payloads and API calls.
+
+## JWT Authentication Patterns
+- **JWT tokens** must be generated using timezone-aware datetime objects (`datetime.now(timezone.utc)`).
+- **Never use deprecated `datetime.utcnow()`** - it can cause timezone issues.
+- **JWT secrets** must be consistent across all services (backend, stage containers).
+- **Token validation** must handle timezone-aware timestamps correctly.
+- **Test fixtures** must generate valid JWT tokens that work with the backend's timezone settings.
+
+## Database Schema & Constraints
+- **Required fields** (non-nullable columns) must always be provided in API submissions.
+- **Foreign key relationships** must be validated before database operations.
+- **Enum values** in database must match the expected format (uppercase for DB, lowercase for API).
+- **JSONB fields** must be properly serialized/deserialized with proper error handling.
+- **Database migrations** must be applied and tested before running integration tests.
+
+## Error Handling & Validation
+- **Global exception handlers** must catch all framework-level errors (ValidationError, NotFoundError, etc.).
+- **Business logic errors** should return HTTP 200 with `success=False` in APIResponse.
+- **Framework errors** should use appropriate HTTP status codes (422, 404, 401, etc.).
+- **Validation errors** must include specific field names and error messages.
+- **Database constraint violations** must be caught and converted to user-friendly error messages.
+
+## Service Layer Patterns
+- **ReportResponse creation** must include all required fields from the Pydantic schema.
+- **Model-to-schema mapping** must handle enum conversions and field transformations.
+- **Repository methods** must use proper async patterns and error handling.
+- **Service methods** must validate inputs and handle all error cases gracefully.
+- **Response formatting** must be consistent across all endpoints.
+
+## Testing Patterns
+- **Integration tests** must use proper JWT authentication with valid tokens.
+- **Test payloads** must include all required fields (e.g., `execution_id` for passive recon results).
+- **Mock objects** must be properly configured to return expected data structures.
+- **Database state** must be properly set up and cleaned up between tests.
+- **API response validation** must check both HTTP status codes and `success` field in APIResponse.
+
 ## Validation & Error Handling
 - Use Pydantic schemas for all request/response validation.
 - All errors must be handled by the global exception handler.

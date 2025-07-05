@@ -27,6 +27,15 @@ alwaysApply: true
 - Never store long-lived tokens or secrets on disk; use environment variables and rotate regularly.
 - Never commit secrets or tokens to version control.
 
+## JWT Token Generation & Timezone Handling
+- **Always use timezone-aware datetime objects** (`datetime.now(timezone.utc)`) for JWT token generation.
+- **Never use deprecated `datetime.utcnow()`** - it can cause timezone issues and "token not yet valid" errors.
+- **JWT claims** (`iat`, `exp`) must use timezone-aware timestamps that match the backend's timezone.
+- **Test fixtures** must generate valid JWT tokens that work with the backend's timezone settings.
+- **Token validation** must handle timezone-aware timestamps correctly in the authentication middleware.
+- **Consistent timezone handling** across all services (backend, stage containers, tests) is critical.
+- **JWT secret consistency** must be maintained across all services and test environments.
+
 ## Authorization
 - (Planned) Implement role-based access control (RBAC) for admin/user separation.
 - All protected endpoints must check user roles and permissions.

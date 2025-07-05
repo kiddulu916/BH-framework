@@ -15,6 +15,7 @@ RUN apt-get update && \
         python3-pip \
         python3-venv \
         unzip \
+        dnsutils \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Go
@@ -43,19 +44,27 @@ RUN go install github.com/tomnomnom/waybackurls@latest
 RUN git clone https://github.com/aboul3la/Sublist3r.git /opt/Sublist3r && \
 pip install -r /opt/Sublist3r/requirements.txt
 
+# Install trufflehog
+RUN curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+
+# Install Python dependencies for new tools
+RUN pip install --no-cache-dir \
+    dnspython \
+    requests \
+    python-dotenv
+
+# Create Gau config file
+RUN mkdir -p /root/.config && \
+    echo 'providers = ["wayback", "otx", "urlscan", "github"]' > /root/.gau.toml
+
+
 # Install SecLists (wordlists)
 RUN mkdir -p /usr/share/wordlists && \
 git clone --depth 1 https://github.com/danielmiessler/SecLists.git /usr/share/wordlists/seclists
 
-# Install Cero
-RUN go install github.com/glebarez/cero@latest
-
 # Set workdir and copy code
 WORKDIR /app
 COPY . /app
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
 
 # Set environment variables for tool paths
 ENV AMASS_PATH=/root/go/bin/amass
@@ -65,7 +74,7 @@ ENV GAU_PATH=/root/go/bin/gau
 ENV WAYBACKURLS_PATH=/root/go/bin/waybackurls
 ENV SECLISTS_PATH=/usr/share/wordlists/seclists
 ENV SUBLIST3R_PATH=/opt/Sublist3r/sublist3r.py
-ENV CERO_PATH=/root/go/bin/cero
+ENV TRUFFLEHOG_PATH=/usr/local/bin/trufflehog
 ENV PATH="/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/sbin:/root/.local/bin:/root/go/bin"
 
 # Entrypoint

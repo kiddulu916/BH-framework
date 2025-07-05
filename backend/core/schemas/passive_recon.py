@@ -32,6 +32,12 @@ class PassiveReconTool(str, Enum):
     SHODAN = "shodan"
     CENSYS = "censys"
     CERO = "cero"
+    SUBLIST3R = "sublist3r"
+    GAU = "gau"
+    WAYBACKURLS = "waybackurls"
+    TRUFFLEHOG = "trufflehog"
+    DORKING = "dorking"
+    DNS_ENUM = "dns_enum"
 
 
 class SubdomainCreate(BaseModel):

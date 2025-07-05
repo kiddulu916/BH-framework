@@ -9,8 +9,10 @@ import pytest
 import asyncio
 from typing import Dict, Any, Optional
 from uuid import uuid4
-from datetime import datetime, timezone, UTC
+from datetime import datetime, timezone, UTC, timedelta
 from unittest.mock import MagicMock, AsyncMock
+import os
+import jwt
 
 import httpx
 from httpx import AsyncClient, ASGITransport
@@ -93,7 +95,7 @@ def sample_target_data():
 @pytest.fixture
 def sample_workflow_data(sample_target_data):
     """Sample workflow data for testing."""
-    return {
+    workflow_data = {
         "id": uuid4(),
         "target_id": sample_target_data["id"],
         "name": "Test Workflow",
@@ -111,6 +113,9 @@ def sample_workflow_data(sample_target_data):
         "created_at": datetime.now(),
         "updated_at": datetime.now()
     }
+    
+    # Convert enum values to strings for JSONB storage
+    return convert_enums_to_strings(workflow_data)
 
 
 @pytest_asyncio.fixture
@@ -167,8 +172,24 @@ async def api_client():
     """Create an async HTTP client for API testing."""
     from api.asgi import application
     
+    # Use the JWT secret from .env
+    jwt_secret = "8e3e62baa4f63f6baca9cd090a1ae84507d0f0de684042645224bc57e91f25644b1422250dc6a9b39a4e9be8f99d561374aee03fad36e4cb0429bdfd13afde3d"
+    jwt_algorithm = "HS256"
+
+    # Use timezone-aware datetime objects
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": "test-user",
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(hours=1)).timestamp()),
+        "email": "test@example.com",
+        "name": "Test User"
+    }
+    token = jwt.encode(payload, jwt_secret, algorithm=jwt_algorithm)
+    headers = {"Authorization": f"Bearer {token}"}
+
     transport = ASGITransport(app=application)
-    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+    async with AsyncClient(transport=transport, base_url="http://testserver", headers=headers) as client:
         yield client
 
 
@@ -234,7 +255,7 @@ class TestDataFactory:
     @staticmethod
     def create_workflow(target_id: Optional[str] = None, **kwargs) -> Dict[str, Any]:
         """Create workflow test data."""
-        defaults = {
+        workflow_data = {
             "id": uuid4(),
             "target_id": target_id or uuid4(),
             "name": f"Test Workflow {uuid4().hex[:8]}",
@@ -252,8 +273,10 @@ class TestDataFactory:
             "created_at": datetime.now(),
             "updated_at": datetime.now()
         }
-        defaults.update(kwargs)
-        return defaults
+        workflow_data.update(kwargs)
+        
+        # Convert enum values to strings for JSONB storage
+        return convert_enums_to_strings(workflow_data)
 
 
 @pytest.fixture
@@ -316,3 +339,15 @@ async def clean_db():
             await session.execute(text(f'TRUNCATE TABLE "{table.name}" RESTART IDENTITY CASCADE;'))
         await session.commit()
     yield
+
+
+def convert_enums_to_strings(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert enum values to strings for JSONB storage compatibility."""
+    if isinstance(data, dict):
+        return {k: convert_enums_to_strings(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [convert_enums_to_strings(item) for item in data]
+    elif hasattr(data, 'value'):  # Enum objects have a 'value' attribute
+        return data.value
+    else:
+        return data

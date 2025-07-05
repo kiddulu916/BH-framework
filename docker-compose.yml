@@ -118,7 +118,7 @@ services:
       - AGENT_DISK_QUOTA_GB=${AGENT_DISK_QUOTA_GB:-10}
       
       # Communication
-      - AGENT_API_ENDPOINT=${AGENT_API_ENDPOINT:-http://backend:8000/api/v1/agents}
+      - AGENT_API_ENDPOINT=${AGENT_API_ENDPOINT:-http://backend:8000/api/agents}
       - AGENT_WEBSOCKET_ENDPOINT=${AGENT_WEBSOCKET_ENDPOINT:-ws://backend:8000/ws/agents}
       - AGENT_POLLING_INTERVAL_SECONDS=${AGENT_POLLING_INTERVAL_SECONDS:-10}
       
@@ -172,7 +172,7 @@ services:
       resources:
         limits:
           memory: ${AGENT_MAX_MEMORY_MB:-2048}M
-          cpus: '${AGENT_MAX_CPU_PERCENT:-80}%'
+          cpus: '0.8'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9091/health"]
       interval: 30s
@@ -185,7 +185,6 @@ services:
     build:
       context: .
       dockerfile: .cursor/Dockerfile
-    container_name: bug-hunting-agent-worker-${AGENT_WORKER_ID:-1}
     restart: unless-stopped
     depends_on:
       - agent_coordinator
@@ -222,7 +221,7 @@ services:
       resources:
         limits:
           memory: ${AGENT_WORKER_MEMORY_MB:-1024}M
-          cpus: '${AGENT_WORKER_CPU_PERCENT:-50}%'
+          cpus: '0.5'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://agent_coordinator:9091/worker/health"]
       interval: 30s
@@ -251,6 +250,32 @@ services:
         condition: service_healthy
     volumes:
       - ./stages/passive_recon:/app
+      - ./outputs:/app/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - bug-hunting-network
+
+  # Active Recon Stage: Performs active reconnaissance using nmap, naabu, and httpx on subdomains discovered by passive recon.
+  # - Queries passive recon results from backend API to get subdomains
+  # - Runs port scanning (nmap, naabu) and web server detection (httpx)
+  # - Raw outputs: /outputs/active_recon/<TARGET>/<TOOL>.*
+  # - Parsed outputs: /outputs/active_recon/<TARGET>/parsed/<TOOL>_results.json
+  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
+  active_recon:
+    build:
+      context: ./stages/active_recon
+      dockerfile: Dockerfile
+    container_name: bug-hunting-active-recon
+    ports:
+      - "8002:8002"
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+      passive_recon:
+        condition: service_started
+    volumes:
+      - ./stages/active_recon:/app
       - ./outputs:/app/outputs
       - /var/run/docker.sock:/var/run/docker.sock
     networks:

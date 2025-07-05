@@ -77,6 +77,10 @@ class KillChainRepository(BaseRepository):
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
+    async def count_by_workflow(self, workflow_id: UUID) -> int:
+        """Count kill chain results for a workflow."""
+        return await self.count(filters={'execution_id': str(workflow_id)})
+
 
 class AttackPathRepository(BaseRepository):
     """Repository for AttackPath model operations."""

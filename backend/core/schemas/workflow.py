@@ -109,8 +109,7 @@ class WorkflowListResponse(BaseModel):
     
     workflows: List[WorkflowResponse] = Field(..., description="List of workflows")
     total: int = Field(..., description="Total number of workflows")
-    page: int = Field(..., description="Current page number")
-    per_page: int = Field(..., description="Items per page")
+    pagination: Dict[str, Any] = Field(..., description="Pagination information")
 
 
 class WorkflowExecutionCreate(BaseModel):
@@ -212,8 +211,8 @@ class WorkflowExecutionGetResponse(APIResponse):
 
 class WorkflowExecutionRequest(BaseModel):
     """Schema for workflow execution request."""
-    
-    workflow_id: UUID = Field(..., description="Workflow ID to execute")
+    # workflow_id is optional because it is provided in the URL, not the body
+    workflow_id: Optional[UUID] = Field(None, description="Workflow ID to execute")
     stage_name: str = Field(..., description="Stage name to execute")
     user_id: Optional[UUID] = Field(None, description="User ID who initiated execution")
     priority: int = Field(default=0, ge=0, le=10, description="Execution priority (0-10)")
