@@ -1,0 +1,21 @@
+Active Recon Stage Progression:
+
+Store all files created in this stage into the /enumeration directory in accordance with the already established directory tree structure. If no directory seems fit for the data in the file then create a new directory in the findings directory that better represents the data.
+
+step 1:
+Setup a proxy server, using a prebuilt proxy tool or a completely custom proxy server setup, that tool traffic will run through that can capture and save all http requests and responses being made and be able to record and create a map of the targets infrastructure. Save infrastructure map to the /enumeration/infrastructure directory. Save requests to enumeration/http-requests separated into directories for each subdomain and the same for responses only saved to enumeration/http-responses.      
+
+step 2:
+Pull all subdomains from all scan results found in passive recon and create a master list of subdomain then find which are still unique live servers using PureDNS then take all those live servers and do a reverse whoIs lookup, whether with a tool or custom script, to grab an IP address for the specific subdomain and/or the CIDR range of IPs, and save the IPs and/or CIDR ranges to a file with the subdomain they are associated with. save the master list of subdomains to /enumeration/ and the subdomain json with ips and open ports and services to enumeration/IPs-and-open-ports/ then categorized by the target
+
+step 3:
+Run a port scan for all open ports, TCP and/or UDP using Naabu, and adding these open ports to the previously made file of subdomains and IPs that correspond with the IPs the ports were found on, and using webAnalyze store the services found running with the associated open port and subdomain.
+
+step 4:
+Using katana and feroxbuster map out and enumerate all directories, files, and endpoints associated with each subdomain while pulling all if any javascript, json, and any other interesting file  and saving them to the enumeration/scrapped_files directory for further analysis organized by file type and then further separated by the subdomain the files came from along with creating a separate json file for found endpoints with the corresponding subdomain and directory path in which each endpoint was found from and save that to /enumeration/endpoints separated by subdomains the endpoint was found on. Also save each endpoints json to the enumeration/endpoint-json directory in accordance with the given directory structure earlier.
+
+step 5:
+Using getJS shuffle through all javascript files found and saved in the enumeration/** directories. Use LinkFinder to comb .js files from target, and all subdomains.  Add these results to the /outputs/ directory. Parse outputs from these tools to find subdomains and anything else useful for bug hunting. If subdomains are found add them to the master list of subdomains created in step 2 and repeat step 3 and 4. Everything else that was found gets saved to its relevant directories in the /outputs/parsed directory
+
+step 6: 
+Use Arjun to find 
