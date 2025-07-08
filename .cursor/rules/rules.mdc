@@ -40,4 +40,56 @@ IMPORTANT: If below rules get larger than 500 lines, break up the rules into mea
 ## Development Rules
 - All new rules must be cross-referenced with the current architecture and epic plans. If a new pattern or convention is introduced, update the relevant architecture or epic documentation and reference it in the rule.  # [2024-06-07]
 
+## Pattern-Specific Rules
+
+### Backend Architecture Patterns
+- **File**: `.cursor/rules/backend-architecture.mdc`
+- **Scope**: Backend development patterns and layered architecture
+- **Key Patterns**: 
+  - API Layer (Django Ninja with standardized APIResponse)
+  - Service Layer (Business logic with dependency injection)
+  - Repository Layer (Data access inheriting from BaseRepository)
+  - Model Layer (SQLAlchemy ORM inheriting from BaseModel)
+  - Testing with HTTPX and ASGITransport
+- **Usage**: Follow when developing backend features, APIs, or services
+
+### Stage Container Patterns
+- **File**: `.cursor/rules/stage-container-patterns.mdc`
+- **Scope**: Stage container development and execution
+- **Key Patterns**:
+  - Stage container structure and organization
+  - API integration with JWT authentication
+  - Output directory structure and file naming
+  - Tool runner patterns and error handling
+  - Target management and environment configuration
+- **Usage**: Follow when developing new stage containers or modifying existing ones
+
+### Docker and Containerization Patterns
+- **File**: `.cursor/rules/docker-containerization.mdc`
+- **Scope**: Docker Compose configuration and container orchestration
+- **Key Patterns**:
+  - Service organization and dependencies
+  - Health check patterns
+  - Environment configuration management
+  - Volume and network configuration
+  - Resource management and security
+- **Usage**: Follow when modifying Docker configuration or adding new services
+
+### Testing Patterns
+- **File**: `.cursor/rules/testing-patterns.mdc`
+- **Scope**: Testing standards and patterns
+- **Key Patterns**:
+  - Test organization and structure
+  - HTTPX integration testing with ASGITransport
+  - Pytest fixtures and configuration
+  - Model and service layer testing
+  - Integration testing patterns
+- **Usage**: Follow when writing tests or modifying test infrastructure
+
+## Cross-Reference Rules
+- When implementing backend features, reference both backend-architecture.mdc and testing-patterns.mdc
+- When creating stage containers, reference stage-container-patterns.mdc and docker-containerization.mdc
+- When modifying Docker configuration, reference docker-containerization.mdc and ensure compatibility with existing services
+- When writing tests, reference testing-patterns.mdc and ensure alignment with backend-architecture.mdc patterns 
+
  

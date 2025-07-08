@@ -1,0 +1,429 @@
+---
+description: 
+globs: backend/tests/**/*.*,frontend/tests/**/*.*,stages/tests/**/*.*
+alwaysApply: false
+---
+---
+description: Testing Patterns and Standards
+globs: backend/tests/**/*.*, frontend/tests/**/*.*, stages/tests/**/*.*
+alwaysApply: true
+---
+# Testing Patterns and Standards
+
+## Test Organization
+
+### 1. **Test Directory Structure**
+- **Location**: `backend/tests/`
+- **Organization**: Tests organized by layer and functionality
+- **Structure**:
+  ```
+  tests/
+  ├── conftest.py                    # Shared fixtures and configuration
+  ├── api/                           # API endpoint tests
+  │   ├── test_targets_api.py
+  │   ├── test_results_api.py
+  │   ├── test_workflow_api.py
+  │   └── test_execution_api.py
+  ├── models/                        # Model tests
+  │   ├── test_target_model.py
+  │   ├── test_workflow_model.py
+  │   └── test_passive_recon_model.py
+  ├── integration/                   # Integration tests
+  │   └── test_workflow_integration.py
+  └── services/                      # Service layer tests
+      ├── test_target_service.py
+      └── test_workflow_service.py
+  ```
+
+### 2. **Test File Naming**
+- **Pattern**: `test_<module_name>.py`
+- **Examples**: `test_targets_api.py`, `test_passive_recon_model.py`
+- **Location**: Mirror the structure of the source code
+
+## Pytest Configuration
+
+### 1. **Pytest Configuration File**
+- **Location**: `backend/pytest.ini`
+- **Purpose**: Configure pytest behavior and plugins
+- **Configuration**:
+  ```ini
+  [pytest]
+  DJANGO_SETTINGS_MODULE = api.settings
+  python_files = test_*.py
+  python_classes = Test*
+  python_functions = test_*
+  addopts = 
+      --strict-markers
+      --strict-config
+      --verbose
+      --tb=short
+  markers =
+      unit: Unit tests
+      integration: Integration tests
+      api: API endpoint tests
+      slow: Slow running tests
+  ```
+
+### 2. **Pytest Plugins**
+- **Required plugins**: `pytest_asyncio`, `pytest_django`
+- **Configuration**: Configure in `conftest.py`
+- **Usage**: Enable async testing and Django integration
+
+## Test Fixtures
+
+### 1. **Database Fixtures**
+- **Session fixture**: `db_session` for database access
+- **Manager fixture**: `db_manager` for database management
+- **Pattern**:
+  ```python
+  @pytest_asyncio.fixture
+  async def db_session(db_manager):
+      """Create a database session for testing."""
+      async with db_manager.session_factory() as session:
+          yield session
+  ```
+
+### 2. **Model Fixtures**
+- **Sample data fixtures**: Create test data for models
+- **Factory pattern**: Use `TestDataFactory` for creating test objects
+- **Pattern**:
+  ```python
+  @pytest.fixture
+  def sample_target_data():
+      """Sample target data for testing."""
+      unique_value = f"example-{uuid4().hex}.com"
+      return {
+          "id": uuid4(),
+          "name": "Example Target",
+          "value": unique_value,
+          "scope": TargetScope.DOMAIN,
+          "status": TargetStatus.ACTIVE,
+          "is_primary": True,
+          "scope_config": {"subdomains": [f"*.{unique_value}"]},
+          "created_at": datetime.now(),
+          "updated_at": datetime.now()
+      }
+  ```
+
+### 3. **API Client Fixture**
+- **HTTPX client**: Use HTTPX with ASGITransport for API testing
+- **JWT authentication**: Include JWT tokens in test headers
+- **Pattern**:
+  ```python
+  @pytest_asyncio.fixture
+  async def api_client():
+      """Create an async HTTP client for API testing."""
+      from api.asgi import application
+      
+      # Create JWT token for testing
+      jwt_secret = "test-secret"
+      payload = {
+          "sub": "test-user",
+          "iat": int(datetime.now().timestamp()),
+          "exp": int((datetime.now() + timedelta(hours=1)).timestamp()),
+          "email": "test@example.com",
+          "name": "Test User"
+      }
+      token = jwt.encode(payload, jwt_secret, algorithm="HS256")
+      headers = {"Authorization": f"Bearer {token}"}
+
+      transport = ASGITransport(app=application)
+      async with AsyncClient(transport=transport, base_url="http://testserver", headers=headers) as client:
+          yield client
+  ```
+
+## HTTPX Integration Testing
+
+### 1. **HTTPX Setup**
+- **Transport**: Use `ASGITransport` for in-process testing
+- **Client**: Use `AsyncClient` for async HTTP requests
+- **Base URL**: Use `http://testserver` for testing
+- **Pattern**:
+  ```python
+  from httpx import AsyncClient, ASGITransport
+  from api.asgi import application
+  
+  transport = ASGITransport(app=application)
+  async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+      response = await client.get("/api/targets/")
+  ```
+
+### 2. **API Test Patterns**
+- **Success cases**: Test successful API operations
+- **Error cases**: Test error handling and validation
+- **Authentication**: Test with and without authentication
+- **Pattern**:
+  ```python
+  @pytest.mark.asyncio
+  async def test_create_target_success(api_client):
+      """Test successful target creation."""
+      payload = {
+          "name": "Test Target",
+          "value": "example.com",
+          "scope": "DOMAIN",
+          "is_primary": True
+      }
+      
+      response = await api_client.post("/api/targets/", json=payload)
+      
+      assert response.status_code == 200
+      data = response.json()
+      assert data["success"] is True
+      assert data["data"]["name"] == "Test Target"
+  ```
+
+### 3. **Response Assertions**
+- **Success responses**: Assert `status_code == 200` and `success == True`
+- **Error responses**: Assert `status_code == 200` and `success == False`
+- **Framework errors**: Assert appropriate HTTP status codes
+- **Pattern**:
+  ```python
+  # Success case
+  assert response.status_code == 200
+  data = response.json()
+  assert data["success"] is True
+  assert "data" in data
+  
+  # Error case
+  assert response.status_code == 200
+  data = response.json()
+  assert data["success"] is False
+  assert "errors" in data
+  ```
+
+## Model Testing
+
+### 1. **Model Creation Tests**
+- **Valid data**: Test model creation with valid data
+- **Invalid data**: Test model creation with invalid data
+- **Constraints**: Test model constraints and validations
+- **Pattern**:
+  ```python
+  @pytest.mark.asyncio
+  async def test_target_creation(db_session, sample_target_data):
+      """Test target model creation."""
+      target = Target(**sample_target_data)
+      db_session.add(target)
+      await db_session.commit()
+      await db_session.refresh(target)
+      
+      assert target.id is not None
+      assert target.name == sample_target_data["name"]
+      assert target.value == sample_target_data["value"]
+  ```
+
+### 2. **Model Relationship Tests**
+- **Foreign keys**: Test model relationships
+- **Cascading**: Test cascade operations
+- **Pattern**:
+  ```python
+  @pytest.mark.asyncio
+  async def test_target_workflow_relationship(db_session, sample_target, sample_workflow_data):
+      """Test target-workflow relationship."""
+      workflow_data = {**sample_workflow_data, "target_id": sample_target.id}
+      workflow = Workflow(**workflow_data)
+      db_session.add(workflow)
+      await db_session.commit()
+      
+      assert workflow.target_id == sample_target.id
+  ```
+
+## Service Layer Testing
+
+### 1. **Service Method Tests**
+- **Business logic**: Test service layer business logic
+- **Repository integration**: Test service-repository interaction
+- **Error handling**: Test service error handling
+- **Pattern**:
+  ```python
+  @pytest.mark.asyncio
+  async def test_create_target_service(db_session, sample_target_data):
+      """Test target service creation method."""
+      target_service = TargetService(db_session)
+      payload = TargetCreate(**sample_target_data)
+      
+      result = await target_service.create_target(payload)
+      
+      assert result.name == sample_target_data["name"]
+      assert result.value == sample_target_data["value"]
+  ```
+
+### 2. **Mock Repository Tests**
+- **Mock repositories**: Use mocks for repository dependencies
+- **Isolation**: Test service logic in isolation
+- **Pattern**:
+  ```python
+  @pytest.mark.asyncio
+  async def test_create_target_with_mock_repository(mock_repositories):
+      """Test target creation with mocked repository."""
+      mock_repo = mock_repositories["target_repo"]
+      mock_repo.create.return_value = sample_target
+      
+      target_service = TargetService(mock_repo)
+      result = await target_service.create_target(payload)
+      
+      mock_repo.create.assert_called_once()
+      assert result == sample_target
+  ```
+
+## Integration Testing
+
+### 1. **End-to-End Workflow Tests**
+- **Complete workflows**: Test entire bug hunting workflows
+- **Stage integration**: Test stage-to-stage data flow
+- **Pattern**:
+  ```python
+  @pytest.mark.asyncio
+  async def test_complete_workflow(db_session, api_client):
+      """Test complete bug hunting workflow."""
+      # Create target
+      target_response = await api_client.post("/api/targets/", json=target_payload)
+      target_id = target_response.json()["data"]["id"]
+      
+      # Execute workflow
+      workflow_response = await api_client.post(f"/api/workflows/", json={
+          "target_id": target_id,
+          "name": "Test Workflow"
+      })
+      
+      # Verify workflow execution
+      assert workflow_response.status_code == 200
+      workflow_data = workflow_response.json()["data"]
+      assert workflow_data["status"] == "PENDING"
+  ```
+
+### 2. **Database Integration Tests**
+- **Real database**: Use real database for integration tests
+- **Data persistence**: Test data persistence across operations
+- **Transaction handling**: Test transaction rollback and commit
+
+## Test Data Management
+
+### 1. **Test Data Factory**
+- **Factory pattern**: Use factory for creating test data
+- **Unique data**: Ensure test data uniqueness
+- **Pattern**:
+  ```python
+  class TestDataFactory:
+      @staticmethod
+      def create_user(**kwargs) -> Dict[str, Any]:
+          """Create test user data."""
+          defaults = {
+              "id": uuid4(),
+              "name": f"Test User {uuid4().hex[:8]}",
+              "email": f"test_{uuid4().hex[:8]}@example.com",
+              "platform": "hackerone",
+              "created_at": datetime.now(),
+              "updated_at": datetime.now()
+          }
+          defaults.update(kwargs)
+          return defaults
+  ```
+
+### 2. **Test Data Cleanup**
+- **Automatic cleanup**: Clean up test data after tests
+- **Database cleanup**: Use fixtures for database cleanup
+- **Pattern**:
+  ```python
+  @pytest_asyncio.fixture(autouse=True)
+  async def clean_db(db_session):
+      """Clean database after each test."""
+      yield
+      await cleanup_test_data(db_session, Target, Workflow, User)
+  ```
+
+## Error Testing
+
+### 1. **Exception Testing**
+- **Custom exceptions**: Test custom exception handling
+- **Validation errors**: Test input validation
+- **Database errors**: Test database error handling
+- **Pattern**:
+  ```python
+  @pytest.mark.asyncio
+  async def test_create_target_invalid_domain(db_session):
+      """Test target creation with invalid domain."""
+      target_service = TargetService(db_session)
+      payload = TargetCreate(
+          name="Invalid Target",
+          value="invalid-domain",  # Invalid domain
+          scope="DOMAIN"
+      )
+      
+      with pytest.raises(ValidationError, match="Invalid domain format"):
+          await target_service.create_target(payload)
+  ```
+
+### 2. **API Error Testing**
+- **HTTP errors**: Test HTTP error responses
+- **Validation errors**: Test API validation errors
+- **Authentication errors**: Test authentication failures
+- **Pattern**:
+  ```python
+  @pytest.mark.asyncio
+  async def test_create_target_validation_error(api_client):
+      """Test target creation with validation error."""
+      payload = {
+          "name": "Test Target",
+          "value": "invalid-domain",  # Invalid domain
+          "scope": "INVALID_SCOPE"    # Invalid scope
+      }
+      
+      response = await api_client.post("/api/targets/", json=payload)
+      
+      assert response.status_code == 200
+      data = response.json()
+      assert data["success"] is False
+      assert "errors" in data
+  ```
+
+## Performance Testing
+
+### 1. **Load Testing**
+- **Concurrent requests**: Test with multiple concurrent requests
+- **Response times**: Measure API response times
+- **Resource usage**: Monitor resource usage during tests
+
+### 2. **Database Performance**
+- **Query optimization**: Test database query performance
+- **Connection pooling**: Test connection pool behavior
+- **Index usage**: Verify proper index usage
+
+## Test Documentation
+
+### 1. **Test Documentation Standards**
+- **Docstrings**: Include comprehensive docstrings for test functions
+- **Test descriptions**: Clear descriptions of what each test validates
+- **Setup documentation**: Document test setup and prerequisites
+
+### 2. **Test Comments**
+- **Complex logic**: Add comments for complex test logic
+- **Edge cases**: Document edge case testing
+- **Mock setup**: Document mock setup and expectations
+
+## Test Execution
+
+### 1. **Test Execution Commands**
+- **All tests**: `pytest`
+- **Specific test file**: `pytest tests/api/test_targets_api.py`
+- **Specific test**: `pytest tests/api/test_targets_api.py::test_create_target`
+- **With coverage**: `pytest --cov=core --cov-report=html`
+
+### 2. **Test Markers**
+- **Unit tests**: `@pytest.mark.unit`
+- **Integration tests**: `@pytest.mark.integration`
+- **API tests**: `@pytest.mark.api`
+- **Slow tests**: `@pytest.mark.slow`
+
+## Continuous Integration
+
+### 1. **CI Test Requirements**
+- **Test coverage**: Maintain minimum test coverage
+- **Test execution**: All tests must pass in CI
+- **Performance**: Tests must complete within time limits
+
+### 2. **Test Environment**
+- **Database**: Use test database in CI
+- **Dependencies**: Install all test dependencies
+- **Configuration**: Use test-specific configuration
+

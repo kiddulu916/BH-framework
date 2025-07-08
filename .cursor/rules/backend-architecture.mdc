@@ -10,100 +10,252 @@ alwaysApply: true
 ---
 # Backend Architecture Rules
 
-## Layered Architecture
-- All backend code must follow the strict layered structure:
-  - API (Django Ninja routers): request/response validation, no business logic
-  - Tasks (business logic): all business rules, no data access
-  - Repositories (SQLAlchemy data access): all DB queries, no business logic
-  - Models (ORM entities): data schema only
-- No business logic should be implemented in API endpoints; it must reside in the `tasks` layer.
-- All new backend patterns must be cross-referenced with the current architecture and epic plans. If a new pattern is introduced, update the relevant architecture or epic documentation and reference it in the rule.
+## Layered Architecture Pattern
 
-## Async Support
-- All database and API operations must use async/await patterns (ASGI, asyncpg, HTTPX).
-- All repository and service methods must be async.
+### 1. **API Layer (Django Ninja)**
+- **Location**: `backend/core/api/`
+- **Pattern**: Django Ninja routers with standardized APIResponse
+- **Structure**:
+  ```python
+  from ninja import Router
+  from core.schemas.base import APIResponse
+  from core.tasks.service_name import ServiceName
+  from core.utils.database import get_db_session
+  
+  router = Router()
+  
+  @router.post("/", response=APIResponse, summary="Endpoint description")
+  async def endpoint_name(request: HttpRequest, payload: SchemaName):
+      try:
+          async with get_db_session() as session:
+              service = ServiceName(session)
+              result = await service.method_name(payload)
+              return APIResponse(success=True, message="Success", data=result.model_dump())
+      except Exception as e:
+          return APIResponse(success=False, message="Error", errors=[str(e)])
+  ```
 
-## Dependency Injection
-- Use dependency injection for all services and repositories.
-- Services should be initialized with their required repositories.
+### 2. **Service Layer (Business Logic)**
+- **Location**: `backend/core/tasks/`
+- **Pattern**: Service classes with dependency injection
+- **Structure**:
+  ```python
+  class ServiceName:
+      def __init__(self, session: AsyncSession):
+          self.session = session
+          self.repository = RepositoryName(session)
+      
+      async def method_name(self, payload: SchemaName) -> ResponseSchema:
+          # Business logic here
+          pass
+  ```
 
-## APIResponse Pattern
-- All API endpoints must return the standardized `APIResponse` model.
-- Success: `success=True`, `data` contains payload, `errors=None`.
-- Error: `success=False`, `data=None`, `errors` contains error details.
+### 3. **Repository Layer (Data Access)**
+- **Location**: `backend/core/repositories/`
+- **Pattern**: Inherit from BaseRepository for common CRUD operations
+- **Structure**:
+  ```python
+  from core.repositories.base import BaseRepository
+  
+  class RepositoryName(BaseRepository):
+      def __init__(self, session: AsyncSession):
+          super().__init__(session, ModelName)
+      
+      async def custom_method(self, **kwargs):
+          # Custom data access logic
+          pass
+  ```
 
-## URL Routing Patterns
-- **Static routes must come before parameterized routes** to avoid conflicts.
-- Example: `/statistics` must be defined before `/{workflow_id}` to prevent `/statistics` from being treated as a workflow ID.
-- **Container management endpoints** should be in the execution API, not workflow API.
-- **Resource-specific endpoints** should be grouped logically (e.g., all workflow endpoints together).
-- **Cross-cutting concerns** (like statistics) should be placed at the appropriate level in the URL hierarchy.
+### 4. **Model Layer (SQLAlchemy ORM)**
+- **Location**: `backend/core/models/`
+- **Pattern**: Inherit from BaseModel for common fields
+- **Structure**:
+  ```python
+  from core.models.base import BaseModel
+  from sqlalchemy import Column, String, Enum
+  from sqlalchemy.dialects.postgresql import UUID, JSONB
+  
+  class ModelName(BaseModel):
+      __tablename__ = "model_name"
+      
+      # Custom fields
+      name = Column(String, nullable=False)
+      status = Column(Enum(StatusEnum), nullable=False)
+      metadata = Column(JSONB, nullable=True)
+  ```
 
-## Enum Handling & Schema Validation
-- **Database enums** must use uppercase values (e.g., `GENERATING`, `COMPLETED`).
-- **API schemas** must use lowercase values (e.g., `generating`, `completed`).
-- **Enum conversion** must be handled explicitly in service layer when mapping between DB and API.
-- **Pydantic schemas** must use proper enum types (e.g., `ReportSection` enum, not strings).
-- **Schema validation errors** must be caught and returned as standardized APIResponse with `success=False`.
-- **Required fields** in schemas must be provided in all test payloads and API calls.
+## API Response Standards
 
-## JWT Authentication Patterns
-- **JWT tokens** must be generated using timezone-aware datetime objects (`datetime.now(timezone.utc)`).
-- **Never use deprecated `datetime.utcnow()`** - it can cause timezone issues.
-- **JWT secrets** must be consistent across all services (backend, stage containers).
-- **Token validation** must handle timezone-aware timestamps correctly.
-- **Test fixtures** must generate valid JWT tokens that work with the backend's timezone settings.
+### 1. **Standardized APIResponse Model**
+- **Always use**: `core.schemas.base.APIResponse`
+- **Pattern**:
+  ```python
+  # Success response
+  return APIResponse(
+      success=True,
+      message="Operation successful",
+      data=result.model_dump(),
+      errors=None
+  )
+  
+  # Error response
+  return APIResponse(
+      success=False,
+      message="Operation failed",
+      data=None,
+      errors=[str(error)]
+  )
+  ```
 
-## Database Schema & Constraints
-- **Required fields** (non-nullable columns) must always be provided in API submissions.
-- **Foreign key relationships** must be validated before database operations.
-- **Enum values** in database must match the expected format (uppercase for DB, lowercase for API).
-- **JSONB fields** must be properly serialized/deserialized with proper error handling.
-- **Database migrations** must be applied and tested before running integration tests.
+### 2. **Exception Handling**
+- **Global handlers**: Defined in `core/api/__init__.py`
+- **Service layer**: Use custom exceptions from `core.utils.exceptions`
+- **Pattern**:
+  ```python
+  from core.utils.exceptions import NotFoundError, ValidationError
+  
+  try:
+      result = await service.operation(payload)
+      return APIResponse.success_response("Success", result.model_dump())
+  except ValidationError as e:
+      return APIResponse.error_response("Validation error", [str(e)])
+  except NotFoundError as e:
+      return APIResponse.error_response("Not found", [str(e)])
+  ```
 
-## Error Handling & Validation
-- **Global exception handlers** must catch all framework-level errors (ValidationError, NotFoundError, etc.).
-- **Business logic errors** should return HTTP 200 with `success=False` in APIResponse.
-- **Framework errors** should use appropriate HTTP status codes (422, 404, 401, etc.).
-- **Validation errors** must include specific field names and error messages.
-- **Database constraint violations** must be caught and converted to user-friendly error messages.
+## Database Patterns
 
-## Service Layer Patterns
-- **ReportResponse creation** must include all required fields from the Pydantic schema.
-- **Model-to-schema mapping** must handle enum conversions and field transformations.
-- **Repository methods** must use proper async patterns and error handling.
-- **Service methods** must validate inputs and handle all error cases gracefully.
-- **Response formatting** must be consistent across all endpoints.
+### 1. **Async Database Sessions**
+- **Pattern**: Use `get_db_session()` context manager
+- **Structure**:
+  ```python
+  from core.utils.database import get_db_session
+  
+  async def endpoint(request, payload):
+      async with get_db_session() as session:
+          service = ServiceName(session)
+          result = await service.operation(payload)
+          return APIResponse(success=True, data=result.model_dump())
+  ```
+
+### 2. **Model Inheritance**
+- **Base model**: All models inherit from `BaseModel`
+- **Common fields**: `id`, `created_at`, `updated_at`, `description`, `notes`
+- **UUID primary keys**: Use `UUID(as_uuid=True)` for all IDs
+
+### 3. **Repository Pattern**
+- **Base repository**: `BaseRepository` provides common CRUD operations
+- **Custom methods**: Add specific methods to each repository
+- **Error handling**: Use repository methods that raise appropriate exceptions
+
+## Schema Patterns
+
+### 1. **Pydantic Schemas**
+- **Location**: `backend/core/schemas/`
+- **Base classes**: Use `BaseModelSchema`, `TimestampedSchema`, `IDSchema`
+- **Validation**: Use Pydantic validators for business logic validation
+
+### 2. **Request/Response Schemas**
+- **Request schemas**: `CreateSchema`, `UpdateSchema`
+- **Response schemas**: `ResponseSchema`, `ListResponseSchema`
+- **Pattern**:
+  ```python
+  class CreateSchema(BaseModelSchema):
+      name: str = Field(..., description="Name field")
+      
+  class ResponseSchema(TimestampedSchema, IDSchema):
+      name: str = Field(..., description="Name field")
+  ```
 
 ## Testing Patterns
-- **Integration tests** must use proper JWT authentication with valid tokens.
-- **Test payloads** must include all required fields (e.g., `execution_id` for passive recon results).
-- **Mock objects** must be properly configured to return expected data structures.
-- **Database state** must be properly set up and cleaned up between tests.
-- **API response validation** must check both HTTP status codes and `success` field in APIResponse.
 
-## Validation & Error Handling
-- Use Pydantic schemas for all request/response validation.
-- All errors must be handled by the global exception handler.
+### 1. **HTTPX with ASGITransport**
+- **Pattern**: Use HTTPX for integration testing
+- **Structure**:
+  ```python
+  from httpx import AsyncClient, ASGITransport
+  from api.asgi import application
+  
+  @pytest_asyncio.fixture
+  async def api_client():
+      transport = ASGITransport(app=application)
+      async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+          yield client
+  ```
 
-## Documentation
-- All public functions/classes must have comprehensive docstrings.
-- All API endpoints must be documented in OpenAPI/Swagger with summary and description fields.
+### 2. **Test Fixtures**
+- **Database fixtures**: Use `db_session` fixture for database tests
+- **Model factories**: Use `TestDataFactory` for creating test data
+- **JWT authentication**: Include JWT tokens in test headers
 
-## Testing
-- All backend code must be tested with Pytest and HTTPX (ASGITransport for API tests).
-- Maintain high test coverage for all business logic and endpoints.
+### 3. **Test Assertions**
+- **Success cases**: Assert `response.status_code == 200` and `data["success"] is True`
+- **Error cases**: Assert `response.status_code == 200` and `data["success"] is False`
+- **Framework errors**: Assert appropriate HTTP status codes (422, 404, etc.)
 
-## Tool/Library Adoption
-- When introducing a new tool, library, or major dependency, document its purpose and integration pattern in the appropriate rule or architecture file.
-- Review all new tools/libraries for compatibility with existing backend patterns before adoption.
+## Error Handling Standards
 
-## Checklist for Introducing New Backend Patterns/Dependencies
-- [ ] Cross-reference with architecture and epic plans
-- [ ] Update this file and relevant rules/epics
-- [ ] Document integration and usage patterns
-- [ ] Add/expand tests and documentation as needed
-- [ ] Review for security, performance, and maintainability
+### 1. **Custom Exceptions**
+- **Location**: `backend/core/utils/exceptions.py`
+- **Types**: `NotFoundError`, `ValidationError`, `DatabaseError`, `AuthenticationError`
+- **Usage**: Raise in service layer, catch in API layer
+
+### 2. **Global Exception Handlers**
+- **Location**: `backend/core/api/__init__.py`
+- **Types**: `Exception`, `ValueError`, `KeyError`
+- **Response**: Always return `APIResponse` with appropriate error details
+
+## Security Patterns
+
+### 1. **JWT Authentication**
+- **Token management**: Use HTTP-only cookies for token storage
+- **Token rotation**: Implement automatic token refresh
+- **Validation**: Validate tokens in middleware
+
+### 2. **Input Validation**
+- **Pydantic schemas**: Use for request validation
+- **Business validation**: Implement in service layer
+- **Sanitization**: Sanitize all user inputs
+
+## Performance Patterns
+
+### 1. **Async Operations**
+- **Database**: Use async SQLAlchemy operations
+- **HTTP clients**: Use async HTTPX for external API calls
+- **File operations**: Use async file operations where possible
+
+### 2. **Connection Pooling**
+- **Database**: Configure connection pooling in database settings
+- **HTTP clients**: Use connection pooling for external API calls
+
+## Documentation Standards
+
+### 1. **API Documentation**
+- **OpenAPI**: Auto-generated from Django Ninja
+- **Endpoint docs**: Include summary and description for all endpoints
+- **Schema docs**: Document all request/response schemas
+
+### 2. **Code Documentation**
+- **Docstrings**: Include comprehensive docstrings for all functions
+- **Type hints**: Use type hints throughout the codebase
+- **Comments**: Add comments for complex business logic
+
+## Development Workflow
+
+### 1. **Code Organization**
+- **Follow layered architecture**: API → Service → Repository → Model
+- **Separation of concerns**: Keep business logic in service layer
+- **Dependency injection**: Inject dependencies into service classes
+
+### 2. **Testing Requirements**
+- **Unit tests**: Test service layer methods
+- **Integration tests**: Test API endpoints with HTTPX
+- **Coverage**: Maintain high test coverage
+
+### 3. **Code Quality**
+- **Type hints**: Use throughout the codebase
+- **Error handling**: Implement proper error handling at all layers
+- **Validation**: Validate inputs at API and service layers
 
 
 

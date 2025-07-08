@@ -1,0 +1,307 @@
+---
+description: 
+globs: stages/**/*.*
+alwaysApply: false
+---
+---
+description: Stage Container rules
+globs: stages/**/*.*
+alwaysApply: true
+---
+# Stage Container Patterns
+
+## Stage Container Structure
+
+### 1. **Directory Organization**
+- **Location**: `stages/<stage_name>/`
+- **Required files**: `Dockerfile`, `requirements.txt`, `run_<stage_name>.py`
+- **Optional files**: `runners/`, `tools/`, `utils.py`, `README.md`
+
+### 2. **Execution Script Pattern**
+- **Main script**: `run_<stage_name>.py` (e.g., `run_passive_recon.py`)
+- **Entry point**: Script must accept `--target` and `--stage` arguments
+- **Structure**:
+  ```python
+  import argparse
+  import os
+  import json
+  import requests
+  from typing import Optional
+  from dotenv import load_dotenv
+  
+  def main():
+      load_dotenv(dotenv_path=".env")
+      parser = argparse.ArgumentParser(description="Stage Name Main Runner")
+      parser.add_argument("--target", required=True, help="Target domain")
+      parser.add_argument("--stage", default="stage_name", help="Stage name")
+      args = parser.parse_args()
+      
+      # Stage execution logic
+      pass
+  
+  if __name__ == "__main__":
+      main()
+  ```
+
+## API Integration Patterns
+
+### 1. **JWT Authentication**
+- **Environment variable**: `BACKEND_JWT_TOKEN`
+- **Usage**: Include in all API requests
+- **Pattern**:
+  ```python
+  jwt_token = os.environ.get("BACKEND_JWT_TOKEN", "")
+  headers = {
+      'Content-Type': 'application/json',
+      'Authorization': f'Bearer {jwt_token}'
+  }
+  ```
+
+### 2. **API URL Construction**
+- **Base URL**: `BACKEND_API_URL` environment variable
+- **Pattern**: Construct URLs dynamically
+- **Example**:
+  ```python
+  api_url = os.environ.get("BACKEND_API_URL", "http://backend:8000/api/results/stage-name")
+  base_url = api_url.split('/results/')[0] if '/results/' in api_url else api_url.rstrip('/')
+  targets_url = f"{base_url}/targets/"
+  ```
+
+### 3. **Result Submission**
+- **Raw data**: Submit tool output files
+- **Parsed data**: Submit structured JSON results
+- **Pattern**:
+  ```python
+  def save_raw_to_db(tool_name: str, target_id: str, file_path: str, api_url: str, jwt_token: str) -> bool:
+      try:
+          with open(file_path, 'rb') as f:
+              files = {'file': f}
+              data = {'tool_name': tool_name, 'target_id': target_id}
+              response = requests.post(f"{api_url}/raw", files=files, data=data, headers=headers)
+              return response.status_code == 200
+      except Exception as e:
+          print(f"[ERROR] Failed to save raw data: {e}")
+          return False
+  
+  def save_parsed_to_db(tool_name: str, target_id: str, target: str, data: dict, api_url: str, jwt_token: str) -> bool:
+      try:
+          payload = {
+              'tool_name': tool_name,
+              'target_id': target_id,
+              'target': target,
+              'data': data
+          }
+          response = requests.post(f"{api_url}/parsed", json=payload, headers=headers)
+          return response.status_code == 200
+      except Exception as e:
+          print(f"[ERROR] Failed to save parsed data: {e}")
+          return False
+  ```
+
+## Output Directory Structure
+
+### 1. **Standard Directory Layout**
+- **Target directory**: `/outputs/<target>/`
+- **Raw outputs**: `/outputs/<target>/raw/`
+- **Parsed outputs**: `/outputs/<target>/parsed/`
+- **Stage-specific**: `/outputs/<target>/<stage_name>/`
+
+### 2. **File Naming Conventions**
+- **Raw files**: `<tool_name>_<target>.<extension>`
+- **Parsed files**: `<tool_name>_<data_type>.txt` or `<tool_name>_<data_type>.json`
+- **Examples**:
+  - `sublist3r_example.com.txt`
+  - `amass_example.com.json`
+  - `subfinder_subdomains.txt`
+
+### 3. **Directory Setup Function**
+- **Pattern**: Use consistent directory setup
+- **Implementation**:
+  ```python
+  def setup_output_dirs(stage: str, target: str):
+      target_dir = os.path.join("/outputs", target)
+      raw_dir = os.path.join(target_dir, "raw")
+      parsed_dir = os.path.join(target_dir, "parsed")
+      
+      os.makedirs(target_dir, exist_ok=True)
+      os.makedirs(raw_dir, exist_ok=True)
+      os.makedirs(parsed_dir, exist_ok=True)
+      
+      return {"target_dir": target_dir, "raw_dir": raw_dir, "parsed_dir": parsed_dir}
+  ```
+
+## Tool Runner Patterns
+
+### 1. **Tool Runner Structure**
+- **Location**: `stages/<stage_name>/runners/`
+- **Pattern**: Individual runner for each tool
+- **Structure**:
+  ```python
+  def run_tool_name(target: str, output_dir: str) -> dict:
+      """
+      Run tool_name against target and return results.
+      
+      Args:
+          target: Target domain/IP
+          output_dir: Directory to save outputs
+          
+      Returns:
+          Dictionary containing tool results
+      """
+      try:
+          # Tool execution logic
+          result = execute_tool(target)
+          
+          # Save raw output
+          raw_file = os.path.join(output_dir, f"tool_name_{target}.txt")
+          with open(raw_file, 'w') as f:
+              f.write(result['raw_output'])
+          
+          return result
+      except Exception as e:
+          print(f"[ERROR] Tool execution failed: {e}")
+          return {"error": str(e)}
+  ```
+
+### 2. **Error Handling**
+- **Tool failures**: Don't halt entire stage execution
+- **Logging**: Use consistent log format
+- **Pattern**:
+  ```python
+  try:
+      tool_results = run_tool(target, output_dir)
+      # Process results
+  except Exception as e:
+      print(f"[ERROR] Tool runner failed: {e}")
+      summary["tool_name"] = {"runner": False, "error": str(e)}
+  ```
+
+## Target Management
+
+### 1. **Target ID Resolution**
+- **Pattern**: Get or create target in backend
+- **Implementation**:
+  ```python
+  def get_target_id(domain: str, api_url: str, jwt_token: str) -> Optional[str]:
+      try:
+          # Try to get existing target
+          response = requests.get(f"{targets_url}?value={domain}", headers=headers)
+          if response.status_code == 200:
+              data = response.json()
+              if data.get('success') and data.get('data'):
+                  targets = data['data'].get('targets', []) or data['data'].get('items', [])
+                  if targets:
+                      return targets[0].get('id')
+          
+          # Create target if not exists
+          return create_target_if_not_exists(domain, api_url, jwt_token)
+      except Exception as e:
+          print(f"[ERROR] Failed to get target ID: {e}")
+          return None
+  ```
+
+### 2. **Target Creation**
+- **Pattern**: Create target automatically if not exists
+- **Payload structure**:
+  ```python
+  payload = {
+      "name": domain,
+      "scope": "DOMAIN",  # Uppercase enum value
+      "value": domain,
+      "description": f"Target created automatically for {stage_name}: {domain}",
+      "is_primary": True
+  }
+  ```
+
+## Environment Configuration
+
+### 1. **Required Environment Variables**
+- **API configuration**: `BACKEND_API_URL`, `BACKEND_JWT_TOKEN`
+- **Tool paths**: Tool-specific paths (e.g., `AMASS_PATH`, `SUBFINDER_PATH`)
+- **Wordlists**: Path to wordlist directories
+
+### 2. **Environment Loading**
+- **Pattern**: Use python-dotenv
+- **Implementation**:
+  ```python
+  from dotenv import load_dotenv
+  
+  def main():
+      load_dotenv(dotenv_path=".env")
+      # Access environment variables
+      api_url = os.environ.get("BACKEND_API_URL")
+      jwt_token = os.environ.get("BACKEND_JWT_TOKEN")
+  ```
+
+## Execution Summary
+
+### 1. **Summary Tracking**
+- **Pattern**: Track success/failure for each tool
+- **Structure**:
+  ```python
+  summary = {}
+  
+  # For each tool
+  try:
+      results = run_tool(target, output_dir)
+      raw_ok = save_raw_to_db(tool_name, target_id, raw_file, api_url, jwt_token)
+      parsed_ok = save_parsed_to_db(tool_name, target_id, target, results, api_url, jwt_token)
+      summary[tool_name] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+  except Exception as e:
+      summary[tool_name] = {"runner": False, "error": str(e)}
+  ```
+
+### 2. **Final Summary**
+- **Pattern**: Print summary at end of execution
+- **Implementation**:
+  ```python
+  print("\n=== Execution Summary ===")
+  for tool, status in summary.items():
+      if status.get("runner"):
+          print(f"✅ {tool}: Runner OK, Raw API: {status.get('raw_api', False)}, Parsed API: {status.get('parsed_api', False)}")
+      else:
+          print(f"❌ {tool}: {status.get('error', 'Unknown error')}")
+  ```
+
+## Docker Configuration
+
+### 1. **Dockerfile Requirements**
+- **Base image**: Use lightweight Python image
+- **Tool installation**: Install required tools
+- **Working directory**: Set to `/app`
+- **Entry point**: Set to main execution script
+
+### 2. **Dockerfile Pattern**
+  ```dockerfile
+  FROM python:3.11-slim
+  
+  # Install system dependencies
+  RUN apt-get update && apt-get install -y \
+      tool1 tool2 tool3 \
+      && rm -rf /var/lib/apt/lists/*
+  
+  WORKDIR /app
+  
+  # Copy requirements and install Python dependencies
+  COPY requirements.txt .
+  RUN pip install --no-cache-dir -r requirements.txt
+  
+  # Copy stage files
+  COPY . .
+  
+  # Set entry point
+  CMD ["python", "run_stage_name.py"]
+  ```
+
+## Testing Patterns
+
+### 1. **Stage Testing**
+- **Location**: `stages/<stage_name>/test_<stage_name>.py`
+- **Pattern**: Test individual tool runners
+- **Mock external dependencies**: Mock API calls and file operations
+
+### 2. **Integration Testing**
+- **Test with real backend**: Use test backend instance
+- **Validate outputs**: Check file creation and API submission
+- **Error scenarios**: Test with invalid inputs and network failures
+

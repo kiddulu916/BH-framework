@@ -805,4 +805,54 @@ async def health_check(request):
 - Performance improvements
 - Feature enhancements
 
-- When introducing a new tool, library, or major dependency, document its purpose and integration pattern in the appropriate rule or architecture file.
+## Stage Container Standards
+
+### 1. Container Structure
+**Follow established stage container patterns:**
+
+- Use `run_<stage_name>.py` as main execution script
+- Implement JWT authentication for API calls
+- Use standardized output directory structure
+- Follow tool runner patterns for individual tools
+
+### 2. API Integration
+**Standardize API integration patterns:**
+
+- Use `BACKEND_API_URL` and `BACKEND_JWT_TOKEN` environment variables
+- Implement proper error handling and logging
+- Submit both raw and parsed data to backend
+- Use consistent target management patterns
+
+### 3. Environment Configuration
+**Follow environment configuration standards:**
+
+- Use python-dotenv for environment loading
+- Document all required environment variables
+- Use consistent naming conventions
+- Implement proper error handling for missing variables
+
+## Docker Orchestration Standards
+
+### 1. Service Dependencies
+**Follow established service dependency patterns:**
+
+- Database service must start first with health checks
+- Backend service depends on healthy database
+- Frontend service depends on healthy backend
+- Stage containers depend on healthy backend
+
+### 2. Health Checks
+**Implement comprehensive health checks:**
+
+- Database: Use `pg_isready` command
+- Backend: HTTP health check endpoint
+- Frontend: HTTP health check endpoint
+- Agents: Custom health check endpoints
+
+### 3. Resource Management
+**Implement proper resource management:**
+
+- Set appropriate memory and CPU limits
+- Use named volumes for persistent data
+- Implement proper network isolation
+- Configure security best practices

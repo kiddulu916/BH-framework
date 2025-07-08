@@ -9,7 +9,7 @@ globs: "**/*.*"
 alwaysApply: true
 ---
 # project-config.md
-Last-Updated: 2024-12-19
+Last-Updated: 2025-01-27
 
 ## Project Goal
 Build a scalable, secure, robust, and maintainable, fully automated full-stack application for bug hunting that supports ethical security testing, automated tool utilization, and comprehensive reporting capabilities.
@@ -69,117 +69,107 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
   * Security documentation
 
 ### **Frontend**
-- **API Gateway**
-  * Django Ninja for REST endpoints
-  * WebSocket for real-time communication
-  * GraphQL for complex queries (future)
-  * Rate limiting middleware
-  * Authentication middleware
-  * CORS middleware
-  * Request validation
-  * API versioning
+- **Framework**: Next.js 15.3.3
+  * React 19.0.0
+  * TypeScript 5.0.0
+  * App Router and Server Components
+  * Built-in optimization
+  * Hot reloading for development
 
-- **Real-time Communication**
-  * WebSocket server
-  * Event-driven architecture
-  * Message queue system
-  * State management
-  * Real-time monitoring
-  * Error handling
-  * Connection pooling
-  * Heartbeat monitoring
+- **State Management**: Zustand + React Query
+  * Zustand 4.5.0 for global state
+  * @tanstack/react-query 5.0.0 for async state
+  * Optimistic updates
+  * Background refetching
+  * Cache management
 
-- **UI/UX Framework**
-  * React for UI components
-  * Redux for state management
-  * Material-UI for components
-  * Tailwind CSS for styling
-  * WebSocket client
-  * Real-time updates
+- **Styling**: Tailwind CSS 4.0
+  * Utility-first CSS framework
+  * PostCSS integration
+  * Custom design system
   * Responsive design
-  * Progressive loading
-  * Error boundaries
+  * Dark mode support
+
+- **HTTP Client**: Axios 1.6.0
+  * Promise-based HTTP client
+  * Request/response interceptors
+  * Error handling
+  * Request cancellation
+  * Progress tracking
+
+- **Development Tools**
+  * ESLint 9.0.0 for linting
+  * TypeScript for type checking
+  * Hot reloading for development
+  * Build optimization
+
+### **Stage Containers**
+- **Base Image**: Python 3.11-slim
+  * Lightweight container images
+  * Security tool integration
+  * Custom execution scripts
+  * Environment-based configuration
+
+- **Security Tools**
+  * Sublist3r for subdomain enumeration
+  * Amass for network mapping
+  * Subfinder for subdomain discovery
+  * Assetfinder for asset discovery
+  * Gau for URL discovery
+  * Waybackurls for historical URLs
+  * Trufflehog for secrets scanning
+  * Nmap for port scanning
+  * Httpx for HTTP probing
+  * Nuclei for vulnerability scanning
+
+- **Execution Pattern**
+  * Main script: `run_<stage_name>.py`
+  * Tool runners in `runners/` directory
+  * Standardized API integration
+  * JWT authentication
+  * Output directory structure
+
+### **Containerization**
+- **Docker Compose**: Multi-service orchestration
+  * Core services: db, backend, frontend
+  * Stage containers for each bug hunting stage
+  * Background agent services
+  * JWT rotation service
+  * Health checks and dependencies
+
+- **Service Architecture**
+  * PostgreSQL database with persistent storage
+  * Django backend with hot reloading
+  * Next.js frontend with development mode
+  * Custom network isolation
+  * Volume management for outputs
 
 ### **Development Tools**
 - **Version Control**: Git
-  * Branch strategy
-  * Commit conventions
-  * PR process
-  * Review process
-  * Release process
-  * Version tagging
+  * Conventional commit messages
+  * Branch protection
+  * Pull request reviews
+  * Automated testing
 
-- **Code Quality**: Black, Flake8, MyPy
-  * Code formatting
-  * Linting
-  * Type checking
-  * Style enforcement
-  * Documentation checks
-  * Security scanning
+- **Code Quality**: 
+  * Black for Python formatting
+  * Flake8 for Python linting
+  * MyPy for type checking
+  * ESLint for JavaScript linting
+  * Prettier for code formatting
 
-- **Testing**: Pytest, Coverage, HTTPX
-  * Unit testing
-  * Integration testing with ASGITransport
-  * API testing
-  * Performance testing
-  * Security testing
-  * Documentation testing
-
-- **Documentation**: Sphinx
-  * API documentation
-  * Code documentation
-  * Architecture documentation
-  * Security documentation
-  * Deployment documentation
-  * User guides
-
-- **Container Management**: Docker + Docker Compose
-  * Development environment
-  * Production environment
-  * Security hardening
-  * Network isolation
-  * Resource limits
-  * Health checks
-
-- **Security Scanning**: Bandit, Safety
-  * Vulnerability scanning
-  * Dependency checking
-  * Code analysis
-  * Security testing
-  * Compliance checking
-  * Audit logging
-
-- **Performance Testing**: Locust
-  * Load testing
-  * Stress testing
-  * Performance monitoring
-  * Resource usage
-  * Response times
-  * Scalability testing
-
-- **API Testing**: Postman/Insomnia
-  * API testing
+- **Testing**: 
+  * Pytest for Python testing
+  * HTTPX for API testing
+  * Coverage reporting
   * Integration testing
   * Performance testing
-  * Security testing
-  * Documentation testing
-  * Mock services
 
-- **Database Management**: pgAdmin
-  * Database administration
-  * Query optimization
-  * Backup management
-  * Security management
-  * Performance monitoring
-  * Schema management
-
-- **Monitoring**: Prometheus/Grafana
-  * System monitoring
-  * Performance monitoring
-  * Security monitoring
-  * Error tracking
-  * Resource usage
-  * Alert management
+- **Documentation**: 
+  * OpenAPI/Swagger for API docs
+  * JSDoc for JavaScript documentation
+  * README files for components
+  * Architecture documentation
 
 ## API Architecture
 - **Pattern**: Clean Architecture with dependency injection
@@ -189,11 +179,10 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
   * Interface-based design
 
 - **Structure**: 
-  * Api  (API endpoints with Django Ninja)
-  * Tasks  (Business logic)
-  * Repositories (Data access with SQLAlchemy)
-  * Domain models (Core entities)
-  * Infrastructure (External services)
+  * API Layer (Django Ninja routers)
+  * Service Layer (Business logic)
+  * Repository Layer (Data access with SQLAlchemy)
+  * Model Layer (SQLAlchemy ORM entities)
 
 - **Response Pattern**: Standardized APIResponse model
   * Consistent success/error response structure
@@ -224,11 +213,10 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
 
 ## Domain Architecture
 - **Bug Hunting Domain**
-  * Stage Management
-  * Workflow Management
-  * Data Collection
-  * User Management
-  * Target Management
+  * Stage Management (passive_recon, active_recon, vuln_scan, vuln_test, kill_chain, report)
+  * Workflow Management (target → stages → results)
+  * Data Collection (raw outputs, parsed results)
+  * Target Management (domains, IPs, scope)
 
 - **Bug Reporting Domain**
   * Report Templates
@@ -237,10 +225,10 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
   * Export Management
 
 - **User Management Domain**
-  * Authentication
+  * Authentication (JWT tokens)
   * Profile Management
-  * Platform Reference
   * Session Handling
+  * Platform Reference
 
 - **Analytics Domain**
   * Performance Metrics
@@ -252,1411 +240,198 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
 
 ### **API Design**
 - **RESTful endpoints**
-  * Resource-based URLs
-  * HTTP method semantics
-  * Status code usage
-  * Error handling
-  * Versioning
-  * Documentation
+  * Resource-based URLs (`/api/targets/`, `/api/results/`)
+  * HTTP method semantics (GET, POST, PUT, DELETE)
+  * Status code usage (200 for business logic, 422/404 for framework errors)
+  * Error handling with standardized responses
+  * Versioning via URL structure
+  * OpenAPI/Swagger documentation
 
-- **OpenAPI/Swagger documentation**
-  * API specifications
-  * Schema definitions
-  * Security schemes
-  * Response models
-  * Example requests
-  * Interactive testing
+- **Standardized Response Model**
+  ```python
+  class APIResponse(BaseModel):
+      success: bool
+      message: str
+      data: Optional[Dict[str, Any]]
+      errors: Optional[List[str]]
+  ```
 
 - **JWT authentication**
-  * Token management
-  * Session handling
-  * Role-based access
-  * Security headers
-  * Token rotation
-  * Audit logging
-
-- **Rate limiting**
-  * Request quotas
-  * IP-based limits
-  * User-based limits
-  * Endpoint limits
-  * Burst handling
-  * Monitoring
+  * Token management with HTTP-only cookies
+  * Session handling with automatic refresh
+  * Security headers enforcement
+  * Token rotation and audit logging
 
 - **Error handling**
-  * Consistent responses
-  * Error codes
-  * Error messages
-  * Validation errors
-  * Security errors
-  * System errors
+  * Consistent response structure
+  * Business logic errors vs framework errors
+  * Validation error handling
+  * Security error handling
+  * System error handling
 
 - **Input validation**
-  * Request validation
-  * Data type checking
-  * Business rules
-  * Custom validators
-  * Schema validation
-  * Security validation
+  * Pydantic schemas for all requests
+  * Data type checking and conversion
+  * Business rules validation
+  * Custom validators for complex logic
+  * Schema validation with detailed error messages
 
-- **Response formatting**
-  * Consistent structure
-  * Data transformation
-  * Error wrapping
-  * Metadata inclusion
-  * Pagination
-  * Filtering
+### **Database Patterns**
+- **Model Inheritance**
+  ```python
+  class BaseModel(Base):
+      __abstract__ = True
+      id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+      created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+      updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+  ```
 
-- **Versioning strategy**
-  * URL versioning
-  * Header versioning
-  * Content negotiation
-  * Backward compatibility
-  * Deprecation policy
-  * Migration guides
+- **Repository Pattern**
+  ```python
+  class BaseRepository:
+      async def create(self, **kwargs) -> T
+      async def get_by_id(self, id: UUID) -> Optional[T]
+      async def list(self, filters: Dict, pagination: PaginationParams) -> List[T]
+      async def update(self, id: UUID, **kwargs) -> Optional[T]
+      async def delete(self, id: UUID) -> bool
+  ```
 
-### **Frontend Patterns**
-- **Real-time Communication**
-  * WebSocket connection management
-  * Event-driven updates
-  * State synchronization
-  * Error recovery
-  * Reconnection logic
-  * Heartbeat monitoring
-  * Message queuing
-  * Event handling
+- **Async Database Operations**
+  ```python
+  async with get_db_session() as session:
+      repo = TargetRepository(session)
+      service = TargetService(repo)
+      result = await service.create_target(payload)
+  ```
 
-- **State Management**
-  * Centralized state store
-  * Real-time state updates
-  * State persistence
-  * State recovery
-  * State validation
-  * State monitoring
-  * State security
-  * State optimization
+### **Testing Patterns**
+- **HTTPX Integration Testing**
+  ```python
+  @pytest_asyncio.fixture
+  async def api_client():
+      transport = ASGITransport(app=application)
+      async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+          yield client
+  ```
 
-- **UI/UX Patterns**
-  * Component-based architecture
-  * Responsive design
-  * Progressive loading
-  * Error boundaries
-  * Loading states
-  * Error states
-  * Theme management
-  * Accessibility
+- **Test Assertions**
+  ```python
+  # Success case
+  assert response.status_code == 200
+  data = response.json()
+  assert data["success"] is True
+  
+  # Error case
+  assert response.status_code == 200
+  data = response.json()
+  assert data["success"] is False
+  assert "errors" in data
+  ```
 
-### Error Handling
-- Consistent error responses
-  * Error structure
-  * Error codes
-  * Error messages
-  * Error context
-  * Error tracking
-  * Error recovery
+### **Stage Container Patterns**
+- **Execution Script Structure**
+  ```python
+  def main():
+      load_dotenv(dotenv_path=".env")
+      parser = argparse.ArgumentParser(description="Stage Name Main Runner")
+      parser.add_argument("--target", required=True, help="Target domain")
+      parser.add_argument("--stage", default="stage_name", help="Stage name")
+      args = parser.parse_args()
+      
+      # Stage execution logic
+      setup_output_dirs(args.stage, args.target)
+      run_tools(args.target)
+      submit_results_to_api()
+  ```
 
-- Error logging
-  * Log levels
-  * Log format
-  * Log context
-  * Log rotation
-  * Log analysis
-  * Log security
+- **API Integration**
+  ```python
+  def save_parsed_to_db(tool_name: str, target_id: str, target: str, data: dict, api_url: str, jwt_token: str) -> bool:
+      headers = {'Authorization': f'Bearer {jwt_token}'}
+      payload = {'tool_name': tool_name, 'target_id': target_id, 'target': target, 'data': data}
+      response = requests.post(f"{api_url}/parsed", json=payload, headers=headers)
+      return response.status_code == 200
+  ```
 
-- Error monitoring
-  * Error tracking
-  * Error alerts
-  * Error analysis
-  * Error reporting
-  * Error metrics
-  * Error trends
+### **Docker Orchestration**
+- **Service Dependencies**
+  ```yaml
+  backend:
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    depends_on:
+      backend:
+        condition: service_healthy
+  ```
 
-- Error recovery
-  * Retry logic
-  * Fallback handling
-  * State recovery
-  * Data recovery
-  * Service recovery
-  * User recovery
-
-- Error reporting
-  * Error notifications
-  * Error dashboards
-  * Error analytics
-  * Error trends
-  * Error impact
-  * Error resolution
-
-- Error documentation
-  * Error codes
-  * Error messages
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error best practices
-
-### Logging
-- Structured logging
-  * Log format
-  * Log levels
-  * Log context
-  * Log metadata
-  * Log security
-  * Log analysis
-
-- Log levels
-  * DEBUG
-  * INFO
-  * WARNING
-  * ERROR
-  * CRITICAL
-  * AUDIT
-
-- Log rotation
-  * Size-based
-  * Time-based
-  * Backup strategy
-  * Retention policy
-  * Archive management
-  * Security
-
-- Log aggregation
-  * Centralized logging
-  * Log shipping
-  * Log indexing
-  * Log search
-  * Log analysis
-  * Log security
-
-- Log analysis
-  * Log parsing
-  * Log metrics
-  * Log trends
-  * Log alerts
-  * Log reporting
-  * Log security
-
-- Log security
-  * Access control
-  * Encryption
-  * Retention
-  * Audit logging
-  * Security monitoring
-  * Compliance
+- **Health Checks**
+  ```yaml
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+    interval: 30s
+    timeout: 10s
+    retries: 5
+    start_period: 40s
+  ```
 
 ## Development Standards
 
 ### Code Style
-- PEP 8 compliance
-  * Code formatting
-  * Naming conventions
-  * Documentation
-  * Imports
-  * Line length
-  * Whitespace
-
-- Type hints
-  * Function annotations
-  * Variable types
-  * Generic types
-  * Type checking
-  * Documentation
-  * IDE support
-
-- Docstrings
-  * Function documentation
-  * Class documentation
-  * Module documentation
-  * Parameter documentation
-  * Return documentation
-  * Example usage
-
-- Code comments
-  * Inline comments
-  * Block comments
-  * TODO comments
-  * FIXME comments
-  * Documentation
-  * Code explanation
-
-- Naming conventions
-  * Variables
-  * Functions
-  * Classes
-  * Modules
-  * Packages
-  * Constants
-
-- Code organization
-  * Module structure
-  * Package structure
-  * Import order
-  * Class organization
-  * Function organization
-  * File organization
+- **Python**: PEP 8 compliance with Black formatting
+- **Type hints**: Comprehensive type hints throughout
+- **Docstrings**: Google-style docstrings for all functions
+- **Naming conventions**: snake_case for Python, camelCase for JavaScript
+- **Import organization**: Grouped imports with isort
 
 ### Frontend Standards
-- **Component Structure**
-  * Functional components
-  * Hooks for state
-  * Props validation
-  * Error boundaries
-  * Loading states
-  * Error states
-  * Component testing
-  * Component documentation
-
-- **State Management**
-  * Redux store structure
-  * Action creators
-  * Reducers
-  * Selectors
-  * Middleware
-  * Async actions
-  * State persistence
-  * State security
-
-- **Real-time Communication**
-  * WebSocket hooks
-  * Event handlers
-  * State updates
-  * Error handling
-  * Reconnection logic
-  * Heartbeat management
-  * Message queuing
-  * Security
-
-## Testing
-### Unit testing
-  * Test structure
-  * Test coverage
-  * Test isolation
-  * Test data
-  * Test utilities
-  * Test documentation
-
-### Integration testing
-  * API testing
-  * Database testing
-  * Service testing
-  * Component testing
-  * End-to-end testing
-  * Performance testing
-
-### End-to-end testing
-  * User flows
-  * System testing
-  * Performance testing
-  * Security testing
-  * Error handling
-  * Recovery testing
-
-### Performance testing
-  * Load testing
-  * Stress testing
-  * Scalability testing
-  * Resource usage
-  * Response times
-  * Bottleneck analysis
-
-### Security testing
-  * Vulnerability scanning
-  * Penetration testing
-  * Authentication testing
-  * Authorization testing
-  * Data protection
-  * Compliance testing
-
-### Documentation testing
-  * API documentation
-  * Code documentation
-  * User documentation
-  * Security documentation
-  * Deployment documentation
-  * Maintenance documentation
-
-## Security Standards
-
-### Authentication
-- JWT implementation
-  * Token generation
-  * Token validation
-  * Token refresh
-  * Token revocation
-  * Token security
-  * Token monitoring
-
-- Token management
-  * Token storage
-  * Token rotation
-  * Token expiration
-  * Token validation
-  * Token security
-  * Token audit
-
-- Session handling
-  * Session creation
-  * Session validation
-  * Session expiration
-  * Session security
-  * Session monitoring
-  * Session audit
-
-- Password policies
-  * Password strength
-  * Password expiration
-  * Password reset
-  * Password security
-  * Password audit
-  * Password recovery
-
-- MFA support
-  * 2FA implementation
-  * MFA options
-  * MFA security
-  * MFA recovery
-  * MFA audit
-  * MFA monitoring
-
-- OAuth integration
-  * OAuth providers
-  * OAuth flow
-  * OAuth security
-  * OAuth monitoring
-  * OAuth audit
-  * OAuth recovery
-
-### Frontend Security
-- **WebSocket Security**
-  * Secure WebSocket (WSS)
-  * Connection validation
-  * Rate limiting
-  * Message validation
-  * State validation
-  * Security monitoring
-  * Connection security
-  * Message security
-
-- **Real-time Security**
-  * Data encryption
-  * Message signing
-  * Access control
-  * Flow monitoring
-  * Event logging
-  * Security auditing
-  * State security
-  * Recovery security
-
-- **State Security**
-  * State encryption
-  * Change validation
-  * Access control
-  * Recovery mechanisms
-  * Security monitoring
-  * Audit logging
-  * State persistence
-  * State recovery
-
-### Data Protection
-- Data encryption
-  * At-rest encryption
-  * In-transit encryption
-  * Key management
-  * Encryption algorithms
-  * Encryption monitoring
-  * Encryption audit
-
-- Data masking
-  * Sensitive data
-  * Masking rules
-  * Masking implementation
-  * Masking validation
-  * Masking audit
-  * Masking monitoring
-
-- Data validation
-  * Input validation
-  * Output validation
-  * Data sanitization
-  * Validation rules
-  * Validation monitoring
-  * Validation audit
-
-- Data sanitization
-  * Input sanitization
-  * Output sanitization
-  * Sanitization rules
-  * Sanitization validation
-  * Sanitization audit
-  * Sanitization monitoring
-
-- Data retention
-  * Retention policies
-  * Data lifecycle
-  * Data archiving
-  * Data deletion
-  * Retention audit
-  * Retention monitoring
-
-- Data backup
-  * Backup strategy
-  * Backup encryption
-  * Backup validation
-  * Backup recovery
-  * Backup audit
-  * Backup monitoring
-
-## Performance Standards
-
-### Backend Performance
-- Response time limits
-  * API response time
-  * Database query time
-  * Service response time
-  * Cache response time
-  * Performance monitoring
-  * Performance optimization
-
-- Resource usage limits
-  * CPU usage
-  * Memory usage
-  * Disk usage
-  * Network usage
-  * Resource monitoring
-  * Resource optimization
-
-- Caching strategy
-  * Response caching
-  * Data caching
-  * Cache invalidation
-  * Cache warming
-  * Cache monitoring
-  * Cache optimization
-
-- Database optimization
-  * Query optimization
-  * Index optimization
-  * Connection pooling
-  * Cache optimization
-  * Performance monitoring
-  * Performance tuning
-
-- API optimization
-  * Response optimization
-  * Request optimization
-  * Cache optimization
-  * Load balancing
-  * Performance monitoring
-  * Performance tuning
-
-- Monitoring thresholds
-  * Response time
-  * Resource usage
-  * Error rates
-  * Cache hit rates
-  * Performance metrics
-  * Alert thresholds
-
-### Frontend Performance
-- **Real-time Performance**
-  * WebSocket optimization
-  * Message batching
-  * State updates
-  * Connection pooling
-  * Error recovery
-  * Resource management
-  * Performance monitoring
-  * Performance tuning
-
-- **UI Performance**
-  * Component optimization
-  * State updates
-  * Rendering optimization
-  * Resource loading
-  * Caching strategy
-  * Error handling
-  * Performance monitoring
-  * Performance tuning
-
-- **State Performance**
-  * State updates
-  * State persistence
-  * State recovery
-  * State validation
-  * State monitoring
-  * Resource management
-  * Performance optimization
-  * Performance tuning
-
-### Database Performance
-- **Query optimization**
-  * Query analysis
-  * Index usage
-  * Query planning
-  * Query caching
-  * Performance monitoring
-  * Performance tuning
-
-- **Index management**
-  * Index creation
-  * Index maintenance
-  * Index optimization
-  * Index monitoring
-  * Index tuning
-  * Index security
-
-- **Connection pooling**
-  * Pool configuration
-  * Pool management
-  * Pool monitoring
-  * Pool optimization
-  * Pool security
-  * Pool recovery
-
-- **Caching strategy**
-  * Query cache
-  * Result cache
-  * Cache invalidation
-  * Cache warming
-  * Cache monitoring
-  * Cache optimization
-
-- **Backup strategy**
-  * Backup scheduling
-  * Backup validation
-  * Backup recovery
-  * Backup monitoring
-  * Backup security
-  * Backup optimization
-
-- **Monitoring metrics**
-  * Query performance
-  * Resource usage
-  * Cache performance
-  * Connection usage
-  * Error rates
-  * Performance trends
-
-## Monitoring Standards
-
-### Backend Monitoring
-- API monitoring
-  * Response times
-  * Error rates
-  * Request rates
-  * Resource usage
-  * Performance metrics
-  * Security events
-
-- Resource monitoring
-  * CPU usage
-  * Memory usage
-  * Disk usage
-  * Network usage
-  * Resource limits
-  * Resource trends
-
-- Error monitoring
-  * Error rates
-  * Error types
-  * Error impact
-  * Error trends
-  * Error resolution
-  * Error prevention
-
-- Performance monitoring
-  * Response times
-  * Resource usage
-  * Cache performance
-  * Database performance
-  * Service performance
-  * System performance
-
-- Security monitoring
-  * Authentication events
-  * Authorization events
-  * Security incidents
-  * Security trends
-  * Security alerts
-  * Security audit
-
-- Health checks
-  * Service health
-  * Database health
-  * Cache health
-  * Network health
-  * System health
-  * Security health
-
-### Frontend Monitoring
-- **Real-time Monitoring**
-  * WebSocket monitoring
-  * Message monitoring
-  * State monitoring
-  * Security monitoring
-  * Performance monitoring
-  * Error monitoring
-  * Connection monitoring
-  * Event monitoring
-
-- **UI Monitoring**
-  * Component monitoring
-  * State monitoring
-  * Performance monitoring
-  * Error monitoring
-  * User interaction
-  * Resource usage
-  * Rendering performance
-  * Network performance
-
-- **State Monitoring**
-  * State changes
-  * State access
-  * State security
-  * State performance
-  * State errors
-  * State audit
-  * State persistence
-  * State recovery
-
-### Database Monitoring
-- Query monitoring
-  * Query performance
-  * Query errors
-  * Query patterns
-  * Query optimization
-  * Query security
-  * Query audit
-
-- Resource monitoring
-  * CPU usage
-  * Memory usage
-  * Disk usage
-  * Network usage
-  * Resource limits
-  * Resource trends
-
-- Error monitoring
-  * Query errors
-  * Connection errors
-  * Transaction errors
-  * Error impact
-  * Error trends
-  * Error resolution
-
-- Performance monitoring
-  * Query performance
-  * Index performance
-  * Cache performance
-  * Connection performance
-  * Resource performance
-  * System performance
-
-- Security monitoring
-  * Access monitoring
-  * Authentication events
-  * Authorization events
-  * Security incidents
-  * Security trends
-  * Security audit
-
-- Health checks
-  * Database health
-  * Connection health
-  * Query health
-  * Index health
-  * Cache health
-  * System health
-
-## Documentation Standards
-
-### API Documentation
-- OpenAPI/Swagger
-  * API specifications
-  * Schema definitions
-  * Security schemes
-  * Response models
-  * Example requests
-  * Interactive testing
-
-- Endpoint documentation
-  * Endpoint purpose
-  * Request format
-  * Response format
-  * Error handling
-  * Authentication
-  * Authorization
-
-- Authentication docs
-  * Authentication flow
-  * Token management
-  * Session handling
-  * Security requirements
-  * Error handling
-  * Best practices
-
-- Error handling
-  * Error codes
-  * Error messages
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Best practices
-
-- Rate limits
-  * Rate limit rules
-  * Rate limit headers
-  * Rate limit handling
-  * Rate limit monitoring
-  * Rate limit optimization
-  * Best practices
-
-- Versioning
-  * Version strategy
-  * Version headers
-  * Version handling
-  * Version migration
-  * Version deprecation
-  * Best practices
-
-### Frontend Documentation
-- **Component Documentation**
-  * Component purpose
-  * Props interface
-  * State management
-  * Event handling
-  * Error handling
-  * Usage examples
-  * Component testing
-  * Component security
-
-- **State Documentation**
-  * State structure
-  * State updates
-  * State persistence
-  * State recovery
-  * State validation
-  * State monitoring
-  * State security
-  * State optimization
-
-- **Real-time Documentation**
-  * WebSocket usage
-  * Event handling
-  * State updates
-  * Error handling
-  * Reconnection logic
-  * Heartbeat management
-  * Security requirements
-  * Performance optimization
-
-### Database Documentation
-- Schema documentation
-  * Table structure
-  * Column definitions
-  * Index definitions
-  * Constraint definitions
-  * Relationship definitions
-  * Security definitions
-
-- Query documentation
-  * Query purpose
-  * Query structure
-  * Query parameters
-  * Query results
-  * Query optimization
-  * Query security
-
-- Index documentation
-  * Index purpose
-  * Index structure
-  * Index usage
-  * Index maintenance
-  * Index optimization
-  * Index security
-
-- Security documentation
-  * Access control
-  * Authentication
-  * Authorization
-  * Data protection
-  * Security monitoring
-  * Security audit
-
-- Backup documentation
-  * Backup strategy
-  * Backup schedule
-  * Backup validation
-  * Backup recovery
-  * Backup security
-  * Backup monitoring
-
-- Monitoring documentation
-  * Monitoring metrics
-  * Monitoring tools
-  * Monitoring alerts
-  * Monitoring dashboards
-  * Monitoring security
-  * Monitoring audit
-
-## Development Workflow
-
-### Version Control
-- Branch strategy
-  * Branch naming
-  * Branch lifecycle
-  * Branch protection
-  * Branch merging
-  * Branch cleanup
-  * Branch security
-
-- Commit conventions
-  * Commit message format
-  * Commit scope
-  * Commit type
-  * Commit description
-  * Commit references
-  * Commit security
-
-- PR process
-  * PR creation
-  * PR review
-  * PR testing
-  * PR approval
-  * PR merging
-  * PR security
-
-- Review process
-  * Code review
-  * Security review
-  * Performance review
-  * Documentation review
-  * Testing review
-  * Review security
-
-- Release process
-  * Version management
-  * Release notes
-  * Release testing
-  * Release deployment
-  * Release monitoring
-  * Release security
-
-- Version tagging
-  * Tag format
-  * Tag creation
-  * Tag validation
-  * Tag deployment
-  * Tag monitoring
-  * Tag security
-
-### Frontend Workflow
-- **Development Process**
-  * Component development
-  * State management
-  * Real-time integration
-  * Testing
-  * Documentation
-  * Review process
-  * Security review
-  * Performance review
-
-- **Testing Process**
-  * Unit testing
-  * Integration testing
-  * Real-time testing
-  * UI testing
-  * Performance testing
-  * Security testing
-  * Documentation testing
-  * User testing
-
-- **Deployment Process**
-  * Build process
-  * Testing
-  * Documentation
-  * Deployment
-  * Monitoring
-  * Rollback process
-  * Security validation
-  * Performance validation
-
-### Database Workflow
-- Schema changes
-  * Change planning
-  * Change testing
-  * Change validation
-  * Change deployment
-  * Change monitoring
-  * Change security
-
-- Data migrations
-  * Migration planning
-  * Migration testing
-  * Migration validation
-  * Migration deployment
-  * Migration monitoring
-  * Migration security
-
-- Backup process
-  * Backup planning
-  * Backup testing
-  * Backup validation
-  * Backup deployment
-  * Backup monitoring
-  * Backup security
-
-- Recovery process
-  * Recovery planning
-  * Recovery testing
-  * Recovery validation
-  * Recovery deployment
-  * Recovery monitoring
-  * Recovery security
-
-- Monitoring process
-  * Monitoring setup
-  * Monitoring testing
-  * Monitoring validation
-  * Monitoring deployment
-  * Monitoring maintenance
-  * Monitoring security
-
-- Security process
-  * Security planning
-  * Security testing
-  * Security validation
-  * Security deployment
-  * Security monitoring
-  * Security audit
-
-## Error Handling Standards
-
-### Backend Errors
-- API errors
-  * Error structure
-  * Error codes
-  * Error messages
-  * Error handling
-  * Error recovery
-  * Error prevention
-
-- Database errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-- Authentication errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-- Authorization errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-- Validation errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-- System errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-### Frontend Errors
-- **Real-time Errors**
-  * Connection errors
-  * Message errors
-  * State errors
-  * Security errors
-  * Performance errors
-  * Recovery errors
-  * Error handling
-  * Error prevention
-
-- **UI Errors**
-  * Component errors
-  * State errors
-  * Network errors
-  * Security errors
-  * Performance errors
-  * User errors
-  * Error handling
-  * Error prevention
-
-- **State Errors**
-  * Update errors
-  * Persistence errors
-  * Recovery errors
-  * Validation errors
-  * Security errors
-  * Monitoring errors
-  * Error handling
-  * Error prevention
-
-### Database Errors
-- Connection errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-- Query errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-- Constraint errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-- Transaction errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-- Backup errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-- Recovery errors
-  * Error types
-  * Error handling
-  * Error recovery
-  * Error prevention
-  * Error monitoring
-  * Error audit
-
-## Security Standards
-
-### Backend Security
-- API security
-  * Authentication
-  * Authorization
-  * Input validation
-  * Output validation
-  * Security monitoring
-  * Security audit
-
-- Database security
-  * Access control
-  * Authentication
-  * Authorization
-  * Data protection
-  * Security monitoring
-  * Security audit
-
-- Authentication security
-  * Token security
-  * Session security
-  * Password security
-  * MFA security
-  * Security monitoring
-  * Security audit
-
-- Authorization security
-  * Role security
-  * Permission security
-  * Resource security
-  * Operation security
-  * Security monitoring
-  * Security audit
-
-- Data security
-  * Data protection
-  * Data encryption
-  * Data masking
-  * Data validation
-  * Security monitoring
-  * Security audit
-
-- System security
-  * System protection
-  * System monitoring
-  * System audit
-  * System recovery
-  * System maintenance
-  * System compliance
-
-### Frontend Security
-- **WebSocket Security**
-  * Connection security
-  * Message security
-  * State security
-  * Security monitoring
-  * Performance security
-  * Error security
-  * Security validation
-  * Security audit
-
-- **Real-time Security**
-  * Data security
-  * Message security
-  * State security
-  * Security monitoring
-  * Performance security
-  * Error security
-  * Security validation
-  * Security audit
-
-- **State Security**
-  * State change security
-  * Access security
-  * Security monitoring
-  * Performance security
-  * Error security
-  * Audit security
-  * Security validation
-  * Security compliance
-
-### Database Security
-- Access security
-  * Access control
-  * Authentication
-  * Authorization
-  * Security monitoring
-  * Security audit
-  * Security compliance
-
-- Data security
-  * Data protection
-  * Data encryption
-  * Data masking
-  * Data validation
-  * Security monitoring
-  * Security audit
-
-- Backup security
-  * Backup protection
-  * Backup encryption
-  * Backup validation
-  * Security monitoring
-  * Security audit
-  * Security compliance
-
-- Recovery security
-  * Recovery protection
-  * Recovery validation
-  * Security monitoring
-  * Security audit
-  * Security compliance
-  * Security maintenance
-
-- Monitoring security
-  * Monitoring protection
-  * Monitoring validation
-  * Security monitoring
-  * Security audit
-  * Security compliance
-  * Security maintenance
-
-- Audit security
-  * Audit protection
-  * Audit validation
-  * Security monitoring
-  * Security audit
-  * Security compliance
-  * Security maintenance
-
-## Performance Optimization
-
-### Backend Optimization
-- API optimization
-  * Response optimization
-  * Request optimization
-  * Cache optimization
-  * Load balancing
-  * Performance monitoring
-  * Performance tuning
-
-- Database optimization
-  * Query optimization
-  * Index optimization
-  * Connection pooling
-  * Cache optimization
-  * Performance monitoring
-  * Performance tuning
-
-- Caching optimization
-  * Response caching
-  * Data caching
-  * Cache invalidation
-  * Cache warming
-  * Performance monitoring
-  * Performance tuning
-
-- Resource optimization
-  * CPU optimization
-  * Memory optimization
-  * Disk optimization
-  * Network optimization
-  * Performance monitoring
-  * Performance tuning
-
-- Security optimization
-  * Authentication optimization
-  * Authorization optimization
-  * Data protection optimization
-  * Security monitoring
-  * Security audit
-  * Security compliance
-
-- Monitoring optimization
-  * Monitoring efficiency
-  * Monitoring accuracy
-  * Monitoring coverage
-  * Monitoring security
-  * Monitoring audit
-  * Monitoring compliance
-
-### Frontend Optimization
-- **Real-time Optimization**
-  * WebSocket optimization
-  * Message optimization
-  * State optimization
-  * Security optimization
-  * Performance optimization
-  * Error optimization
-  * Resource optimization
-  * Monitoring optimization
-
-- **UI Optimization**
-  * Component optimization
-  * State optimization
-  * Network optimization
-  * Security optimization
-  * Performance optimization
-  * Error optimization
-  * Resource optimization
-  * Monitoring optimization
-
-- **State Optimization**
-  * Update optimization
-  * Persistence optimization
-  * Recovery optimization
-  * Validation optimization
-  * Security optimization
-  * Monitoring optimization
-  * Resource optimization
-  * Performance optimization
-
-### Database Optimization
-- Query optimization
-  * Query analysis
-  * Index usage
-  * Query planning
-  * Query caching
-  * Performance monitoring
-  * Performance tuning
-
-- Index optimization
-  * Index analysis
-  * Index usage
-  * Index maintenance
-  * Index caching
-  * Performance monitoring
-  * Performance tuning
-
-- Connection optimization
-  * Connection analysis
-  * Connection pooling
-  * Connection management
-  * Connection caching
-  * Performance monitoring
-  * Performance tuning
-
-- Cache optimization
-  * Cache analysis
-  * Cache usage
-  * Cache invalidation
-  * Cache warming
-  * Performance monitoring
-  * Performance tuning
-
-- Backup optimization
-  * Backup analysis
-  * Backup scheduling
-  * Backup management
-  * Backup validation
-  * Performance monitoring
-  * Performance tuning
-
-- Monitoring optimization
-  * Monitoring analysis
-  * Monitoring efficiency
-  * Monitoring coverage
-  * Monitoring accuracy
-  * Performance monitoring
-  * Performance tuning
-
-## Constraints
-- Local development environment
-- Security-first approach
-- Performance requirements
-- Scalability needs
-- Maintenance considerations
-- Documentation requirements
-
-## Tokenization Settings
-- **AI Context**
-  * Estimated chars-per-token: 3.5
-  * Max tokens: 120,000
-  * Summary threshold: 12,000 chars
-  * Context management
-  * Memory optimization
+- **Component Structure**: Functional components with hooks
+- **State Management**: Zustand for global state, React Query for async data
+- **Styling**: Tailwind CSS with custom design system
+- **Type Safety**: TypeScript for all components and functions
+- **Error Boundaries**: Implement error boundaries for component error handling
+
+### Testing Standards
+- **Coverage**: 80% minimum test coverage
+- **Test Organization**: Mirror source code structure
+- **Fixtures**: Use pytest fixtures for test data
+- **Mocking**: Mock external dependencies appropriately
+- **Integration Tests**: Test complete workflows end-to-end
+
+### Security Standards
+- **Authentication**: JWT with secure token management
+- **Input Validation**: Validate all inputs with Pydantic
+- **SQL Injection**: Use parameterized queries with SQLAlchemy
+- **XSS Prevention**: Sanitize all user inputs
+- **CORS**: Configure CORS properly for cross-origin requests
+
+### Performance Standards
+- **Response Times**: < 1 second for most API endpoints
+- **Database Optimization**: Use proper indexing and query optimization
+- **Caching**: Implement caching for frequently accessed data
+- **Async Operations**: Use async/await patterns throughout
+- **Resource Management**: Monitor and optimize resource usage
 
 ## Monitoring and Maintenance
-- **Performance Monitoring**
-  * Response times
-  * Resource usage
-  * Error rates
-  * Security events
-  * User activity
 
-- **Maintenance Tasks**
-  * Security updates
-  * Dependency updates
-  * Database maintenance
-  * Log rotation
-  * Backup verification
+### **Performance Monitoring**
+- **Response times**: Monitor API response times
+- **Resource usage**: Monitor CPU, memory, and disk usage
+- **Error rates**: Track error rates and types
+- **Security events**: Monitor authentication and authorization events
+- **User activity**: Track user activity and feature usage
+
+### **Maintenance Tasks**
+- **Security updates**: Regular dependency updates and security patches
+- **Database maintenance**: Regular backups and optimization
+- **Log rotation**: Implement log rotation and retention policies
+- **Health monitoring**: Monitor service health and availability
+- **Performance optimization**: Regular performance reviews and optimization
 
 ## Changelog
 <!-- The agent prepends the latest summary here as a new list item after each VALIDATE phase -->
-- [2025-06-21] [AI] [MAJOR] - Successfully completed CORE_INFRASTRUCTURE_SETUP_PHASE: All three infrastructure containers (PostgreSQL database, Django backend, Next.js frontend) orchestrated with Docker Compose, health checks implemented, development environment configured with hot reloading, and comprehensive documentation created
+- [2025-01-27] [AI] [MAJOR] - Updated project configuration to reflect actual codebase patterns including specific tech stack versions, API response patterns, testing standards, and stage container patterns
 - [2024-12-19] [AI] [MAJOR] - Updated JWT authentication with 30-minute access token expiration and modern datetime handling
 - [2024-03-21] [AI] [MAJOR] - Updated project configuration with comprehensive security, testing, and deployment standards
 - [2024-03-21] [AI] [MAJOR] - Added detailed domain architecture and critical patterns
@@ -1671,52 +446,49 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
 - **Management Script**: `manage.py` (at root level)
 
 ### **Core Dependencies**
-- **Framework**: Next.js 14+
-- **Language**: TypeScript 5+
-- **Package Manager**: pnpm 8+
-- **State Management**: Zustand + React Query
-- **AI Integration**: OpenAI API
+- **Framework**: Next.js 15.3.3
+- **Language**: TypeScript 5.0.0
+- **Package Manager**: npm (package-lock.json)
+- **State Management**: Zustand 4.5.0 + React Query 5.0.0
+- **HTTP Client**: Axios 1.6.0
 
 ### **UI & Styling**
-- **Component Library**: shadcn/ui + Radix UI
-- **Styling**: Tailwind CSS
-- **Icons**: Radix Icons
-- **Animations**: Framer Motion
-- **Forms**: React Hook Form + Zod
+- **Styling**: Tailwind CSS 4.0
+- **Icons**: SVG icons in public directory
+- **Development**: Hot reloading enabled
+- **Build**: Next.js build optimization
 
 ### **Development Tools**
-- **Testing**: Vitest + Testing Library
-- **E2E Testing**: Playwright
-- **Linting**: ESLint
-- **Formatting**: Prettier
-- **Git Hooks**: Husky
-- **Type Checking**: TypeScript
-- **Code Quality**: SonarQube
+- **Testing**: Built-in Next.js testing
+- **Linting**: ESLint 9.0.0
+- **Type Checking**: TypeScript 5.0.0
+- **Git Hooks**: Standard Git workflow
+- **Code Quality**: ESLint configuration
 
 ### **Development Environment**
 - **Local Server**: Next.js development server
 - **Port**: 3000 (default)
 - **Hot Reloading**: Enabled
 - **Debug Tools**: Chrome DevTools
-- **API Testing**: Postman/Insomnia
+- **API Testing**: HTTPX integration testing
 
 ### **Version Control**
 - **Repository**: Git
-- **Branch Strategy**: Git Flow
+- **Branch Strategy**: Feature-based branching
 - **Commit Convention**: Conventional Commits
 - **Code Review**: Pull Requests
 
 ### **Documentation**
 - **API**: OpenAPI/Swagger
-- **Code**: JSDoc
+- **Code**: JSDoc comments
 - **Architecture**: Architecture Decision Records (ADRs)
-- **Component**: Storybook
+- **Component**: README files
 
 ### **Performance & Monitoring**
 - **Analytics**: Custom implementation
-- **Error Tracking**: Sentry
-- **Performance**: Web Vitals
-- **Logging**: Winston
+- **Error Tracking**: Logging and monitoring
+- **Performance**: Built-in Next.js optimization
+- **Logging**: Console logging
 
 ## Constraints
 - You have a limited context window (Claude's limitation).
