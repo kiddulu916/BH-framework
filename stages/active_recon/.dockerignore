@@ -1,0 +1,72 @@
+# Exclude frontend files
+frontend/
+*.js
+*.jsx
+*.ts
+*.tsx
+next.config.js
+package.json
+package-lock.json
+node_modules/
+
+# Exclude backend files
+backend/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# Exclude other stage directories
+../passive_recon/
+../vuln_scan/
+../vuln_test/
+../kill_chain/
+../report/
+
+# Exclude root level files
+../docker-compose.yml
+../.env
+../README.md
+../.gitignore
+../.cursor/
+
+# Exclude outputs (will be mounted as volume)
+outputs/
+
+# Exclude tests (not needed in container)
+tests/
+*.test.py
+*_test.py
+
+# Exclude documentation
+*.md
+docs/
+
+# Exclude IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Exclude OS files
+.DS_Store
+Thumbs.db 

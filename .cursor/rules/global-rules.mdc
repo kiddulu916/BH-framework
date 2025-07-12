@@ -847,7 +847,7 @@ async def health_check(request):
 - Database: Use `pg_isready` command
 - Backend: HTTP health check endpoint
 - Frontend: HTTP health check endpoint
-- Agents: Custom health check endpoints
+- Services: Custom health check endpoints
 
 ### 3. Resource Management
 **Implement proper resource management:**

@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "description": "Bug Hunting Framework Development Environment with Background Agent Support",
+  "description": "Bug Hunting Framework Development Environment",
   "allowComments": true,
   "allowTrailingCommas": false,
-  "name": "Bug Hunting Framework Agent",
+  "name": "Bug Hunting Framework",
   "user": "ubuntu",
   "install": "cd /home/ubuntu/projects/bug-hunting-framework && pip install -r backend/requirements.txt && cd frontend && pnpm install",
-  "start": "echo 'Bug Hunting Framework Agent Ready' && echo 'Python: $(python --version)' && echo 'Node: $(node --version)' && echo 'Docker: $(docker --version)'",
+  "start": "echo 'Bug Hunting Framework Ready' && echo 'Python: $(python --version)' && echo 'Node: $(node --version)' && echo 'Docker: $(docker --version)'",
   "repositoryDependencies": [
     "github.com/cursor-ai/cursor",
     "github.com/django/django",
@@ -29,21 +29,9 @@
       "name": "bug-hunting-db",
       "port": 5432
     },
-    {
+        {
       "name": "bug-hunting-passive-recon",
       "port": 8001
-    },
-    {
-      "name": "Agent Metrics",
-      "port": 9092
-    },
-    {
-      "name": "Agent Profiling",
-      "port": 6060
-    },
-    {
-      "name": "Agent Debug",
-      "port": 5679
     }
   ],
   "terminals": [
@@ -72,16 +60,7 @@
       "command": "cd /home/ubuntu/projects/bug-hunting-framework/passive-recon && docker exec -it bug-hunting-passive-recon bash",
       "description": "Runs the passive recon service"
     },
-    {
-      "name": "Agent Monitoring",
-      "command": "cd /home/ubuntu/projects/bug-hunting-framework && ./scripts/configure_agents.sh status",
-      "description": "Shows the status of background agents and their health"
-    },
-    {
-      "name": "Agent Logs",
-      "command": "cd /home/ubuntu/projects/bug-hunting-framework && ./scripts/configure_agents.sh logs",
-      "description": "Displays real-time logs from background agents"
-    },
+
     {
       "name": "Docker Services",
       "command": "cd /home/ubuntu/projects/bug-hunting-framework && docker-compose ps",
@@ -98,10 +77,5 @@
       "description": "Runs code formatting, linting, and type checking"
     }
   ],
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": "."
-  },
-  "snapshot": "bug-hunting-framework-agent-v1.0.0",
-  "agentCanUpdateSnapshot": true
+  "snapshot": "bug-hunting-framework-v1.0.0"
 }

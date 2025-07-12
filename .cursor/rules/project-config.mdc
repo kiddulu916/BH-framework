@@ -133,7 +133,7 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
 - **Docker Compose**: Multi-service orchestration
   * Core services: db, backend, frontend
   * Stage containers for each bug hunting stage
-  * Background agent services
+  * Core services (db, backend, frontend)
   * JWT rotation service
   * Health checks and dependencies
 

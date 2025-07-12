@@ -79,152 +79,20 @@ services:
     build:
       context: .
       dockerfile: scripts/Dockerfile.jwt-rotator
-    volumes:
-      - ./backend/.env:/app/backend.env
-      - ./stages:/app/stages
-    restart: always
-    
-  # =============================================================================
-  # BACKGROUND AGENT SERVICES
-  # =============================================================================
-  
-  # Main Background Agent Coordinator
-  agent_coordinator:
-    build:
-      context: .
-      dockerfile: .cursor/Dockerfile
-    container_name: bug-hunting-agent-coordinator
+    container_name: bug-hunting-jwt-rotator
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
-    environment:
-      # Agent Identity
-      - AGENT_ID=${AGENT_ID:-bug-hunting-agent-001}
-      - AGENT_NAME=${AGENT_NAME:-Bug Hunting Framework Agent}
-      - AGENT_VERSION=${AGENT_VERSION:-1.0.0}
-      - AGENT_ENVIRONMENT=${AGENT_ENVIRONMENT:-development}
-      
-      # Runtime Settings
-      - AGENT_MAX_CONCURRENT_TASKS=${AGENT_MAX_CONCURRENT_TASKS:-5}
-      - AGENT_TASK_TIMEOUT_SECONDS=${AGENT_TASK_TIMEOUT_SECONDS:-3600}
-      - AGENT_HEARTBEAT_INTERVAL_SECONDS=${AGENT_HEARTBEAT_INTERVAL_SECONDS:-30}
-      - AGENT_RETRY_ATTEMPTS=${AGENT_RETRY_ATTEMPTS:-3}
-      - AGENT_RETRY_DELAY_SECONDS=${AGENT_RETRY_DELAY_SECONDS:-60}
-      
-      # Resource Limits
-      - AGENT_MAX_MEMORY_MB=${AGENT_MAX_MEMORY_MB:-2048}
-      - AGENT_MAX_CPU_PERCENT=${AGENT_MAX_CPU_PERCENT:-80}
-      - AGENT_DISK_QUOTA_GB=${AGENT_DISK_QUOTA_GB:-10}
-      
-      # Communication
-      - AGENT_API_ENDPOINT=${AGENT_API_ENDPOINT:-http://backend:8000/api/agents}
-      - AGENT_WEBSOCKET_ENDPOINT=${AGENT_WEBSOCKET_ENDPOINT:-ws://backend:8000/ws/agents}
-      - AGENT_POLLING_INTERVAL_SECONDS=${AGENT_POLLING_INTERVAL_SECONDS:-10}
-      
-      # Security
-      - AGENT_JWT_TOKEN_ROTATION_INTERVAL_HOURS=${AGENT_JWT_TOKEN_ROTATION_INTERVAL_HOURS:-1}
-      - AGENT_TOKEN_REFRESH_THRESHOLD_MINUTES=${AGENT_TOKEN_REFRESH_THRESHOLD_MINUTES:-15}
-      - AGENT_ENABLE_SSL_VERIFICATION=${AGENT_ENABLE_SSL_VERIFICATION:-true}
-      
-      # Logging and Monitoring
-      - AGENT_LOG_LEVEL=${AGENT_LOG_LEVEL:-INFO}
-      - AGENT_LOG_FILE=${AGENT_LOG_FILE:-/var/log/agent.log}
-      - AGENT_ENABLE_METRICS_COLLECTION=${AGENT_ENABLE_METRICS_COLLECTION:-true}
-      - AGENT_METRICS_PORT=${AGENT_METRICS_PORT:-9091}
-      
-      # Health and Recovery
-      - AGENT_HEALTH_CHECK_INTERVAL_SECONDS=${AGENT_HEALTH_CHECK_INTERVAL_SECONDS:-60}
-      - AGENT_AUTO_RECOVERY_ENABLED=${AGENT_AUTO_RECOVERY_ENABLED:-true}
-      - AGENT_RECOVERY_MAX_ATTEMPTS=${AGENT_RECOVERY_MAX_ATTEMPTS:-5}
-      
-      # Performance Tuning
-      - AGENT_WORKER_PROCESSES=${AGENT_WORKER_PROCESSES:-4}
-      - AGENT_WORKER_THREADS=${AGENT_WORKER_THREADS:-8}
-      - AGENT_QUEUE_SIZE=${AGENT_QUEUE_SIZE:-100}
-      - AGENT_BATCH_SIZE=${AGENT_BATCH_SIZE:-10}
-      
-      # Development
-      - AGENT_DEBUG_MODE=${AGENT_DEBUG_MODE:-false}
-      - AGENT_PROFILING_ENABLED=${AGENT_PROFILING_ENABLED:-false}
-      - AGENT_ENABLE_REMOTE_DEBUG=${AGENT_ENABLE_REMOTE_DEBUG:-false}
-      
-      # Backend Integration
-      - PYTHONPATH=/home/ubuntu/projects/bug-hunting-framework/backend
-      - DJANGO_SETTINGS_MODULE=api.settings
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      
-    ports:
-      - "9091:9091"  # Agent metrics
-      - "6060:6060"  # Profiling (if enabled)
-      - "5678:5678"  # Remote debug (if enabled)
     volumes:
-      - ./:/home/ubuntu/projects/bug-hunting-framework
-      - ./outputs:/home/ubuntu/projects/bug-hunting-framework/outputs
-      - ./data:/home/ubuntu/projects/bug-hunting-framework/data
-      - /var/run/docker.sock:/var/run/docker.sock
-      - agent_logs:/var/log
-      - agent_cache:/var/cache/agent
+      - ./backend/.env:/app/backend.env
+      - ./stages:/app/stages
+      - ./backend/utils:/app/utils
     networks:
       - bug-hunting-network
-    deploy:
-      resources:
-        limits:
-          memory: ${AGENT_MAX_MEMORY_MB:-2048}M
-          cpus: '0.8'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9091/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  # Task Worker Agents (Scalable)
-  agent_worker:
-    build:
-      context: .
-      dockerfile: .cursor/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - agent_coordinator
-      - backend
-    environment:
-      # Worker Identity
-      - AGENT_ID=bug-hunting-worker-${AGENT_WORKER_ID:-1}
-      - AGENT_NAME=Bug Hunting Worker ${AGENT_WORKER_ID:-1}
-      - AGENT_ROLE=worker
-      - AGENT_COORDINATOR_URL=http://agent_coordinator:9091
-      
-      # Worker Settings
-      - AGENT_WORKER_PROCESSES=${AGENT_WORKER_PROCESSES:-2}
-      - AGENT_WORKER_THREADS=${AGENT_WORKER_THREADS:-4}
-      - AGENT_TASK_TIMEOUT_SECONDS=${AGENT_TASK_TIMEOUT_SECONDS:-1800}
-      - AGENT_HEARTBEAT_INTERVAL_SECONDS=${AGENT_HEARTBEAT_INTERVAL_SECONDS:-15}
-      
-      # Backend Integration
-      - PYTHONPATH=/home/ubuntu/projects/bug-hunting-framework/backend
-      - DJANGO_SETTINGS_MODULE=api.settings
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      
-    volumes:
-      - ./:/home/ubuntu/projects/bug-hunting-framework
-      - ./outputs:/home/ubuntu/projects/bug-hunting-framework/outputs
-      - /var/run/docker.sock:/var/run/docker.sock
-      - agent_logs:/var/log
-      - agent_cache:/var/cache/agent
-    networks:
-      - bug-hunting-network
-    deploy:
-      replicas: ${AGENT_WORKER_REPLICAS:-2}
-      resources:
-        limits:
-          memory: ${AGENT_WORKER_MEMORY_MB:-1024}M
-          cpus: '0.5'
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://agent_coordinator:9091/worker/health"]
-      interval: 30s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 60s
       timeout: 10s
       retries: 3
       start_period: 30s
@@ -248,16 +116,28 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    environment:
+      - BACKEND_API_URL=${BACKEND_API_URL}
+      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+      - STAGE_TIMEOUT_SECONDS=${PASSIVE_RECON_TIMEOUT}
+      - PYTHONPATH=/app
     volumes:
       - ./stages/passive_recon:/app
       - ./outputs:/app/outputs
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - bug-hunting-network
+    deploy:
+      resources:
+        limits:
+          memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+          cpus: '0.8'
 
-  # Active Recon Stage: Performs active reconnaissance using nmap, naabu, and httpx on subdomains discovered by passive recon.
+  # Active Recon Stage: Performs comprehensive active reconnaissance using multiple tools on subdomains discovered by passive recon.
   # - Queries passive recon results from backend API to get subdomains
-  # - Runs port scanning (nmap, naabu) and web server detection (httpx)
+  # - Runs port scanning (nmap, naabu), web server detection, directory enumeration (feroxbuster, katana)
+  # - Performs JavaScript analysis (getJS, LinkFinder), parameter discovery (Arjun), technology detection (WebAnalyze)
+  # - Captures screenshots (EyeWitness, EyeBaller) and performs DNS resolution (PureDNS)
   # - Raw outputs: /outputs/active_recon/<TARGET>/<TOOL>.*
   # - Parsed outputs: /outputs/active_recon/<TARGET>/parsed/<TOOL>_results.json
   # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
@@ -274,12 +154,167 @@ services:
         condition: service_healthy
       passive_recon:
         condition: service_started
+    environment:
+      - BACKEND_API_URL=${BACKEND_API_URL}
+      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+      - STAGE_TIMEOUT_SECONDS=${ACTIVE_RECON_TIMEOUT}
+      - PYTHONPATH=/app
     volumes:
       - ./stages/active_recon:/app
       - ./outputs:/app/outputs
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - bug-hunting-network
+    deploy:
+      resources:
+        limits:
+          memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+          cpus: '0.8'
+
+  # Vulnerability Scanning Stage: Performs automated vulnerability scanning using nuclei and other tools.
+  # - Queries active recon results from backend API to get live web servers and services
+  # - Runs vulnerability scanning tools (nuclei) against discovered targets
+  # - Raw outputs: /outputs/vuln_scan/<TARGET>/<TOOL>.*
+  # - Parsed outputs: /outputs/vuln_scan/<TARGET>/parsed/<TOOL>_vulnerabilities.json
+  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
+  #vuln_scan:
+  #  build:
+  #    context: ./stages/vuln_scan
+  #    dockerfile: Dockerfile
+  #  container_name: bug-hunting-vuln-scan
+  #  ports:
+  #    - "8003:8003"
+  #  restart: unless-stopped
+  #  depends_on:
+  #    backend:
+  #      condition: service_healthy
+  #    active_recon:
+  #      condition: service_started
+  #  environment:
+  #    - BACKEND_API_URL=${BACKEND_API_URL}
+  #    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+  #    - STAGE_TIMEOUT_SECONDS=${VULN_SCAN_TIMEOUT}
+  #    - PYTHONPATH=/app
+  #  volumes:
+  #    - ./stages/vuln_scan:/app
+  #    - ./outputs:/app/outputs
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  networks:
+  #    - bug-hunting-network
+  #  deploy:
+  #    resources:
+  #      limits:
+  #        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+  #        cpus: '0.8'
+
+  # Vulnerability Testing Stage: Performs manual verification and testing of discovered vulnerabilities.
+  # - Queries vulnerability scan results from backend API to get potential vulnerabilities
+  # - Runs verification tools (sqlmap, ffuf, etc.) to confirm and exploit vulnerabilities ethically
+  # - Raw outputs: /outputs/vuln_test/<TARGET>/<TOOL>.*
+  # - Parsed outputs: /outputs/vuln_test/<TARGET>/parsed/<TOOL>_verified.json
+  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
+  #vuln_test:
+  #  build:
+  #    context: ./stages/vuln_test
+  #    dockerfile: Dockerfile
+  #  container_name: bug-hunting-vuln-test
+  #  ports:
+  #    - "8004:8004"
+  #  restart: unless-stopped
+  #  depends_on:
+  #    backend:
+  #      condition: service_healthy
+  #    vuln_scan:
+  #      condition: service_started
+  #  environment:
+  #    - BACKEND_API_URL=${BACKEND_API_URL}
+  #    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+  #    - STAGE_TIMEOUT_SECONDS=${VULN_TEST_TIMEOUT}
+  #    - PYTHONPATH=/app
+  #  volumes:
+  #    - ./stages/vuln_test:/app
+  #    - ./outputs:/app/outputs
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  networks:
+  #    - bug-hunting-network
+  #  deploy:
+  #    resources:
+  #      limits:
+  #        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+  #        cpus: '0.8'
+#
+  # Kill Chain Analysis Stage: Analyzes attack paths and potential kill chains from all previous stages.
+  # - Queries all previous stage results from backend API to get comprehensive target data
+  # - Performs attack path analysis and kill chain identification
+  # - Attempts to verify potential attack paths while maintaining ethical practices
+  # - Raw outputs: /outputs/kill_chain/<TARGET>/<TOOL>.*
+  # - Parsed outputs: /outputs/kill_chain/<TARGET>/parsed/<TOOL>_kill_chains.json
+  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
+  #kill_chain:
+  #  build:
+  #    context: ./stages/kill_chain
+  #    dockerfile: Dockerfile
+  #  container_name: bug-hunting-kill-chain
+  #  ports:
+  #    - "8005:8005"
+  #  restart: unless-stopped
+  #  depends_on:
+  #    backend:
+  #      condition: service_healthy
+  #    vuln_test:
+  #      condition: service_started
+  #  environment:
+  #    - BACKEND_API_URL=${BACKEND_API_URL}
+  #    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+  #    - STAGE_TIMEOUT_SECONDS=${KILL_CHAIN_TIMEOUT}
+  #    - PYTHONPATH=/app
+  #  volumes:
+  #    - ./stages/kill_chain:/app
+  #    - ./outputs:/app/outputs
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  networks:
+  #    - bug-hunting-network
+  #  deploy:
+  #    resources:
+  #      limits:
+  #        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+  #        cpus: '0.8'
+
+  # Report Generation Stage: Generates comprehensive reports from all stage results.
+  # - Queries all stage results from backend API to get complete target analysis
+  # - Generates professional reports in various formats (PDF, HTML, Markdown)
+  # - Raw outputs: /outputs/report/<TARGET>/<FORMAT>.*
+  # - Parsed outputs: /outputs/report/<TARGET>/parsed/<FORMAT>_report.json
+  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
+  #report:
+  #  build:
+  #    context: ./stages/report
+  #    dockerfile: Dockerfile
+  #  container_name: bug-hunting-report
+  #  ports:
+  #    - "8006:8006"
+  #  restart: unless-stopped
+  #  depends_on:
+  #    backend:
+  #      condition: service_healthy
+  #    kill_chain:
+  #      condition: service_started
+  #  environment:
+  #    - BACKEND_API_URL=${BACKEND_API_URL}
+  #    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+  #    - STAGE_TIMEOUT_SECONDS=${REPORT_GENERATION_TIMEOUT}
+  #    - PYTHONPATH=/app
+  #  volumes:
+  #    - ./stages/report:/app
+  #    - ./outputs:/app/outputs
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  networks:
+  #    - bug-hunting-network
+  #  deploy:
+  #    resources:
+  #      limits:
+  #        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+  #        cpus: '0.8'
 
   # =============================================================================
   # FRONTEND SERVICE
@@ -321,10 +356,7 @@ volumes:
     driver: local
   frontend_next_cache:
     driver: local
-  agent_logs:
-    driver: local
-  agent_cache:
-    driver: local
+
 
 # =============================================================================
 # NETWORKS

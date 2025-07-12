@@ -15,7 +15,7 @@ alwaysApply: true
 ### 1. **Service Organization**
 - **Core services**: `db`, `backend`, `frontend`
 - **Stage containers**: Individual containers for each bug hunting stage
-- **Support services**: `jwt_rotator`, `agent_coordinator`, `agent_worker`
+- **Support services**: `jwt_rotator`
 - **Network**: All services on `bug-hunting-network`
 
 ### 2. **Service Dependencies**
@@ -28,7 +28,7 @@ alwaysApply: true
 - **Database**: `pg_isready` command
 - **Backend**: HTTP health check endpoint
 - **Frontend**: HTTP health check endpoint
-- **Agents**: Custom health check endpoints
+- **Services**: Custom health check endpoints
 
 ## Database Service Configuration
 
@@ -156,76 +156,7 @@ frontend:
     start_period: 30s
 ```
 
-## Background Agent Services
 
-### 1. **Agent Coordinator Pattern**
-- **Purpose**: Coordinate background tasks and agent workers
-- **Configuration**: Comprehensive environment variable setup
-- **Resource limits**: Memory and CPU constraints
-- **Health monitoring**: Custom health check endpoint
-- **Logging**: Structured logging with rotation
-
-### 2. **Agent Worker Pattern**
-- **Purpose**: Execute individual tasks
-- **Scalability**: Multiple worker instances
-- **Communication**: Connect to coordinator
-- **Resource management**: Individual resource limits
-
-### 3. **Agent Service Configuration**
-```yaml
-agent_coordinator:
-  build:
-    context: .
-    dockerfile: .cursor/Dockerfile
-  container_name: bug-hunting-agent-coordinator
-  restart: unless-stopped
-  depends_on:
-    backend:
-      condition: service_healthy
-  environment:
-    # Agent Identity
-    - AGENT_ID=${AGENT_ID:-bug-hunting-agent-001}
-    - AGENT_NAME=${AGENT_NAME:-Bug Hunting Framework Agent}
-    - AGENT_VERSION=${AGENT_VERSION:-1.0.0}
-    - AGENT_ENVIRONMENT=${AGENT_ENVIRONMENT:-development}
-    
-    # Runtime Settings
-    - AGENT_MAX_CONCURRENT_TASKS=${AGENT_MAX_CONCURRENT_TASKS:-5}
-    - AGENT_TASK_TIMEOUT_SECONDS=${AGENT_TASK_TIMEOUT_SECONDS:-3600}
-    - AGENT_HEARTBEAT_INTERVAL_SECONDS=${AGENT_HEARTBEAT_INTERVAL_SECONDS:-30}
-    
-    # Communication
-    - AGENT_API_ENDPOINT=${AGENT_API_ENDPOINT:-http://backend:8000/api/agents}
-    - AGENT_WEBSOCKET_ENDPOINT=${AGENT_WEBSOCKET_ENDPOINT:-ws://backend:8000/ws/agents}
-    
-    # Backend Integration
-    - PYTHONPATH=/home/ubuntu/projects/bug-hunting-framework/backend
-    - DJANGO_SETTINGS_MODULE=api.settings
-    - DATABASE_URL=${DATABASE_URL}
-    - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-  ports:
-    - "9091:9091"  # Agent metrics
-  volumes:
-    - ./:/home/ubuntu/projects/bug-hunting-framework
-    - ./outputs:/home/ubuntu/projects/bug-hunting-framework/outputs
-    - ./data:/home/ubuntu/projects/bug-hunting-framework/data
-    - /var/run/docker.sock:/var/run/docker.sock
-    - agent_logs:/var/log
-    - agent_cache:/var/cache/agent
-  networks:
-    - bug-hunting-network
-  deploy:
-    resources:
-      limits:
-        memory: ${AGENT_MAX_MEMORY_MB:-2048}M
-        cpus: '0.8'
-  healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:9091/health"]
-    interval: 30s
-    timeout: 10s
-    retries: 3
-    start_period: 60s
-```
 
 ## Stage Container Patterns
 
@@ -291,7 +222,7 @@ stage_name:
 - **Django**: `DJANGO_*`, `SECRET_KEY`, `DEBUG` variables
 - **JWT**: `JWT_*` variables for authentication
 - **Frontend**: `NEXT_PUBLIC_*` variables for client-side configuration
-- **Agent**: `AGENT_*` variables for background agent configuration
+- **Services**: Service-specific configuration variables
 
 ### 2. **Environment File Structure**
 ```bash
@@ -319,19 +250,16 @@ JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws
 
-# Agent Configuration
-AGENT_ID=bug-hunting-agent-001
-AGENT_NAME=Bug Hunting Framework Agent
-AGENT_VERSION=1.0.0
-AGENT_ENVIRONMENT=development
+# Service Configuration
+# Add service-specific variables here as needed
 ```
 
 ## Volume Management
 
 ### 1. **Named Volumes**
 - **Database**: `postgres_data` for persistent database storage
-- **Agent logs**: `agent_logs` for agent log files
-- **Agent cache**: `agent_cache` for agent caching
+- **Service logs**: Service-specific log volumes
+- **Service cache**: Service-specific cache volumes
 
 ### 2. **Bind Mounts**
 - **Source code**: Mount source directories for development
@@ -344,10 +272,7 @@ AGENT_ENVIRONMENT=development
 volumes:
   postgres_data:
     driver: local
-  agent_logs:
-    driver: local
-  agent_cache:
-    driver: local
+
 ```
 
 ## Network Configuration
@@ -435,4 +360,6 @@ healthcheck:
 - **Security hardening**: Implement security best practices
 - **Resource optimization**: Optimize resource usage
 - **Monitoring**: Implement comprehensive monitoring
+
+
 

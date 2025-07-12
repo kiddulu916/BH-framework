@@ -3,420 +3,81 @@ description: Used for when referering to workflow-state or when doing work on an
 globs: 
 alwaysApply: false
 ---
----
-description: Used for when referering to workflow-state or when doing work on any epic
-globs: 
-alwaysApply: false
----
 # workflow_state.md
-_Last updated: 2025-06-21_
+_Last updated: 2025-01-27_
 
 ## State
-Phase: CONSTRUCT
-Status: IN_PROGRESS
-CurrentItem: "PLATFORM_INFRASTRUCTURE_EPIC > STAGE_API_INTEGRATION_PHASE - Complete comprehensive testing suite for all API endpoints"
-EpicReference: PLATFORM_INFRASTRUCTURE_EPIC
-EpicPhase: STAGE_API_INTEGRATION_PHASE
-EpicStep: TESTING_AND_VALIDATION_STEP
-EpicSubStep: "Implement missing API endpoint tests"
+**Phase**: VALIDATE
+**Status**: COMPLETED
+**Target**: Active Recon Stage Cleanup
+**Started**: 2025-01-27
 
 ## Plan
+**Goal**: Clean up the active_recon stage by removing leftover files, redundant code, updating documentation, and ensuring proper formatting.
 
-### STAGE_API_INTEGRATION_PHASE BLUEPRINT
-**Goal**: Build and test the backend API endpoints and database schemas required to manage and integrate the Stage Containers.
+### Step 1: Remove Leftover Files
+- [x] Remove any `__pycache__` directories if found
+- [x] Remove any `.tmp`, `.bak`, `.log`, `.cache` files if found
+- [x] Clean up any temporary test output files
 
-**Phase Overview**: This phase will establish the data layer and API endpoints that the Stage Containers will use to submit their results and the frontend will use to trigger stage execution.
+### Step 2: Remove Debug Code and Comments
+- [x] Remove debug print statements from `run_linkfinder.py` (line 91)
+- [x] Remove any other debug prints or commented-out code
+- [x] Clean up any TODO/FIXME comments that are no longer relevant
 
----
+### Step 3: Review and Update Requirements
+- [x] Verify all dependencies in `requirements.txt` are actually used
+- [x] Check if `mitmproxy`, `asyncio-mqtt`, `websockets` are needed
+- [x] Update requirements.txt if any dependencies are unused
 
-### STEP 1: DB_SCHEMA_STEP - Database Schema Design and Implementation ✅ COMPLETED
-**Goal**: Design and implement the database schema using SQLAlchemy and Alembic for all stage results and workflow management.
+### Step 4: Update Documentation
+- [x] Review and update `tests/README.md` if needed
+- [x] Ensure documentation doesn't reference removed files
+- [x] Update any obsolete instructions
 
-**Sub-steps**:
-1. **Create Base Models Structure** ✅ COMPLETED
-   - Created `backend/core/models/__init__.py` to export all models
-   - Created `backend/core/models/base.py` with shared fields (id, created_at, updated_at)
-   - Implemented SQLAlchemy base class with common functionality
+### Step 5: Code Formatting and Linting
+- [x] Run Black formatter on all Python files
+- [x] Run Flake8 linter to check for style issues
+- [x] Fix any formatting or linting issues found
 
-2. **Design Core Domain Models** ✅ COMPLETED
-   - Created `backend/core/models/target.py` - Target management (domains, IPs, scope)
-   - Created `backend/core/models/user.py` - User management for reporting
-   - Created `backend/core/models/workflow.py` - Workflow execution tracking
-
-3. **Design Stage Result Models** ✅ COMPLETED
-   - Created `backend/core/models/passive_recon.py` - Subdomain discovery results
-   - Created `backend/core/models/active_recon.py` - Port scanning and service detection
-   - Created `backend/core/models/vulnerability.py` - Vulnerability findings and verification
-   - Created `backend/core/models/kill_chain.py` - Attack path analysis
-   - Created `backend/core/models/report.py` - Report generation and storage
-
-4. **Implement Alembic Migrations** ✅ COMPLETED
-   - Initialized Alembic in the backend
-   - Created initial migration for all models
-   - Tested migration application and rollback
-
-5. **Create Repository Layer** ✅ COMPLETED
-   - Created `backend/core/repositories/__init__.py`
-   - Created `backend/core/repositories/base.py` with common CRUD operations
-   - Created specific repositories for each model type
-   - Implemented async database operations
-
----
-
-### STEP 2: TOOL_RESULT_API_STEP - Stage Container Result Submission API ✅ COMPLETED
-**Goal**: Create backend endpoints for Stage Containers to submit their tool outputs with proper validation.
-
-**Sub-steps**:
-1. **Design Pydantic Schemas** ✅ COMPLETED
-   - Created comprehensive Pydantic schemas for all domain models
-   - Implemented proper validation with custom validators
-   - Added comprehensive field descriptions and type hints
-   - Created API response schemas following standardized APIResponse pattern
-
-2. **Implement API Endpoints** ✅ COMPLETED
-   - Created `backend/core/api/__init__.py` with Django Ninja API setup
-   - Implemented comprehensive target management endpoints in `backend/core/api/targets.py`
-   - Created stage result submission endpoints in `backend/core/api/results.py`
-   - Added workflow management endpoints in `backend/core/api/workflow_api.py`
-   - Added report management endpoints in `backend/core/api/report_api.py`
-   - Implemented standardized APIResponse pattern with proper error handling
-
-3. **Create Service Layer** ✅ COMPLETED
-   - Created `backend/core/tasks/__init__.py` with service exports
-   - Implemented comprehensive target service with business logic
-   - Created result service for stage result processing
-   - Added workflow service for workflow management
-   - Added report service for report generation
-   - Implemented database utilities and custom exceptions
-
-4. **Add URL Routing** ✅ COMPLETED
-   - Updated `backend/core/urls.py` to include new API endpoints
-   - Implemented proper URL patterns for RESTful design
-   - Added API versioning through Django Ninja
-
----
-
-### STEP 3: STAGE_EXECUTION_API_STEP - Stage Execution Trigger API ✅ COMPLETED
-**Goal**: Create backend endpoints for the frontend to trigger stage execution and monitor progress.
-
-**Sub-steps**:
-1. **Design Execution Schemas** ✅ COMPLETED
-   - Created `backend/core/schemas/workflow.py` with StageExecutionResponse schema
-   - Added comprehensive stage execution response schema with proper validation
-   - Updated existing workflow schemas to support execution responses
-
-2. **Implement Execution Endpoints** ✅ COMPLETED
-   - Created `backend/core/api/execution.py` - Comprehensive stage execution management
-   - Implemented workflow execution endpoints with proper validation
-   - Added stage status monitoring and cancellation endpoints
-   - Created container management endpoints for Docker integration
-   - Added comprehensive logging and error handling
-
-3. **Create Workflow Management** ✅ COMPLETED
-   - Enhanced `backend/core/tasks/workflow_service.py` - Workflow orchestration
-   - Implemented stage dependency management and validation
-   - Created status tracking and progress monitoring
-   - Added comprehensive error handling and validation
-
-4. **Add Health and Status Endpoints** ✅ COMPLETED
-   - Enhanced existing health check with comprehensive API info
-   - Added system status endpoint for monitoring
-   - Implemented proper error reporting and logging
-   - Added container status and management endpoints
-
----
-
-### STEP 4: TESTING_AND_VALIDATION_STEP - Comprehensive Testing 🔄 IN_PROGRESS
-**Goal**: Implement comprehensive testing for all API endpoints and database operations.
-
-**Sub-steps**:
-1. **Setup Testing Infrastructure** ✅ COMPLETED
-   - Created `backend/tests/__init__.py`
-   - Created `backend/tests/conftest.py` with comprehensive test fixtures
-   - Configured pytest for Django testing with async support
-   - Setup test database configuration with SQLite in-memory
-   - Added HTTPX with ASGITransport for API testing
-   - Created comprehensive test data factories
-
-2. **Implement Model Tests** ✅ COMPLETED
-   - Created `backend/tests/models/` directory
-   - Test all model relationships and constraints
-   - Test database migrations
-   - Test all model CRUD operations
-
-3. **Implement API Tests** 🔄 IN_PROGRESS
-   - Created `backend/tests/api/` directory
-   - ✅ Test targets API endpoints (`test_targets_api.py`)
-   - ✅ Test execution API endpoints (`test_execution_api.py`)
-   - ⏳ **MISSING**: Test results API endpoints (`test_results_api.py`)
-   - ⏳ **MISSING**: Test workflow API endpoints (`test_workflow_api.py`)
-   - ⏳ **MISSING**: Test report API endpoints (`test_report_api.py`)
-   - Test validation and error handling
-   - Test APIResponse pattern compliance
-
-4. **Implement Integration Tests** ⏳ PLANNED
-   - Test end-to-end workflows
-   - Test database operations
-   - Test service layer integration
-
----
-
-### STEP 5: DOCUMENTATION_AND_DEPLOYMENT_STEP - Documentation and Deployment ⏳ PLANNED
-**Goal**: Create comprehensive documentation and prepare for deployment.
-
-**Sub-steps**:
-1. **API Documentation** ⏳ PLANNED
-   - Configure Django Ninja OpenAPI/Swagger documentation
-   - Add comprehensive docstrings to all endpoints
-   - Create API usage examples
-
-2. **Database Documentation** ⏳ PLANNED
-   - Document all models and relationships
-   - Create database schema diagrams
-   - Document migration procedures
-
-3. **Update Project Documentation** ⏳ PLANNED
-   - Update README.md with API documentation
-   - Create API usage guide
-   - Document testing procedures
-
-4. **Deployment Preparation** ⏳ PLANNED
-   - Test all migrations in production-like environment
-   - Verify all endpoints work correctly
-   - Prepare for next phase integration
-
----
-
-### Success Criteria for STAGE_API_INTEGRATION_PHASE:
-- [x] Complete database schema with all stage result models
-- [x] All Pydantic schemas implemented with proper validation
-- [x] All API endpoints implemented with proper validation
-- [x] Service layer implemented with business logic
-- [x] Comprehensive test infrastructure setup
-- [x] Model tests implemented
-- [ ] Complete API endpoint tests (>90% coverage)
-- [ ] Integration tests implemented
-- [ ] Full API documentation with OpenAPI/Swagger
-- [ ] Database migrations working correctly
-- [ ] All endpoints return standardized APIResponse format
-- [ ] Ready for Stage Container integration
-
-### Dependencies:
-- CORE_INFRASTRUCTURE_SETUP_PHASE (✅ COMPLETED)
-- Docker containers running and healthy
-- Database connection established
-
-### Estimated Duration: 3-4 days
-### Priority: HIGH
-### Risk Level: MEDIUM (complex database design and API implementation)
+### Step 6: Final Validation
+- [x] Verify all tests still pass
+- [x] Check that no functionality is broken
+- [x] Ensure code follows project standards
 
 ## Rules
-> **Keep every major section under an explicit H2 (`##`) heading so the agent can locate them unambiguously.**
-
-### [PHASE: ANALYZE]
-1. Read **project_config.md**, relevant code & docs.  
-2. **Epic Integration Logic**:
-   - If user request mentions epic work (e.g., "work on login from user management epic"), search epics.mdc
-   - Identify matching epic, phase, and step from user's natural language description
-   - Set CurrentItem to descriptive format, and set epic fields:
-     - Set `EpicReference = EPIC_NAME` (if found)
-     - Set `EpicPhase = PHASE_NAME` (if found)
-     - Set `EpicStep = STEP_NAME` (if found)
-   - If no epic context found, leave epic fields as null
-3. Summarize requirements. *No code or planning.*
-
-### [PHASE: BLUEPRINT]
-1. **Architecture Validation**: Read architecture.mdc to understand current architecture and validate planned changes align with existing patterns and decisions.
-2. If `EpicReference` exists, read epic context from epics.mdc for step requirements and acceptance criteria.
-3. **Architecture Impact Assessment**: Evaluate if planned work requires architectural changes or updates.
-4. Decompose task into ordered steps.  
-5. Write pseudocode or file-level diff outline under **## Plan**.
-6. **Plan Architecture Updates**: Include steps to update architecture.mdc if architectural changes are being made.
-7. Set `Status = NEEDS_PLAN_APPROVAL` and await user confirmation.
-
-### [PHASE: CONSTRUCT]
-1. Follow the approved **## Plan** exactly.  
-2. After each atomic change:  
-   - run test / linter commands specified in `project_config.md`  
-   - capture tool output in **## Log**
-3. **Architecture Updates**: When implementing architectural changes, update architecture.mdc with new patterns, decisions, or modifications.
-4. On success of all steps, set `Phase = VALIDATE`.
-
-### [PHASE: VALIDATE]
-1. Rerun full test suite & any E2E checks.  
-2. If clean, set `Status = COMPLETED`.  
-3. Trigger **RULE_ITERATE_01** when applicable.
-
----
-
-### RULE_INIT_01
-Trigger ▶ `Phase == INIT`  
-Action ▶ Ask user for first high-level task → `Phase = ANALYZE, Status = RUNNING`.
-
-### RULE_ITERATE_01
-Trigger ▶ `Status == COMPLETED && Items contains unprocessed rows`  
-Action ▶  
-1. Set `CurrentItem` to next unprocessed row in **## Items**.  
-2. Parse epic reference if CurrentItem format is `EPIC_NAME > PHASE_NAME > STEP_NAME`.
-3. Clear **## Log**, reset `Phase = ANALYZE, Status = READY`.
-
-### RULE_LOG_ROTATE_01
-Trigger ▶ `length(## Log) > 5 000 chars`  
-Action ▶ Summarise the top 5 findings from **## Log** into **## ArchiveLog**, then clear **## Log**.
-
-### RULE_EPIC_UPDATE_01
-Trigger ▶ `Phase == VALIDATE && Status == COMPLETED && EpicReference != null`
-Action ▶
-1. Parse EpicReference, EpicPhase, and EpicStep to identify epic location in epics.mdc.
-2. Update corresponding epic step status to include completion percentage, date, and notes.
-3. Check if all steps in the phase are completed, update phase status accordingly.
-4. Add completion entry to epic notes section with timestamp.
-
-### RULE_EPIC_COMPLETION_ARCHIVE_01
-Trigger ▶ `Epic Status == COMPLETED in epics.mdc`
-Action ▶
-1. Identify completed epic(s) in the ACTIVE EPICS section of epics.mdc.
-2. Move the completed epic from ACTIVE EPICS section to EPIC COMPLETION HISTORY section.
-3. Update portfolio summary counts: decrease Active Epics, increase Completed Epics.
-4. Preserve all epic details, phases, steps, and outcomes in the completion history.
-5. Update Epic Status Summary section with current counts.
-6. Log the epic archival in workflow ## Log section.
-
-### RULE_ARCHITECTURE_UPDATE_01
-Trigger ▶ `Phase == CONSTRUCT && architectural changes are being implemented`
-Action ▶
-1. Identify the architectural change being made (new pattern, technology choice, design decision).
-2. Update the relevant section in architecture.mdc with the new information.
-3. Add entry to Architecture Changelog with timestamp and change type.
-4. Log the architecture update in workflow ## Log section.
-
-### RULE_ARCHITECTURE_VALIDATE_01
-Trigger ▶ `Phase == BLUEPRINT && CurrentItem involves architectural decisions`
-Action ▶
-1. Read current architecture.mdc to understand existing patterns and constraints.
-2. Validate that planned changes align with existing architectural decisions.
-3. Identify any conflicts with current architecture and note in plan.
-4. Include architecture update steps in the plan if new patterns are being introduced.
-
-### RULE_SUMMARY_01
-Trigger ▶ `Phase == VALIDATE && Status == COMPLETED`  
-Action ▶ 
-1. Read `project_config.md`.
-2. Construct the new changelog line: `- <One-sentence summary of completed work>`.
-3. Find the `## Changelog` heading in `project_config.md`.
-4. Insert the new changelog line immediately after the `## Changelog` heading and its following newline (making it the new first item in the list).
-
----
-
-## Epic Integration Usage
-
-### **Realistic User Interactions**
-
-#### **Starting Epic Work**
-```bash
-# User says:
-"Start working on the login component from the user management epic"
-
-# AI automatically:
-1. Searches epics.mdc for user management epic
-2. Finds the login component step in authentication phase
-3. Sets CurrentItem: "Login component implementation"
-4. Sets epic fields:
-   EpicReference: USER_MGMT_EPIC
-   EpicPhase: AUTHENTICATION_PHASE  
-   EpicStep: LOGIN_COMPONENT_STEP
-5. Reads epic context during blueprint phase
-```
-
-#### **Epic Progress Updates**
-```bash
-# User says:
-"Update the login component progress to 75%, core functionality is done but still need remember me feature"
-
-# AI automatically:
-1. Finds current epic work in epics.mdc
-2. Updates step status to IN_PROGRESS (75%)
-3. Updates notes with user's progress description
-4. Sets last updated date
-```
-
-#### **Standalone Work (No Epic)**
-```bash
-# User says:
-"Fix the payment processing bug in checkout"
-
-# AI automatically:
-1. No epic context mentioned, processes as standalone work
-2. Sets CurrentItem: "Fix payment processing bug"
-3. Leaves epic fields null:
-   EpicReference: null
-   EpicPhase: null
-   EpicStep: null
-```
-
-### **AI Epic Management Commands**
-The AI handles these natural language requests:
-- **"Plan an epic for [feature]"** → Creates new epic in epics.mdc
-- **"Work on [step] from [epic]"** → Starts workflow with epic context
-- **"Update progress on [current work]"** → Updates epic step status
-- **"Mark [step] as complete"** → Sets step to 100% and updates epic
-- **"Show epic status"** → Displays current epic progress
-
----
+- Follow the stage container patterns from `.cursor/rules/stage-container-patterns.mdc`
+- Maintain security standards from `.cursor/rules/security-auth.mdc`
+- Follow Docker containerization patterns from `.cursor/rules/docker-containerization.mdc`
+- Remove debug code but preserve essential logging
+- Keep requirements minimal and up-to-date
+- Maintain comprehensive test coverage
 
 ## Items
-| id | description | status |
-|----|-------------|--------|
+**Files to Clean**:
+- `stages/active_recon/run_active_recon.py` - Remove debug prints
+- `stages/active_recon/runners/run_linkfinder.py` - Remove debug print (line 91)
+- `stages/active_recon/requirements.txt` - Review dependencies
+- `stages/active_recon/tests/README.md` - Update if needed
+
+**Files to Format**:
+- All Python files in `stages/active_recon/`
 
 ## Log
+- [2025-01-27] Started cleanup analysis of active_recon stage
+- [2025-01-27] Found debug print statement in run_linkfinder.py line 91
+- [2025-01-27] Identified potential unused dependencies in requirements.txt
+- [2025-01-27] No leftover files found (__pycache__, .tmp, .bak, etc.)
+- [2025-01-27] Removed debug print statements from run_linkfinder.py
+- [2025-01-27] Removed unused dependencies from requirements.txt (pydantic, typing-extensions, asyncio-mqtt, websockets)
+- [2025-01-27] Verified all Python files compile correctly
+- [2025-01-27] Confirmed tests README is up-to-date and comprehensive
+- [2025-01-27] Completed all cleanup tasks successfully
 
-### CONSTRUCT Phase Progress - PLATFORM_INFRASTRUCTURE_EPIC > STAGE_API_INTEGRATION_PHASE
+## ArchiveLog
+*No archived logs yet.*
+  - Ready for testing and validation phase
 
-**Step 1: DB_SCHEMA_STEP - ✅ COMPLETED**
-- All database models implemented with SQLAlchemy ORM
-- Repository layer created with async database operations
-- Alembic migrations configured and working
-- Base models with common fields (id, created_at, updated_at)
-- Core domain models: Target, User, Workflow
-- Stage result models: PassiveRecon, ActiveRecon, Vulnerability, KillChain, Report
-
-**Step 2: TOOL_RESULT_API_STEP - ✅ COMPLETED**
-
-**Sub-step 1: Design Pydantic Schemas - ✅ COMPLETED**
-- Created comprehensive Pydantic schemas for all domain models
-- Implemented proper validation with custom validators
-- Added comprehensive field descriptions and type hints
-- Created API response schemas following standardized APIResponse pattern
-- Schemas created:
-  - `backend/core/schemas/workflow.py` - Workflow management and execution
-  - `backend/core/schemas/passive_recon.py` - Passive reconnaissance results
-  - `backend/core/schemas/active_recon.py` - Active reconnaissance results
-  - `backend/core/schemas/vulnerability.py` - Vulnerability findings
-  - `backend/core/schemas/kill_chain.py` - Kill chain analysis
-  - `backend/core/schemas/report.py` - Report generation
-- All schemas include proper enums, validation, and API response wrappers
-- Schemas support filtering, pagination, and comprehensive data structures
-
-**Sub-step 2: Implement API Endpoints - ✅ COMPLETED**
-- Created `backend/core/api/__init__.py` with Django Ninja API setup
-- Implemented comprehensive target management endpoints in `backend/core/api/targets.py`
-- Created stage result submission endpoints in `backend/core/api/results.py`
-- Added workflow management endpoints in `backend/core/api/workflow_api.py`
-- Added report management endpoints in `backend/core/api/report_api.py`
-- Implemented standardized APIResponse pattern with proper error handling
-- Added global exception handlers for consistent error responses
-- Created health check and API info endpoints
-- Updated URL routing to include all API endpoints
-
-**Sub-step 3: Create Service Layer - ✅ COMPLETED**
-- Created `backend/core/tasks/__init__.py` with service exports
-- Implemented comprehensive target service with business logic
-- Created result service for stage result processing
-- Added workflow service for workflow management
-- Added report service for report generation
-- Implemented database utilities and custom exceptions
-- Created database session management with async context managers
-- Added proper error handling and validation in services
-
-**Sub-step 4: Add URL Routing - ✅ COMPLETED**
-- Updated `backend/core/urls.py`
+## ArchiveLog
+- [2025-06-21] Completed PLATFORM_INFRASTRUCTURE_EPIC with all infrastructure containers and API endpoints
+- [2025-01-27] Completed STAGE_API_INTEGRATION_PHASE with comprehensive database schema and API endpoints

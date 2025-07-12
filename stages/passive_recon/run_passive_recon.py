@@ -118,7 +118,7 @@ def save_text(data, path):
 def main():
     load_dotenv(dotenv_path=".env")
     parser = argparse.ArgumentParser(description="Passive Recon Main Runner")
-    parser.add_argument("--target", required=True, help="Target domain")
+    parser.add_argument("--target", required=False, default="example.com", help="Target domain")
     parser.add_argument("--stage", default="passive_recon", help="Stage name (default: passive_recon)")
     args = parser.parse_args()
 

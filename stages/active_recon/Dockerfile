@@ -46,9 +46,6 @@ RUN tar -C /usr/local -xzf go1.24.4.linux-amd64.tar.gz
 RUN rm go1.24.4.linux-amd64.tar.gz
 ENV PATH="/usr/local/go/bin:${PATH}"
 
-# Install httpx
-RUN go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
-
 # Install naabu (port scanner)
 RUN go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
 
@@ -56,45 +53,45 @@ RUN go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
 RUN CGO_ENABLED=1 go install github.com/projectdiscovery/katana/cmd/katana@latest
 
 # Install Feroxbuster (web directory/file bruteforcer)
-RUN curl -sL https://raw.githubusercontent.com/epi052/feroxbuster/master/install-nix.sh | bash
+RUN wget https://github.com/epi052/feroxbuster/releases/download/v2.10.1/x86_64-unknown-linux-gnu-feroxbuster.zip
+RUN unzip x86_64-unknown-linux-gnu-feroxbuster.zip
+RUN mv feroxbuster /usr/local/bin/feroxbuster
+RUN chmod +x /usr/local/bin/feroxbuster
+RUN rm x86_64-unknown-linux-gnu-feroxbuster.zip
 
 # Install GoBuster (DNS/VHost bruteforcer)
 RUN go install -v github.com/OJ/gobuster/v3@latest
 
 # Install LinkFinder (for extracting endpoints from JS files)
-RUN git clone https://github.com/GerbenJavado/LinkFinder.git
-RUN cd LinkFinder && python3 setup.py install
-RUN cd /root/
+RUN git clone https://github.com/GerbenJavado/LinkFinder.git /root/LinkFinder
+RUN cd /root/LinkFinder && python3 setup.py install
 ENV PATH="/root/LinkFinder:$PATH"
 
 # Install getJS (for extracting endpoints from JS files)
-RUN go install github.com/003random/getJS/v2@latest
+RUN go install github.com/003random/getJS@latest
 
 # Install eyewitness (screenshot tool)
-RUN git clone https://github.com/RedSiege/EyeWitness.git
-RUN cd EyeWitness && \
-    ./Python/setup/setup.sh && \
-    cd /root/
+RUN git clone https://github.com/RedSiege/EyeWitness.git /root/EyeWitness
+RUN cd /root/EyeWitness && \
+    ./Python/setup/setup.sh
 ENV PATH="/root/EyeWitness/Python/:$PATH"
 
 # Install EyeBaller (Screenshot analysis)
-RUN git clone https://github.com/BishopFox/eyeballer.git
-RUN cd eyeballer
-RUN pip install -r requirements.txt
-RUN wget https://github.com/BishopFox/eyeballer/releases/download/3.0/bishop-fox-pretrained-v3.h5
-RUN cd /root/
+RUN git clone https://github.com/BishopFox/eyeballer.git /root/eyeballer
+RUN cd /root/eyeballer && \
+    pip install -r requirements.txt && \
+    wget https://github.com/BishopFox/eyeballer/releases/download/3.0/bishop-fox-pretrained-v3.h5
 ENV PATH="/root/eyeballer:$PATH"
 
 # Install webanalyze (web app technology detection)
 RUN wget https://github.com/rverton/webanalyze/releases/download/v0.4.1/webanalyze_Linux_x86_64.tar.gz
 RUN tar -C /usr/local/bin/ -xzf webanalyze_Linux_x86_64.tar.gz
 RUN rm webanalyze_Linux_x86_64.tar.gz
-RUN cd /usr/local/bin/ && ./webanalyze -update && cd /root/
+RUN cd /usr/local/bin/ && ./webanalyze -update
 
 # Install WhatWeb (web app fingerprinting)
-RUN git clone https://github.com/urbanadventurer/WhatWeb.git
-RUN cd WhatWeb && gem install bundler && bundle install
-RUN cd /root/
+RUN git clone https://github.com/urbanadventurer/WhatWeb.git /root/WhatWeb
+RUN cd /root/WhatWeb && gem install bundler && bundle install
 
 # Install FingerprintX (web app fingerprinting)
 RUN go install github.com/praetorian-inc/fingerprintx/cmd/fingerprintx@latest
@@ -106,12 +103,15 @@ RUN npm install -g retire
 RUN pip install arjun
 
 # Install massdns (DNS enumeration)
-RUN git clone https://github.com/blechschmidt/massdns.git
-RUN cd massdns && make && make install
-RUN cd /root/
+RUN git clone https://github.com/blechschmidt/massdns.git /root/massdns
+RUN cd /root/massdns && make && make install
 
 # Install PureDNS (DNS enumeration)
 RUN go install github.com/d3mondev/puredns/v2@latest
+
+# Create PureDNS config directory and add resolvers
+RUN mkdir -p /root/.config/puredns
+RUN echo "8.8.8.8\n8.8.4.4\n1.1.1.1\n1.0.0.1\n208.67.222.222\n208.67.220.220" > /root/.config/puredns/resolvers.txt
 
 # Install ffuf (web directory/file bruteforcer)
 RUN go install github.com/ffuf/ffuf@latest
@@ -126,7 +126,7 @@ ENV GOBUSTER_PATH=/root/go/bin/gobuster
 ENV LINKFINDER_PATH=/root/LinkFinder/linkfinder.py
 ENV GETJS_PATH=/root/go/bin/getJS
 ENV EYEWITNESS_PATH=/root/EyeWitness/Python/EyeWitness.py
-ENV EYE_BALLER_PATH=/root/eyeballer/eyeballer.py
+ENV EYEBALLER_PATH=/root/eyeballer/eyeballer
 ENV WEBANALYZE_PATH=/usr/local/bin/webanalyze
 ENV WHATWEB_PATH=/usr/local/bin/whatweb
 ENV ARJUN_PATH=/usr/local/bin/arjun
@@ -135,7 +135,7 @@ ENV FINGERPRINTX_PATH=/root/go/bin/fingerprintx
 ENV MASSDNS_PATH=/root/massdns/bin/massdns
 ENV PUREDNS_PATH=/root/go/bin/puredns
 
-ENV PATH="/root/EyeWitness/Python/:/root/massdns/bin/:/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/sbin:/root/.local/bin:/root/go/bin"
+ENV PATH="/root/EyeWitness/Python/:/root/eyeballer:/root/massdns/bin/:/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/sbin:/root/.local/bin:/root/go/bin"
 
 # Entrypoint
 ENTRYPOINT ["python", "run_active_recon.py"]

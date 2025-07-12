@@ -3,23 +3,59 @@ import os
 import json
 import subprocess
 import requests
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
+from datetime import datetime
 from runners.run_nmap import run_nmap
 from runners.run_naabu import run_naabu
-from runners.run_httpx import run_httpx
+# Proxy capture is optional and may not be available
+try:
+    from runners.run_proxy_capture import run_proxy_capture
+    PROXY_CAPTURE_AVAILABLE = True
+except ImportError:
+    PROXY_CAPTURE_AVAILABLE = False
+    print("[WARNING] Proxy capture not available - mitmproxy dependency missing")
+from runners.run_puredns import run_puredns, create_master_subdomain_list
+from runners.run_webanalyze import run_webanalyze, enhance_port_scan_results
+from runners.run_katana import run_katana
+from runners.run_feroxbuster import run_feroxbuster
+from runners.run_getjs import run_getjs
+from runners.run_linkfinder import run_linkfinder
+from runners.run_arjun import run_arjun
+from runners.run_eyewitness import run_eyewitness
+from runners.run_eyeballer import run_eyeballer
 from runners.utils import save_raw_to_db, save_parsed_to_db
 
 def setup_output_dirs(stage: str, target: str):
-    """Create output directories for the stage."""
+    """Create output directories for the stage with enumeration structure."""
     base_dir = os.path.join("/outputs", stage, target)
     output_dir = os.path.join(base_dir)
     parsed_dir = os.path.join(base_dir, "parsed")
+    raw_dir = os.path.join(base_dir, "raw")
+    
+    # Create base directories
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(parsed_dir, exist_ok=True)
-    return {"output_dir": output_dir, "parsed_dir": parsed_dir}
+    os.makedirs(raw_dir, exist_ok=True)
+    
+    # Create enumeration directory structure as per notes.txt
+    enumeration_dirs = [
+        os.path.join(output_dir, "enumeration", "infrastructure"),
+        os.path.join(output_dir, "enumeration", "http-requests"),
+        os.path.join(output_dir, "enumeration", "http-responses"),
+        os.path.join(output_dir, "enumeration", "IPs-and-open-ports"),
+        os.path.join(output_dir, "enumeration", "scrapped_files"),
+        os.path.join(output_dir, "enumeration", "endpoints"),
+        os.path.join(output_dir, "enumeration", "endpoint-json"),
+    ]
+    
+    for dir_path in enumeration_dirs:
+        os.makedirs(dir_path, exist_ok=True)
+        print(f"[INFO] Created directory: {dir_path}")
+    
+    return {"output_dir": output_dir, "parsed_dir": parsed_dir, "raw_dir": raw_dir}
 
-def get_target_id_by_domain(domain: str, targets_api_url: str, jwt_token: str) -> str:
+def get_target_id_by_domain(domain: str, targets_api_url: str, jwt_token: str) -> Optional[str]:
     """Get target ID by domain name."""
     try:
         # Targets API doesn't require authentication
@@ -65,14 +101,17 @@ def save_json(data, path):
 def main():
     load_dotenv(dotenv_path=".env")
     parser = argparse.ArgumentParser(description="Active Recon Main Runner")
-    parser.add_argument("--target", required=True, help="Target domain")
+    parser.add_argument("--target", required=False, default="example.com", help="Target domain (default: example.com)")
     parser.add_argument("--stage", default="active_recon", help="Stage name (default: active_recon)")
+    parser.add_argument("--proxy-capture", action="store_true", help="Enable proxy traffic capture")
+    parser.add_argument("--capture-duration", type=int, default=300, help="Proxy capture duration in seconds (default: 300)")
     args = parser.parse_args()
 
-    # Setup output directories
+    # Setup output directories with enumeration structure
     dirs = setup_output_dirs(args.stage, args.target)
     output_dir = dirs["output_dir"]
     parsed_dir = dirs["parsed_dir"]
+    raw_dir = dirs["raw_dir"]
 
     # Load API URL and JWT token from environment
     api_url = os.environ.get("BACKEND_API_URL", "http://backend:8000/api/results/active-recon")
@@ -90,27 +129,111 @@ def main():
     
     if not target_id:
         print(f"[WARNING] No target found for domain {args.target}. Using domain as fallback.")
+        passive_results = []
         subdomains = [args.target]
     else:
         print(f"[INFO] Found target ID: {target_id}")
         # Get subdomains from passive recon stage
         print(f"[INFO] Querying passive recon results for target ID: {target_id}")
-        subdomains = get_passive_recon_results(target_id, passive_api_url, jwt_token)
+        passive_results = get_passive_recon_results(target_id, passive_api_url, jwt_token)
+        
+        # Create master subdomain list from passive recon results
+        if passive_results:
+            print(f"[INFO] Creating master subdomain list from passive recon results")
+            # Convert string list to expected format for create_master_subdomain_list
+            passive_results_dict = [{"subdomains": passive_results}]
+            subdomains = create_master_subdomain_list(passive_results_dict, args.target)
+        else:
+            print(f"[WARNING] No passive recon results found for {args.target}")
+            subdomains = [args.target]
     
-    if not subdomains:
-        print(f"[WARNING] No subdomains found from passive recon for {args.target}")
-        # Fallback: use the main target domain
-        subdomains = [args.target]
+    print(f"[INFO] Master subdomain list created with {len(subdomains)} subdomains")
+    print(f"[INFO] Sample subdomains: {subdomains[:5]}...")
     
-    print(f"[INFO] Found {len(subdomains)} subdomains to scan: {subdomains[:5]}...")
+    # Save master subdomain list
+    master_list_file = os.path.join(output_dir, "enumeration", "master_subdomain_list.txt")
+    with open(master_list_file, 'w') as f:
+        for subdomain in subdomains:
+            f.write(f"{subdomain}\n")
+    print(f"[INFO] Saved master subdomain list to {master_list_file}")
 
     all_results = {}
     summary = {}
 
+    # Step 1: Proxy Capture (if enabled and available)
+    if args.proxy_capture:
+        if PROXY_CAPTURE_AVAILABLE:
+            print(f"[INFO] Starting proxy capture for {args.target} (duration: {args.capture_duration}s)")
+            try:
+                proxy_results = run_proxy_capture(args.target, output_dir, args.capture_duration)
+                if proxy_results.get("success"):
+                    save_json(proxy_results, os.path.join(parsed_dir, "proxy_capture_results.json"))
+                    all_results["proxy_capture"] = proxy_results
+                    
+                    # Save infrastructure map to raw directory
+                    if proxy_results.get("files", {}).get("infrastructure_file"):
+                        infrastructure_file = proxy_results["files"]["infrastructure_file"]
+                        raw_ok = save_raw_to_db("proxy_capture", args.target, infrastructure_file, api_url, jwt_token)
+                        parsed_ok = save_parsed_to_db("proxy_capture", args.target, proxy_results, api_url, jwt_token)
+                        summary["proxy_capture"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+                        
+                        print(f"[INFO] Proxy capture completed successfully")
+                        print(f"  - Requests captured: {proxy_results.get('summary', {}).get('total_requests', 0)}")
+                        print(f"  - Responses captured: {proxy_results.get('summary', {}).get('total_responses', 0)}")
+                        print(f"  - Unique domains: {proxy_results.get('summary', {}).get('unique_domains', 0)}")
+                        print(f"  - Unique endpoints: {proxy_results.get('summary', {}).get('unique_endpoints', 0)}")
+                    else:
+                        summary["proxy_capture"] = {"runner": False, "error": "No infrastructure file generated"}
+                else:
+                    print(f"[ERROR] Proxy capture failed: {proxy_results.get('error', 'Unknown error')}")
+                    summary["proxy_capture"] = {"runner": False, "error": proxy_results.get('error', 'Unknown error')}
+            except Exception as e:
+                print(f"[ERROR] Proxy capture runner failed: {e}")
+                summary["proxy_capture"] = {"runner": False, "error": str(e)}
+        else:
+            print("[WARNING] Proxy capture requested but not available (mitmproxy dependency missing)")
+            summary["proxy_capture"] = {"runner": False, "error": "Proxy capture not available"}
+    else:
+        print("[INFO] Proxy capture disabled (use --proxy-capture to enable)")
+
+    # Step 2: PureDNS Live Server Detection
+    print(f"[INFO] Starting PureDNS live server detection for {len(subdomains)} subdomains")
+    try:
+        puredns_results = run_puredns(subdomains, output_dir)
+        if puredns_results.get("success"):
+            save_json(puredns_results, os.path.join(parsed_dir, "puredns_results.json"))
+            all_results["puredns"] = puredns_results
+            
+            # Save live servers list to IPs-and-open-ports directory
+            live_servers_file = os.path.join(output_dir, "enumeration", "IPs-and-open-ports", f"{args.target}_live_servers.json")
+            with open(live_servers_file, 'w') as f:
+                json.dump(puredns_results["server_details"], f, indent=2)
+            
+            # Update subdomains to only include live servers
+            live_servers = puredns_results.get("live_servers", [])
+            if live_servers:
+                subdomains = live_servers
+                print(f"[INFO] Updated subdomain list to {len(subdomains)} live servers")
+            
+            raw_ok = save_raw_to_db("puredns", args.target, puredns_results["files"]["results_file"], api_url, jwt_token)
+            parsed_ok = save_parsed_to_db("puredns", args.target, puredns_results, api_url, jwt_token)
+            summary["puredns"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+            
+            print(f"[INFO] PureDNS completed successfully")
+            print(f"  - Live servers found: {len(live_servers)}")
+            print(f"  - Unique IPs: {puredns_results.get('summary', {}).get('unique_ips', 0)}")
+            print(f"  - CIDR ranges: {puredns_results.get('summary', {}).get('cidr_ranges', 0)}")
+        else:
+            print(f"[ERROR] PureDNS failed: {puredns_results.get('error', 'Unknown error')}")
+            summary["puredns"] = {"runner": False, "error": puredns_results.get('error', 'Unknown error')}
+    except Exception as e:
+        print(f"[ERROR] PureDNS runner failed: {e}")
+        summary["puredns"] = {"runner": False, "error": str(e)}
+
     # Naabu port scanning
     try:
         naabu_results = run_naabu(subdomains, output_dir)
-        naabu_raw_path = os.path.join(output_dir, "naabu_scan.txt")
+        naabu_raw_path = os.path.join(raw_dir, "naabu_scan.txt")
         save_json(naabu_results, os.path.join(parsed_dir, "naabu_results.json"))
         all_results["naabu"] = naabu_results
         raw_ok = save_raw_to_db("naabu", args.target, naabu_raw_path, api_url, jwt_token)
@@ -123,7 +246,7 @@ def main():
     # Nmap scanning
     try:
         nmap_results = run_nmap(subdomains, output_dir)
-        nmap_raw_path = os.path.join(output_dir, "nmap_scan.xml")
+        nmap_raw_path = os.path.join(raw_dir, "nmap_scan.xml")
         save_json(nmap_results, os.path.join(parsed_dir, "nmap_results.json"))
         all_results["nmap"] = nmap_results
         raw_ok = save_raw_to_db("nmap", args.target, nmap_raw_path, api_url, jwt_token)
@@ -133,42 +256,532 @@ def main():
         print(f"[ERROR] Nmap runner failed: {e}")
         summary["nmap"] = {"runner": False, "error": str(e)}
 
-    # HTTPX web server detection
-    try:
-        httpx_results = run_httpx(subdomains, output_dir)
-        httpx_raw_path = os.path.join(output_dir, "httpx_scan.txt")
-        save_json(httpx_results, os.path.join(parsed_dir, "httpx_results.json"))
-        all_results["httpx"] = httpx_results
-        raw_ok = save_raw_to_db("httpx", args.target, httpx_raw_path, api_url, jwt_token)
-        parsed_ok = save_parsed_to_db("httpx", args.target, httpx_results, api_url, jwt_token)
-        summary["httpx"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
-    except Exception as e:
-        print(f"[ERROR] HTTPX runner failed: {e}")
-        summary["httpx"] = {"runner": False, "error": str(e)}
-
-    # Aggregate results
-    total_hosts_scanned = len(subdomains)
-    total_ports_found = sum(len(result.get("ports", [])) for result in all_results.values() if "ports" in result)
-    total_services_found = sum(len(result.get("services", [])) for result in all_results.values() if "services" in result)
+    # Extract live web servers from port scanning results
+    live_servers = []
+    if "nmap" in all_results and all_results["nmap"].get("success"):
+        for host in all_results["nmap"].get("hosts", []):
+            if any(port.get("service") in ["http", "https", "http-proxy", "https-proxy"] for port in host.get("ports", [])):
+                live_servers.append(host.get("hostname", ""))
     
-    aggregated_results = {
+    if "naabu" in all_results and all_results["naabu"].get("success"):
+        for host in all_results["naabu"].get("hosts", []):
+            if any(port.get("service") in ["http", "https"] for port in host.get("ports", [])):
+                if host.get("hostname") not in live_servers:
+                    live_servers.append(host.get("hostname", ""))
+    
+    # Save live servers list
+    if live_servers:
+        live_servers_file = os.path.join(output_dir, "enumeration", "live_servers.txt")
+        with open(live_servers_file, 'w') as f:
+            for server in live_servers:
+                f.write(f"{server}\n")
+        
+        print(f"[INFO] Identified {len(live_servers)} live web servers from port scanning")
+    else:
+        print("[WARNING] No live web servers identified from port scanning")
+
+    # Step 3: WebAnalyze Technology Detection
+    print(f"[INFO] Starting webAnalyze technology detection for {len(subdomains)} targets")
+    try:
+        webanalyze_results = run_webanalyze(subdomains, output_dir)
+        if webanalyze_results.get("success"):
+            save_json(webanalyze_results, os.path.join(parsed_dir, "webanalyze_results.json"))
+            all_results["webanalyze"] = webanalyze_results
+            
+            # Enhance port scan results with technology information
+            if "naabu" in all_results:
+                enhanced_naabu = enhance_port_scan_results(all_results["naabu"], webanalyze_results)
+                all_results["naabu"] = enhanced_naabu
+                save_json(enhanced_naabu, os.path.join(parsed_dir, "naabu_enhanced_results.json"))
+            
+            if "nmap" in all_results:
+                enhanced_nmap = enhance_port_scan_results(all_results["nmap"], webanalyze_results)
+                all_results["nmap"] = enhanced_nmap
+                save_json(enhanced_nmap, os.path.join(parsed_dir, "nmap_enhanced_results.json"))
+            
+            # Save technology mapping to IPs-and-open-ports directory
+            tech_mapping_file = os.path.join(output_dir, "enumeration", "IPs-and-open-ports", f"{args.target}_technology_mapping.json")
+            with open(tech_mapping_file, 'w') as f:
+                json.dump(webanalyze_results["target_technologies"], f, indent=2)
+            
+            raw_ok = save_raw_to_db("webanalyze", args.target, webanalyze_results["files"]["results_file"], api_url, jwt_token)
+            parsed_ok = save_parsed_to_db("webanalyze", args.target, webanalyze_results, api_url, jwt_token)
+            summary["webanalyze"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+            
+            print(f"[INFO] webAnalyze completed successfully")
+            print(f"  - Technologies found: {webanalyze_results.get('summary', {}).get('total_technologies', 0)}")
+            print(f"  - Unique technologies: {webanalyze_results.get('summary', {}).get('unique_technologies', 0)}")
+            print(f"  - Technology categories: {webanalyze_results.get('summary', {}).get('categories_found', 0)}")
+        else:
+            print(f"[ERROR] webAnalyze failed: {webanalyze_results.get('error', 'Unknown error')}")
+            summary["webanalyze"] = {"runner": False, "error": webanalyze_results.get('error', 'Unknown error')}
+    except Exception as e:
+        print(f"[ERROR] webAnalyze runner failed: {e}")
+        summary["webanalyze"] = {"runner": False, "error": str(e)}
+
+    # Step 4: Directory Enumeration
+    print(f"[INFO] Starting directory enumeration for {len(subdomains)} targets")
+    
+    # Use live servers identified from port scanning for directory enumeration
+    web_targets = live_servers.copy()
+    
+    if not web_targets:
+        print("[WARNING] No live web servers found for directory enumeration")
+        web_targets = subdomains  # Fallback to all subdomains
+    
+    print(f"[INFO] Found {len(web_targets)} web targets for directory enumeration")
+    
+    # Katana directory enumeration
+    try:
+        katana_results = run_katana(web_targets, output_dir)
+        if katana_results.get("success"):
+            save_json(katana_results, os.path.join(parsed_dir, "katana_results.json"))
+            all_results["katana"] = katana_results
+            
+            # Save interesting files to scrapped_files directory
+            if katana_results.get("interesting_files"):
+                for file_info in katana_results["interesting_files"]:
+                    file_type = file_info.get("extension", "unknown")
+                    file_type_dir = os.path.join(output_dir, "enumeration", "scrapped_files", file_type)
+                    os.makedirs(file_type_dir, exist_ok=True)
+                    
+                    # Save file info to type-specific directory
+                    file_info_path = os.path.join(file_type_dir, f"{file_info['hostname']}_{file_info['path'].replace('/', '_')}.json")
+                    with open(file_info_path, 'w') as f:
+                        json.dump(file_info, f, indent=2)
+            
+            # Save endpoint mapping
+            if katana_results.get("endpoint_mapping"):
+                for hostname, endpoints in katana_results["endpoint_mapping"].items():
+                    endpoint_file = os.path.join(output_dir, "enumeration", "endpoints", f"{hostname}_endpoints.json")
+                    with open(endpoint_file, 'w') as f:
+                        json.dump(endpoints, f, indent=2)
+            
+            raw_ok = save_raw_to_db("katana", args.target, katana_results["files"]["results_file"], api_url, jwt_token)
+            parsed_ok = save_parsed_to_db("katana", args.target, katana_results, api_url, jwt_token)
+            summary["katana"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+            
+            print(f"[INFO] Katana completed successfully")
+            print(f"  - URLs found: {katana_results.get('summary', {}).get('total_urls', 0)}")
+            print(f"  - Unique endpoints: {katana_results.get('summary', {}).get('unique_endpoints', 0)}")
+            print(f"  - Interesting files: {katana_results.get('summary', {}).get('interesting_files', 0)}")
+        else:
+            print(f"[ERROR] Katana failed: {katana_results.get('error', 'Unknown error')}")
+            summary["katana"] = {"runner": False, "error": katana_results.get('error', 'Unknown error')}
+    except Exception as e:
+        print(f"[ERROR] Katana runner failed: {e}")
+        summary["katana"] = {"runner": False, "error": str(e)}
+    
+    # Feroxbuster directory enumeration
+    try:
+        feroxbuster_results = run_feroxbuster(web_targets, output_dir)
+        if feroxbuster_results.get("success"):
+            save_json(feroxbuster_results, os.path.join(parsed_dir, "feroxbuster_results.json"))
+            all_results["feroxbuster"] = feroxbuster_results
+            
+            # Save interesting files to scrapped_files directory
+            if feroxbuster_results.get("interesting_files"):
+                for file_info in feroxbuster_results["interesting_files"]:
+                    file_type = file_info.get("extension", "unknown")
+                    file_type_dir = os.path.join(output_dir, "enumeration", "scrapped_files", file_type)
+                    os.makedirs(file_type_dir, exist_ok=True)
+                    
+                    # Save file info to type-specific directory
+                    file_info_path = os.path.join(file_type_dir, f"{file_info['hostname']}_{file_info['path'].replace('/', '_')}.json")
+                    with open(file_info_path, 'w') as f:
+                        json.dump(file_info, f, indent=2)
+            
+            # Save endpoint mapping
+            if feroxbuster_results.get("endpoint_mapping"):
+                for hostname, endpoints in feroxbuster_results["endpoint_mapping"].items():
+                    endpoint_file = os.path.join(output_dir, "enumeration", "endpoints", f"{hostname}_feroxbuster_endpoints.json")
+                    with open(endpoint_file, 'w') as f:
+                        json.dump(endpoints, f, indent=2)
+            
+            raw_ok = save_raw_to_db("feroxbuster", args.target, feroxbuster_results["files"]["results_file"], api_url, jwt_token)
+            parsed_ok = save_parsed_to_db("feroxbuster", args.target, feroxbuster_results, api_url, jwt_token)
+            summary["feroxbuster"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+            
+            print(f"[INFO] Feroxbuster completed successfully")
+            print(f"  - URLs found: {feroxbuster_results.get('summary', {}).get('total_urls', 0)}")
+            print(f"  - Unique endpoints: {feroxbuster_results.get('summary', {}).get('unique_endpoints', 0)}")
+            print(f"  - Interesting files: {feroxbuster_results.get('summary', {}).get('interesting_files', 0)}")
+        else:
+            print(f"[ERROR] Feroxbuster failed: {feroxbuster_results.get('error', 'Unknown error')}")
+            summary["feroxbuster"] = {"runner": False, "error": feroxbuster_results.get('error', 'Unknown error')}
+    except Exception as e:
+        print(f"[ERROR] Feroxbuster runner failed: {e}")
+        summary["feroxbuster"] = {"runner": False, "error": str(e)}
+
+    # Step 5: JavaScript Analysis
+    print(f"[INFO] Starting JavaScript analysis for discovered web applications")
+    
+    # Get JavaScript files from getJS
+    js_files = []
+    try:
+        getjs_results = run_getjs(web_targets, output_dir)
+        if getjs_results.get("success"):
+            save_json(getjs_results, os.path.join(parsed_dir, "getjs_results.json"))
+            all_results["getjs"] = getjs_results
+            
+            # Collect JavaScript file paths for LinkFinder analysis
+            if getjs_results.get("js_files_found"):
+                for js_file_info in getjs_results["js_files_found"]:
+                    js_files.append(js_file_info.get("file_path", ""))
+            
+            raw_ok = save_raw_to_db("getjs", args.target, getjs_results["files"]["results_file"], api_url, jwt_token)
+            parsed_ok = save_parsed_to_db("getjs", args.target, getjs_results, api_url, jwt_token)
+            summary["getjs"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+            
+            print(f"[INFO] GetJS completed successfully")
+            print(f"  - JS files found: {getjs_results.get('summary', {}).get('total_js_files', 0)}")
+            print(f"  - Endpoints found: {getjs_results.get('summary', {}).get('total_endpoints', 0)}")
+            print(f"  - Unique endpoints: {getjs_results.get('summary', {}).get('unique_endpoints', 0)}")
+        else:
+            print(f"[ERROR] GetJS failed: {getjs_results.get('error', 'Unknown error')}")
+            summary["getjs"] = {"runner": False, "error": getjs_results.get('error', 'Unknown error')}
+    except Exception as e:
+        print(f"[ERROR] GetJS runner failed: {e}")
+        summary["getjs"] = {"runner": False, "error": str(e)}
+    
+    # Run LinkFinder on discovered JavaScript files
+    if js_files:
+        try:
+            linkfinder_results = run_linkfinder(js_files, output_dir)
+            if linkfinder_results.get("success"):
+                save_json(linkfinder_results, os.path.join(parsed_dir, "linkfinder_results.json"))
+                all_results["linkfinder"] = linkfinder_results
+                
+                # Save endpoint discoveries
+                if linkfinder_results.get("all_endpoints"):
+                    endpoints_file = os.path.join(output_dir, "enumeration", "js_endpoints", "all_endpoints.json")
+                    os.makedirs(os.path.dirname(endpoints_file), exist_ok=True)
+                    with open(endpoints_file, 'w') as f:
+                        json.dump(linkfinder_results["all_endpoints"], f, indent=2)
+                
+                raw_ok = save_raw_to_db("linkfinder", args.target, linkfinder_results["files"]["results_file"], api_url, jwt_token)
+                parsed_ok = save_parsed_to_db("linkfinder", args.target, linkfinder_results, api_url, jwt_token)
+                summary["linkfinder"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+                
+                print(f"[INFO] LinkFinder completed successfully")
+                print(f"  - Files processed: {linkfinder_results.get('summary', {}).get('successful_files', 0)}")
+                print(f"  - Endpoints found: {linkfinder_results.get('summary', {}).get('total_endpoints', 0)}")
+                print(f"  - Unique endpoints: {linkfinder_results.get('summary', {}).get('unique_endpoints', 0)}")
+            else:
+                print(f"[ERROR] LinkFinder failed: {linkfinder_results.get('error', 'Unknown error')}")
+                summary["linkfinder"] = {"runner": False, "error": linkfinder_results.get('error', 'Unknown error')}
+        except Exception as e:
+            print(f"[ERROR] LinkFinder runner failed: {e}")
+            summary["linkfinder"] = {"runner": False, "error": str(e)}
+    else:
+        print("[WARNING] No JavaScript files found for LinkFinder analysis")
+        summary["linkfinder"] = {"runner": False, "error": "No JavaScript files available"}
+
+    # Step 6: Parameter Discovery
+    print(f"[INFO] Starting parameter discovery for discovered endpoints")
+    
+    # Collect all discovered endpoints for parameter discovery
+    all_endpoints = []
+    
+    # Add endpoints from directory enumeration
+    if "katana" in all_results and all_results["katana"].get("success"):
+        for url_data in all_results["katana"].get("urls_found", []):
+            all_endpoints.append(url_data.get("url", ""))
+    
+    if "feroxbuster" in all_results and all_results["feroxbuster"].get("success"):
+        for url_data in all_results["feroxbuster"].get("urls_found", []):
+            all_endpoints.append(url_data.get("url", ""))
+    
+    # Add endpoints from JavaScript analysis
+    if "getjs" in all_results and all_results["getjs"].get("success"):
+        for endpoint_data in all_results["getjs"].get("js_endpoints", []):
+            all_endpoints.append(endpoint_data.get("endpoint", ""))
+    
+    if "linkfinder" in all_results and all_results["linkfinder"].get("success"):
+        for endpoint_data in all_results["linkfinder"].get("all_endpoints", []):
+            all_endpoints.append(endpoint_data.get("endpoint", ""))
+    
+    # Remove duplicates and filter valid URLs
+    unique_endpoints = list(set([ep for ep in all_endpoints if ep and (ep.startswith('http') or ep.startswith('/'))]))
+    
+    if unique_endpoints:
+        try:
+            arjun_results = run_arjun(unique_endpoints, output_dir)
+            if arjun_results.get("success"):
+                save_json(arjun_results, os.path.join(parsed_dir, "arjun_results.json"))
+                all_results["arjun"] = arjun_results
+                
+                # Save interesting parameters
+                if arjun_results.get("interesting_parameters"):
+                    interesting_params_file = os.path.join(output_dir, "enumeration", "parameters", "interesting_parameters.json")
+                    os.makedirs(os.path.dirname(interesting_params_file), exist_ok=True)
+                    with open(interesting_params_file, 'w') as f:
+                        json.dump(arjun_results["interesting_parameters"], f, indent=2)
+                
+                # Save parameter mapping
+                if arjun_results.get("parameter_mapping"):
+                    for hostname, params in arjun_results["parameter_mapping"].items():
+                        param_file = os.path.join(output_dir, "enumeration", "parameters", f"{hostname}_parameters.json")
+                        with open(param_file, 'w') as f:
+                            json.dump(params, f, indent=2)
+                
+                raw_ok = save_raw_to_db("arjun", args.target, arjun_results["files"]["results_file"], api_url, jwt_token)
+                parsed_ok = save_parsed_to_db("arjun", args.target, arjun_results, api_url, jwt_token)
+                summary["arjun"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+                
+                print(f"[INFO] Arjun completed successfully")
+                print(f"  - Endpoints checked: {arjun_results.get('summary', {}).get('total_endpoints', 0)}")
+                print(f"  - Unique parameters: {arjun_results.get('summary', {}).get('unique_parameters', 0)}")
+                print(f"  - Interesting parameters: {arjun_results.get('summary', {}).get('interesting_parameters_count', 0)}")
+            else:
+                print(f"[ERROR] Arjun failed: {arjun_results.get('error', 'Unknown error')}")
+                summary["arjun"] = {"runner": False, "error": arjun_results.get('error', 'Unknown error')}
+        except Exception as e:
+            print(f"[ERROR] Arjun runner failed: {e}")
+            summary["arjun"] = {"runner": False, "error": str(e)}
+    else:
+        print("[WARNING] No endpoints found for parameter discovery")
+        summary["arjun"] = {"runner": False, "error": "No endpoints available for parameter discovery"}
+
+    # Step 7: Screenshot Capture with EyeWitness
+    print(f"[INFO] Starting screenshot capture for discovered web applications")
+    
+    # Use live servers for screenshot capture
+    screenshot_targets = live_servers.copy()
+    if not screenshot_targets:
+        print("[WARNING] No live servers available for screenshot capture")
+        summary["eyewitness"] = {"runner": False, "error": "No live servers available"}
+    else:
+        try:
+            eyewitness_results = run_eyewitness(screenshot_targets, output_dir)
+            if eyewitness_results.get("success"):
+                save_json(eyewitness_results, os.path.join(parsed_dir, "eyewitness_results.json"))
+                all_results["eyewitness"] = eyewitness_results
+                
+                # Save screenshot report
+                if eyewitness_results.get("screenshots"):
+                    from runners.run_eyewitness import generate_screenshot_report
+                    screenshot_report = generate_screenshot_report(
+                        eyewitness_results["screenshots"], 
+                        output_dir
+                    )
+                    all_results["eyewitness"]["screenshot_report"] = screenshot_report
+                
+                raw_ok = save_raw_to_db("eyewitness", args.target, eyewitness_results["files"]["targets_file"], api_url, jwt_token)
+                parsed_ok = save_parsed_to_db("eyewitness", args.target, eyewitness_results, api_url, jwt_token)
+                summary["eyewitness"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+                
+                print(f"[INFO] EyeWitness completed successfully")
+                print(f"  - Targets processed: {eyewitness_results.get('summary', {}).get('total_targets', 0)}")
+                print(f"  - Screenshots captured: {eyewitness_results.get('summary', {}).get('successful_screenshots', 0)}")
+                print(f"  - Failed captures: {eyewitness_results.get('summary', {}).get('failed_screenshots', 0)}")
+            else:
+                print(f"[ERROR] EyeWitness failed: {eyewitness_results.get('error', 'Unknown error')}")
+                summary["eyewitness"] = {"runner": False, "error": eyewitness_results.get('error', 'Unknown error')}
+        except Exception as e:
+            print(f"[ERROR] EyeWitness runner failed: {e}")
+            summary["eyewitness"] = {"runner": False, "error": str(e)}
+
+    # Step 8: Screenshot Analysis with EyeBaller
+    print(f"[INFO] Starting screenshot analysis with EyeBaller")
+    
+    # Check if we have screenshots to analyze
+    if "eyewitness" in all_results and all_results["eyewitness"].get("success"):
+        screenshots_dir = all_results["eyewitness"]["files"]["output_dir"]
+        
+        try:
+            eyeballer_results = run_eyeballer(screenshots_dir, output_dir)
+            if eyeballer_results.get("success"):
+                save_json(eyeballer_results, os.path.join(parsed_dir, "eyeballer_results.json"))
+                all_results["eyeballer"] = eyeballer_results
+                
+                # Save analysis report
+                if eyeballer_results.get("interesting_findings"):
+                    from runners.run_eyeballer import generate_analysis_report
+                    analysis_report = generate_analysis_report(
+                        eyeballer_results["interesting_findings"], 
+                        output_dir
+                    )
+                    all_results["eyeballer"]["analysis_report"] = analysis_report
+                
+                raw_ok = save_raw_to_db("eyeballer", args.target, eyeballer_results["files"]["results_file"], api_url, jwt_token)
+                parsed_ok = save_parsed_to_db("eyeballer", args.target, eyeballer_results, api_url, jwt_token)
+                summary["eyeballer"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+                
+                print(f"[INFO] EyeBaller completed successfully")
+                print(f"  - Screenshots analyzed: {eyeballer_results.get('summary', {}).get('analyzed_screenshots', 0)}")
+                print(f"  - Interesting findings: {eyeballer_results.get('summary', {}).get('interesting_findings', 0)}")
+            else:
+                print(f"[ERROR] EyeBaller failed: {eyeballer_results.get('error', 'Unknown error')}")
+                summary["eyeballer"] = {"runner": False, "error": eyeballer_results.get('error', 'Unknown error')}
+        except Exception as e:
+            print(f"[ERROR] EyeBaller runner failed: {e}")
+            summary["eyeballer"] = {"runner": False, "error": str(e)}
+    else:
+        print("[WARNING] No screenshots available for EyeBaller analysis")
+        summary["eyeballer"] = {"runner": False, "error": "No screenshots available"}
+
+    # Final Step: Directory Structure & API Integration
+    print(f"[INFO] Organizing outputs and preparing final results")
+    
+    # Create comprehensive directory structure
+    create_directory_structure(output_dir, all_results)
+    
+    # Generate comprehensive reports
+    generate_reports(output_dir, all_results, summary)
+    
+    # Aggregate results with comprehensive metrics
+    total_hosts_scanned = len(subdomains)
+    total_ports_found = sum(len(host.get("ports", [])) for host in all_results.get("nmap", {}).get("hosts", []))
+    total_services_found = sum(len(host.get("services", [])) for host in all_results.get("nmap", {}).get("hosts", []))
+    total_technologies_found = len(all_results.get("webanalyze", {}).get("technologies", []))
+    total_urls_found = (
+        len(all_results.get("katana", {}).get("urls_found", [])) +
+        len(all_results.get("feroxbuster", {}).get("urls_found", []))
+    )
+    total_js_endpoints = len(all_results.get("getjs", {}).get("js_endpoints", []))
+    total_parameters = len(set([param for ep in all_results.get("arjun", {}).get("endpoints_found", []) for param in ep.get("parameters", [])]))
+    total_screenshots = len(all_results.get("eyewitness", {}).get("screenshots", []))
+    total_interesting_findings = len(all_results.get("eyeballer", {}).get("interesting_findings", []))
+    
+    # Create final results summary
+    final_results = {
         "target": args.target,
-        "total_hosts_scanned": total_hosts_scanned,
-        "total_ports_found": total_ports_found,
-        "total_services_found": total_services_found,
-        "results": all_results
+        "stage": args.stage,
+        "timestamp": datetime.now().isoformat(),
+        "summary": {
+            "total_hosts_scanned": total_hosts_scanned,
+            "total_ports_found": total_ports_found,
+            "total_services_found": total_services_found,
+            "total_technologies_found": total_technologies_found,
+            "total_urls_found": total_urls_found,
+            "total_js_endpoints": total_js_endpoints,
+            "total_parameters": total_parameters,
+            "total_screenshots": total_screenshots,
+            "total_interesting_findings": total_interesting_findings,
+            "tools_executed": list(all_results.keys()),
+            "successful_tools": [tool for tool, result in summary.items() if result.get("runner")],
+            "execution_summary": summary
+        },
+        "results": all_results,
+        "tool_summary": summary
     }
     
-    save_json(aggregated_results, os.path.join(parsed_dir, "all_active_recon_results.json"))
-    print(f"[SUMMARY] Active recon completed for {args.target}")
+    # Save final results
+    save_json(final_results, os.path.join(parsed_dir, "active_recon_final_results.json"))
+    
+    # Submit final results to backend API
+    try:
+        final_raw_ok = save_raw_to_db("active_recon_final", args.target, os.path.join(parsed_dir, "active_recon_final_results.json"), api_url, jwt_token)
+        final_parsed_ok = save_parsed_to_db("active_recon_final", args.target, final_results, api_url, jwt_token)
+        print(f"[INFO] Final results submitted to API - Raw: {final_raw_ok}, Parsed: {final_parsed_ok}")
+    except Exception as e:
+        print(f"[ERROR] Failed to submit final results to API: {e}")
+    
+    # Print comprehensive summary
+    print(f"\n[FINAL SUMMARY] Active recon completed for {args.target}")
     print(f"  - Hosts scanned: {total_hosts_scanned}")
     print(f"  - Ports found: {total_ports_found}")
     print(f"  - Services found: {total_services_found}")
+    print(f"  - Technologies detected: {total_technologies_found}")
+    print(f"  - URLs discovered: {total_urls_found}")
+    print(f"  - JS endpoints found: {total_js_endpoints}")
+    print(f"  - Parameters discovered: {total_parameters}")
+    print(f"  - Screenshots captured: {total_screenshots}")
+    print(f"  - Interesting findings: {total_interesting_findings}")
+    print(f"  - Proxy capture: {'Enabled' if args.proxy_capture else 'Disabled'}")
 
-    # Print summary of successes and failures
-    print("\n[RESULTS SUMMARY]")
+    # Print tool execution summary
+    print("\n[TOOL EXECUTION SUMMARY]")
     for tool, result in summary.items():
-        print(f"{tool}: {result}")
+        if result.get("runner"):
+            print(f"✅ {tool}: Success")
+        else:
+            print(f"❌ {tool}: {result.get('error', 'Unknown error')}")
+
+def create_directory_structure(output_dir: str, all_results: Dict[str, Any]) -> None:
+    """
+    Create comprehensive directory structure for active recon outputs.
+    
+    Args:
+        output_dir: Base output directory
+        all_results: All results from active recon tools
+    """
+    # Create main directories
+    directories = [
+        "enumeration",
+        "enumeration/endpoints",
+        "enumeration/scrapped_files",
+        "enumeration/js_endpoints",
+        "enumeration/parameters",
+        "enumeration/eyewitness",
+        "enumeration/eyeballer",
+        "port_scanning",
+        "technology_detection",
+        "proxy_capture",
+        "reports"
+    ]
+    
+    for directory in directories:
+        os.makedirs(os.path.join(output_dir, directory), exist_ok=True)
+    
+    # Create subdirectories for file types
+    file_types = ["js", "php", "html", "css", "json", "xml", "config", "backup", "logs"]
+    for file_type in file_types:
+        os.makedirs(os.path.join(output_dir, "enumeration", "scrapped_files", file_type), exist_ok=True)
+
+def generate_reports(output_dir: str, all_results: Dict[str, Any], summary: Dict[str, Any]) -> None:
+    """
+    Generate comprehensive reports from active recon results.
+    
+    Args:
+        output_dir: Base output directory
+        all_results: All results from active recon tools
+        summary: Tool execution summary
+    """
+    # Generate technology report
+    if "webanalyze" in all_results and all_results["webanalyze"].get("success"):
+        tech_report = {
+            "timestamp": datetime.now().isoformat(),
+            "technologies": all_results["webanalyze"].get("technologies", []),
+            "technology_mapping": all_results["webanalyze"].get("technology_mapping", {}),
+            "summary": {
+                "total_technologies": len(all_results["webanalyze"].get("technologies", [])),
+                "unique_technologies": len(set([tech.get("name", "") for tech in all_results["webanalyze"].get("technologies", [])]))
+            }
+        }
+        
+        tech_report_file = os.path.join(output_dir, "reports", "technology_report.json")
+        with open(tech_report_file, 'w') as f:
+            json.dump(tech_report, f, indent=2)
+    
+    # Generate endpoint report
+    endpoints_report = {
+        "timestamp": datetime.now().isoformat(),
+        "katana_endpoints": len(all_results.get("katana", {}).get("urls_found", [])),
+        "feroxbuster_endpoints": len(all_results.get("feroxbuster", {}).get("urls_found", [])),
+        "js_endpoints": len(all_results.get("getjs", {}).get("js_endpoints", [])),
+        "linkfinder_endpoints": len(all_results.get("linkfinder", {}).get("all_endpoints", [])),
+        "arjun_parameters": len(set([param for ep in all_results.get("arjun", {}).get("endpoints_found", []) for param in ep.get("parameters", [])]))
+    }
+    
+    endpoints_report_file = os.path.join(output_dir, "reports", "endpoints_report.json")
+    with open(endpoints_report_file, 'w') as f:
+        json.dump(endpoints_report, f, indent=2)
+    
+    # Generate execution summary report
+    execution_report = {
+        "timestamp": datetime.now().isoformat(),
+        "tool_summary": summary,
+        "successful_tools": [tool for tool, result in summary.items() if result.get("runner")],
+        "failed_tools": [tool for tool, result in summary.items() if not result.get("runner")],
+        "total_tools": len(summary),
+        "success_rate": len([tool for tool, result in summary.items() if result.get("runner")]) / len(summary) * 100 if summary else 0
+    }
+    
+    execution_report_file = os.path.join(output_dir, "reports", "execution_summary.json")
+    with open(execution_report_file, 'w') as f:
+        json.dump(execution_report, f, indent=2)
 
 if __name__ == "__main__":
     main()
