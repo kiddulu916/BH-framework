@@ -8,13 +8,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from runners.run_nmap import run_nmap
 from runners.run_naabu import run_naabu
-# Proxy capture is optional and may not be available
-try:
-    from runners.run_proxy_capture import run_proxy_capture
-    PROXY_CAPTURE_AVAILABLE = True
-except ImportError:
-    PROXY_CAPTURE_AVAILABLE = False
-    print("[WARNING] Proxy capture not available - mitmproxy dependency missing")
+from runners.run_proxy_capture import run_proxy_capture
 from runners.run_puredns import run_puredns, create_master_subdomain_list
 from runners.run_webanalyze import run_webanalyze, enhance_port_scan_results
 from runners.run_katana import run_katana
@@ -44,6 +38,12 @@ def setup_output_dirs(stage: str, target: str):
         os.path.join(output_dir, "enumeration", "http-requests"),
         os.path.join(output_dir, "enumeration", "http-responses"),
         os.path.join(output_dir, "enumeration", "IPs-and-open-ports"),
+        os.path.join(output_dir, "enumeration", "domains"),
+        os.path.join(output_dir, "enumeration", "screenshots"),
+        os.path.join(output_dir, "enumeration", "live_servers"),
+        os.path.join(output_dir, "enumeration", "parameters"),
+        os.path.join(output_dir, "enumeration", "findings"),
+        os.path.join(output_dir, "enumeration", "js_endpoints"),
         os.path.join(output_dir, "enumeration", "scrapped_files"),
         os.path.join(output_dir, "enumeration", "endpoints"),
         os.path.join(output_dir, "enumeration", "endpoint-json"),
@@ -53,7 +53,7 @@ def setup_output_dirs(stage: str, target: str):
         os.makedirs(dir_path, exist_ok=True)
         print(f"[INFO] Created directory: {dir_path}")
     
-    return {"output_dir": output_dir, "parsed_dir": parsed_dir, "raw_dir": raw_dir}
+    return {"output_dir": output_dir, "parsed": parsed_dir, "raw": raw_dir}
 
 def get_target_id_by_domain(domain: str, targets_api_url: str, jwt_token: str) -> Optional[str]:
     """Get target ID by domain name."""
@@ -92,6 +92,53 @@ def get_passive_recon_results(target_id: str, api_url: str, jwt_token: str) -> L
         print(f"[WARNING] Failed to get passive recon results: {e}")
         return []
 
+def get_targets_from_passive_recon(passive_api_url: str, jwt_token: str) -> List[str]:
+    """Get all targets that have passive recon results."""
+    try:
+        headers = {"Authorization": f"Bearer {jwt_token}"} if jwt_token else {}
+        response = requests.get(f"{passive_api_url}/", headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        
+        if data.get("success") and data.get("data"):
+            targets = []
+            for result in data.get("data", []):
+                if "target" in result:
+                    targets.append(result["target"])
+            return list(set(targets))  # Remove duplicates
+        return []
+    except Exception as e:
+        print(f"[WARNING] Failed to get targets from passive recon: {e}")
+        return []
+
+def select_target_interactively(targets: List[str]) -> Optional[str]:
+    """Provide interactive target selection if multiple targets are found."""
+    if not targets:
+        print("[ERROR] No targets found from passive recon stage")
+        return None
+    
+    if len(targets) == 1:
+        print(f"[INFO] Found single target: {targets[0]}")
+        return targets[0]
+    
+    print(f"[INFO] Found {len(targets)} targets from passive recon stage:")
+    for i, target in enumerate(targets, 1):
+        print(f"  {i}. {target}")
+    
+    while True:
+        try:
+            choice = input(f"\nSelect target (1-{len(targets)}): ").strip()
+            choice_idx = int(choice) - 1
+            if 0 <= choice_idx < len(targets):
+                selected_target = targets[choice_idx]
+                print(f"[INFO] Selected target: {selected_target}")
+                return selected_target
+            else:
+                print(f"Please enter a number between 1 and {len(targets)}")
+        except (ValueError, KeyboardInterrupt):
+            print("\n[INFO] Using first target as default")
+            return targets[0]
+
 def save_json(data, path):
     """Save data as JSON file."""
     with open(path, "w") as f:
@@ -101,27 +148,55 @@ def save_json(data, path):
 def main():
     load_dotenv(dotenv_path=".env")
     parser = argparse.ArgumentParser(description="Active Recon Main Runner")
-    parser.add_argument("--target", required=False, default="example.com", help="Target domain (default: example.com)")
+    parser.add_argument("--target", required=False, help="Target domain (optional - will be fetched from passive recon if not provided)")
     parser.add_argument("--stage", default="active_recon", help="Stage name (default: active_recon)")
-    parser.add_argument("--proxy-capture", action="store_true", help="Enable proxy traffic capture")
-    parser.add_argument("--capture-duration", type=int, default=300, help="Proxy capture duration in seconds (default: 300)")
+    parser.add_argument("--no-proxy-capture", action="store_true", help="Disable proxy traffic capture (enabled by default)")
+    parser.add_argument("--capture-duration", type=int, default=0, help="Proxy capture duration in seconds (default: 0 = never ending)")
     args = parser.parse_args()
 
-    # Setup output directories with enumeration structure
-    dirs = setup_output_dirs(args.stage, args.target)
-    output_dir = dirs["output_dir"]
-    parsed_dir = dirs["parsed_dir"]
-    raw_dir = dirs["raw_dir"]
-
     # Load API URL and JWT token from environment
-    api_url = os.environ.get("BACKEND_API_URL", "http://backend:8000/api/results/active-recon")
+    api_url = os.environ.get("BACKEND_API_URL", "http://backend:8000/api/")
+    results_api_url = os.environ.get("BACKEND_API_RESULTS_URL", "http://backend:8000/api/results")
     jwt_token = os.environ.get("BACKEND_JWT_TOKEN", "")
     targets_api_url = os.environ.get("TARGETS_API_URL", "http://backend:8000/api/targets/")
     passive_api_url = os.environ.get("PASSIVE_API_URL", "http://backend:8000/api/results/passive-recon")
+    active_api_url = os.environ.get("ACTIVE_API_URL", "http://backend:8000/api/results/active-recon")
+    
+    # Fix API URLs to use correct endpoints
+    raw_api_url = f"{results_api_url}/active-recon/raw"  # For raw file uploads
+    parsed_api_url = f"{results_api_url}/active-recon/parsed"    # For parsed active recon results
     
     print(f"[INFO] Using backend API URL: {api_url}")
     if not jwt_token:
         print("[WARNING] No BACKEND_JWT_TOKEN found in environment. API submission will likely fail.")
+
+    # Get target from passive recon if not provided
+    if not args.target:
+        try:
+            print(f"[INFO] Getting target(s) from passive recon stage: {passive_api_url}")
+            targets = get_targets_from_passive_recon(passive_api_url, jwt_token)
+            if not targets:
+                print("[ERROR] No targets found from passive recon stage. Exiting.")
+                exit(1)
+            
+            selected_target = select_target_interactively(targets)
+            if not selected_target:
+                print("[ERROR] Could not determine target. Exiting.")
+                exit(1)
+            
+            args.target = selected_target  # Update args.target with the selected target
+        except Exception as e:
+            print(f"[ERROR] Failed to get target(s) from passive recon stage: {e}")
+            print("[ERROR] Please provide a target using --target or ensure passive recon has been run.")
+            exit(1)
+    
+    print(f"[INFO] Using target: {args.target}")
+
+    # Setup output directories with enumeration structure
+    dirs = setup_output_dirs(args.stage, args.target)
+    output_dir = dirs["output_dir"]
+    parsed_dir = dirs["parsed"]
+    raw_dir = dirs["raw"]
 
     # Get target ID by domain name
     print(f"[INFO] Getting target ID for domain: {args.target}")
@@ -162,50 +237,82 @@ def main():
 
     # Step 1: Proxy Capture (if enabled and available)
     if args.proxy_capture:
-        if PROXY_CAPTURE_AVAILABLE:
-            print(f"[INFO] Starting proxy capture for {args.target} (duration: {args.capture_duration}s)")
-            try:
-                proxy_results = run_proxy_capture(args.target, output_dir, args.capture_duration)
-                if proxy_results.get("success"):
-                    save_json(proxy_results, os.path.join(parsed_dir, "proxy_capture_results.json"))
-                    all_results["proxy_capture"] = proxy_results
+        print(f"[INFO] Starting proxy capture for {args.target})")
+        try:
+            proxy_raw_path = os.path.join(raw_dir, "proxy_capture.txt")
+            proxy_requests_path = os.path.join(output_dir, "enumeration", "http-requests", "proxy_requests.txt")
+            proxy_responses_path = os.path.join(output_dir, "enumeration", "http-responses", "proxy_responses.txt")
+            proxy_domains_path = os.path.join(output_dir, "enumeration", "domains", "proxy_domains.txt")
+            proxy_endpoints_path = os.path.join(output_dir, "enumeration", "endpoints", "proxy_endpoints.txt")
+            proxy_summary_path = os.path.join(parsed_dir, "proxy_summary.txt")
+            proxy_files_path = os.path.join(output_dir, "enumeration", "scrapped_files", "proxy_files.txt")
+            
+            proxy_results = run_proxy_capture(args.target, proxy_raw_path)
+            proxy_requests = proxy_results.get("requests", [])
+            proxy_responses = proxy_results.get("responses", [])
+            proxy_domains = proxy_results.get("domains", [])
+            proxy_endpoints = proxy_results.get("endpoints", [])
+            proxy_summary = proxy_results.get("summary", {})
+            proxy_files = proxy_results.get("files", {})
+            
+            with open(proxy_requests_path, "w") as f:
+                for request in proxy_requests:
+                    f.write(f"{request}\n")
+            with open(proxy_responses_path, "w") as f:
+                for response in proxy_responses:
+                    f.write(f"{response}\n")
+            with open(proxy_domains_path, "w") as f:
+                for domain in proxy_domains:
+                    f.write(f"{domain}\n")
+            with open(proxy_endpoints_path, "w") as f:
+                for endpoint in proxy_endpoints:
+                    f.write(f"{endpoint}\n")
+            with open(proxy_summary_path, "w") as f:
+                for key, value in proxy_summary.items():
+                    f.write(f"{key}: {value}\n")
+            with open(proxy_files_path, "w") as f:
+                for file in proxy_files:
+                    f.write(f"{file}\n")
+
+            if proxy_results.get("success"):
+                save_json(proxy_results, os.path.join(parsed_dir, "proxy_capture_results.json"))
+                all_results["proxy_capture"] = proxy_results
+                
+                # Save infrastructure map to raw directory
+                if proxy_results.get("files", {}).get("infrastructure_file"):
+                    infrastructure_file = proxy_results["files"]["infrastructure_file"]
+                    raw_ok = save_raw_to_db("proxy_capture", args.target, infrastructure_file, raw_api_url, jwt_token)
+                    parsed_ok = save_parsed_to_db("proxy_capture", args.target, proxy_results, parsed_api_url, jwt_token)
+                    summary["proxy_capture"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
                     
-                    # Save infrastructure map to raw directory
-                    if proxy_results.get("files", {}).get("infrastructure_file"):
-                        infrastructure_file = proxy_results["files"]["infrastructure_file"]
-                        raw_ok = save_raw_to_db("proxy_capture", args.target, infrastructure_file, api_url, jwt_token)
-                        parsed_ok = save_parsed_to_db("proxy_capture", args.target, proxy_results, api_url, jwt_token)
-                        summary["proxy_capture"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
-                        
-                        print(f"[INFO] Proxy capture completed successfully")
-                        print(f"  - Requests captured: {proxy_results.get('summary', {}).get('total_requests', 0)}")
-                        print(f"  - Responses captured: {proxy_results.get('summary', {}).get('total_responses', 0)}")
-                        print(f"  - Unique domains: {proxy_results.get('summary', {}).get('unique_domains', 0)}")
-                        print(f"  - Unique endpoints: {proxy_results.get('summary', {}).get('unique_endpoints', 0)}")
-                    else:
-                        summary["proxy_capture"] = {"runner": False, "error": "No infrastructure file generated"}
+                    print(f"[INFO] Proxy capture completed successfully")
+                    print(f"  - Requests captured: {proxy_results.get('summary', {}).get('total_requests', 0)}")
+                    print(f"  - Responses captured: {proxy_results.get('summary', {}).get('total_responses', 0)}")
+                    print(f"  - Unique domains: {proxy_results.get('summary', {}).get('unique_domains', 0)}")
+                    print(f"  - Unique endpoints: {proxy_results.get('summary', {}).get('unique_endpoints', 0)}")
                 else:
-                    print(f"[ERROR] Proxy capture failed: {proxy_results.get('error', 'Unknown error')}")
-                    summary["proxy_capture"] = {"runner": False, "error": proxy_results.get('error', 'Unknown error')}
-            except Exception as e:
-                print(f"[ERROR] Proxy capture runner failed: {e}")
-                summary["proxy_capture"] = {"runner": False, "error": str(e)}
-        else:
-            print("[WARNING] Proxy capture requested but not available (mitmproxy dependency missing)")
-            summary["proxy_capture"] = {"runner": False, "error": "Proxy capture not available"}
+                    summary["proxy_capture"] = {"runner": False, "error": "No infrastructure file generated"}
+            else:
+                print(f"[ERROR] Proxy capture failed: {proxy_results.get('error', 'Unknown error')}")
+                summary["proxy_capture"] = {"runner": False, "error": proxy_results.get('error', 'Unknown error')}
+        except Exception as e:
+            print(f"[ERROR] Proxy capture runner failed: {e}")
+            summary["proxy_capture"] = {"runner": False, "error": str(e)}
     else:
-        print("[INFO] Proxy capture disabled (use --proxy-capture to enable)")
+        print("[WARNING] Proxy capture requested but not available (mitmproxy dependency missing)")
+        summary["proxy_capture"] = {"runner": False, "error": "Proxy capture not available"}
 
     # Step 2: PureDNS Live Server Detection
     print(f"[INFO] Starting PureDNS live server detection for {len(subdomains)} subdomains")
     try:
-        puredns_results = run_puredns(subdomains, output_dir)
+        puredns_raw_path = os.path.join(raw_dir, "puredns_scan.txt")
+        puredns_results = run_puredns(subdomains, puredns_raw_path)
         if puredns_results.get("success"):
             save_json(puredns_results, os.path.join(parsed_dir, "puredns_results.json"))
             all_results["puredns"] = puredns_results
             
             # Save live servers list to IPs-and-open-ports directory
-            live_servers_file = os.path.join(output_dir, "enumeration", "IPs-and-open-ports", f"{args.target}_live_servers.json")
+            live_servers_file = os.path.join(output_dir, "enumeration", "live_servers", "live_servers.json")
             with open(live_servers_file, 'w') as f:
                 json.dump(puredns_results["server_details"], f, indent=2)
             
@@ -215,8 +322,8 @@ def main():
                 subdomains = live_servers
                 print(f"[INFO] Updated subdomain list to {len(subdomains)} live servers")
             
-            raw_ok = save_raw_to_db("puredns", args.target, puredns_results["files"]["results_file"], api_url, jwt_token)
-            parsed_ok = save_parsed_to_db("puredns", args.target, puredns_results, api_url, jwt_token)
+            raw_ok = save_raw_to_db("puredns", args.target, puredns_results["files"]["results_file"], raw_api_url, jwt_token)
+            parsed_ok = save_parsed_to_db("puredns", args.target, puredns_results, parsed_api_url, jwt_token)
             summary["puredns"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
             
             print(f"[INFO] PureDNS completed successfully")
@@ -232,12 +339,12 @@ def main():
 
     # Naabu port scanning
     try:
-        naabu_results = run_naabu(subdomains, output_dir)
         naabu_raw_path = os.path.join(raw_dir, "naabu_scan.txt")
+        naabu_results = run_naabu(subdomains, naabu_raw_path)
         save_json(naabu_results, os.path.join(parsed_dir, "naabu_results.json"))
         all_results["naabu"] = naabu_results
-        raw_ok = save_raw_to_db("naabu", args.target, naabu_raw_path, api_url, jwt_token)
-        parsed_ok = save_parsed_to_db("naabu", args.target, naabu_results, api_url, jwt_token)
+        raw_ok = save_raw_to_db("naabu", args.target, naabu_raw_path, raw_api_url, jwt_token)
+        parsed_ok = save_parsed_to_db("naabu", args.target, naabu_results, parsed_api_url, jwt_token)
         summary["naabu"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
     except Exception as e:
         print(f"[ERROR] Naabu runner failed: {e}")
@@ -245,12 +352,12 @@ def main():
 
     # Nmap scanning
     try:
-        nmap_results = run_nmap(subdomains, output_dir)
         nmap_raw_path = os.path.join(raw_dir, "nmap_scan.xml")
+        nmap_results = run_nmap(subdomains, nmap_raw_path)
         save_json(nmap_results, os.path.join(parsed_dir, "nmap_results.json"))
         all_results["nmap"] = nmap_results
-        raw_ok = save_raw_to_db("nmap", args.target, nmap_raw_path, api_url, jwt_token)
-        parsed_ok = save_parsed_to_db("nmap", args.target, nmap_results, api_url, jwt_token)
+        raw_ok = save_raw_to_db("nmap", args.target, nmap_raw_path, raw_api_url, jwt_token)
+        parsed_ok = save_parsed_to_db("nmap", args.target, nmap_results, parsed_api_url, jwt_token)
         summary["nmap"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
     except Exception as e:
         print(f"[ERROR] Nmap runner failed: {e}")
@@ -260,18 +367,35 @@ def main():
     live_servers = []
     if "nmap" in all_results and all_results["nmap"].get("success"):
         for host in all_results["nmap"].get("hosts", []):
-            if any(port.get("service") in ["http", "https", "http-proxy", "https-proxy"] for port in host.get("ports", [])):
+            if any(
+                isinstance(port, dict) and port.get("service") in [
+                    "http", "https", "http-proxy", "https-proxy", "ftp", "ftps", "ssh", "sftp", "smtp", "smtps",
+                    "pop3", "pop3s", "imap", "imaps", "telnet", "dns", "ntp", "postgres", "postgresql", "database",
+                    "mysql", "mssql", "oracle", "redis", "mongodb", "ldap", "ldaps", "rdp", "vnc", "svn", "git",
+                    "svn+ssh", "git+ssh", "nfs", "smb", "webdav", "webdavs", "rtsp", "sip", "xmpp", "irc", "amqp",
+                    "mqtt", "coap", "tftp", "snmp", "rsync", "cups", "kafka", "elasticsearch", "solr", "memcached"
+                ]
+                for port in host.get("ports", [])
+            ):
                 live_servers.append(host.get("hostname", ""))
-    
     if "naabu" in all_results and all_results["naabu"].get("success"):
         for host in all_results["naabu"].get("hosts", []):
-            if any(port.get("service") in ["http", "https"] for port in host.get("ports", [])):
+            if any(
+                isinstance(port, dict) and port.get("service") in [
+                    "http", "https", "http-proxy", "https-proxy", "ftp", "ftps", "ssh", "sftp", "smtp", "smtps",
+                    "pop3", "pop3s", "imap", "imaps", "telnet", "dns", "ntp", "postgres", "postgresql", "database",
+                    "mysql", "mssql", "oracle", "redis", "mongodb", "ldap", "ldaps", "rdp", "vnc", "svn", "git",
+                    "svn+ssh", "git+ssh", "nfs", "smb", "webdav", "webdavs", "rtsp", "sip", "xmpp", "irc", "amqp",
+                    "mqtt", "coap", "tftp", "snmp", "rsync", "cups", "kafka", "elasticsearch", "solr", "memcached"
+                ]
+                for port in host.get("ports", [])
+            ):
                 if host.get("hostname") not in live_servers:
                     live_servers.append(host.get("hostname", ""))
     
     # Save live servers list
     if live_servers:
-        live_servers_file = os.path.join(output_dir, "enumeration", "live_servers.txt")
+        live_servers_file = os.path.join(output_dir, "enumeration", "live_servers", "live_servers.txt")
         with open(live_servers_file, 'w') as f:
             for server in live_servers:
                 f.write(f"{server}\n")
@@ -283,7 +407,8 @@ def main():
     # Step 3: WebAnalyze Technology Detection
     print(f"[INFO] Starting webAnalyze technology detection for {len(subdomains)} targets")
     try:
-        webanalyze_results = run_webanalyze(subdomains, output_dir)
+        webanalyze_raw_path = os.path.join(raw_dir, "webanalyze_scan.txt")
+        webanalyze_results = run_webanalyze(subdomains, webanalyze_raw_path)
         if webanalyze_results.get("success"):
             save_json(webanalyze_results, os.path.join(parsed_dir, "webanalyze_results.json"))
             all_results["webanalyze"] = webanalyze_results
@@ -300,7 +425,7 @@ def main():
                 save_json(enhanced_nmap, os.path.join(parsed_dir, "nmap_enhanced_results.json"))
             
             # Save technology mapping to IPs-and-open-ports directory
-            tech_mapping_file = os.path.join(output_dir, "enumeration", "IPs-and-open-ports", f"{args.target}_technology_mapping.json")
+            tech_mapping_file = os.path.join(output_dir, "enumeration", "infrastructure", "technology_mapping.json")
             with open(tech_mapping_file, 'w') as f:
                 json.dump(webanalyze_results["target_technologies"], f, indent=2)
             
@@ -333,7 +458,8 @@ def main():
     
     # Katana directory enumeration
     try:
-        katana_results = run_katana(web_targets, output_dir)
+        katana_raw_path = os.path.join(raw_dir, "katana_scan.txt")
+        katana_results = run_katana(web_targets, katana_raw_path)
         if katana_results.get("success"):
             save_json(katana_results, os.path.join(parsed_dir, "katana_results.json"))
             all_results["katana"] = katana_results
@@ -374,7 +500,8 @@ def main():
     
     # Feroxbuster directory enumeration
     try:
-        feroxbuster_results = run_feroxbuster(web_targets, output_dir)
+        feroxbuster_raw_path = os.path.join(raw_dir, "feroxbuster_scan.txt")
+        feroxbuster_results = run_feroxbuster(web_targets, feroxbuster_raw_path)
         if feroxbuster_results.get("success"):
             save_json(feroxbuster_results, os.path.join(parsed_dir, "feroxbuster_results.json"))
             all_results["feroxbuster"] = feroxbuster_results
@@ -419,7 +546,8 @@ def main():
     # Get JavaScript files from getJS
     js_files = []
     try:
-        getjs_results = run_getjs(web_targets, output_dir)
+        getjs_raw_path = os.path.join(raw_dir, "getjs_scan.txt")
+        getjs_results = run_getjs(web_targets, getjs_raw_path)
         if getjs_results.get("success"):
             save_json(getjs_results, os.path.join(parsed_dir, "getjs_results.json"))
             all_results["getjs"] = getjs_results
@@ -447,14 +575,15 @@ def main():
     # Run LinkFinder on discovered JavaScript files
     if js_files:
         try:
-            linkfinder_results = run_linkfinder(js_files, output_dir)
+            linkfinder_raw_path = os.path.join(raw_dir, "linkfinder_scan.txt")
+            linkfinder_results = run_linkfinder(js_files, linkfinder_raw_path)
             if linkfinder_results.get("success"):
                 save_json(linkfinder_results, os.path.join(parsed_dir, "linkfinder_results.json"))
                 all_results["linkfinder"] = linkfinder_results
                 
                 # Save endpoint discoveries
                 if linkfinder_results.get("all_endpoints"):
-                    endpoints_file = os.path.join(output_dir, "enumeration", "js_endpoints", "all_endpoints.json")
+                    endpoints_file = os.path.join(output_dir, "enumeration", "endpoints", "all_endpoints.json")
                     os.makedirs(os.path.dirname(endpoints_file), exist_ok=True)
                     with open(endpoints_file, 'w') as f:
                         json.dump(linkfinder_results["all_endpoints"], f, indent=2)
@@ -506,7 +635,8 @@ def main():
     
     if unique_endpoints:
         try:
-            arjun_results = run_arjun(unique_endpoints, output_dir)
+            arjun_raw_path = os.path.join(raw_dir, "arjun_scan.txt")
+            arjun_results = run_arjun(unique_endpoints, arjun_raw_path)
             if arjun_results.get("success"):
                 save_json(arjun_results, os.path.join(parsed_dir, "arjun_results.json"))
                 all_results["arjun"] = arjun_results
@@ -553,7 +683,9 @@ def main():
         summary["eyewitness"] = {"runner": False, "error": "No live servers available"}
     else:
         try:
-            eyewitness_results = run_eyewitness(screenshot_targets, output_dir)
+            eyewitness_raw_path = os.path.join(raw_dir, "eyewitness_scan.txt")
+            eyewitness_output_path = os.path.join(output_dir, "enumeration", "screenshots", f"{args.target}", "eyewitness_screenshots")
+            eyewitness_results = run_eyewitness(screenshot_targets, eyewitness_raw_path)
             if eyewitness_results.get("success"):
                 save_json(eyewitness_results, os.path.join(parsed_dir, "eyewitness_results.json"))
                 all_results["eyewitness"] = eyewitness_results
@@ -563,7 +695,7 @@ def main():
                     from runners.run_eyewitness import generate_screenshot_report
                     screenshot_report = generate_screenshot_report(
                         eyewitness_results["screenshots"], 
-                        output_dir
+                        eyewitness_output_path
                     )
                     all_results["eyewitness"]["screenshot_report"] = screenshot_report
                 
@@ -590,7 +722,9 @@ def main():
         screenshots_dir = all_results["eyewitness"]["files"]["output_dir"]
         
         try:
-            eyeballer_results = run_eyeballer(screenshots_dir, output_dir)
+            eyeballer_raw_path = os.path.join(raw_dir, "eyeballer_scan.txt")
+            eyeballer_output_path = os.path.join(output_dir, "enumeration", "findings", f"{args.target}", "eyeballer_findings")
+            eyeballer_results = run_eyeballer(screenshots_dir, eyeballer_raw_path)
             if eyeballer_results.get("success"):
                 save_json(eyeballer_results, os.path.join(parsed_dir, "eyeballer_results.json"))
                 all_results["eyeballer"] = eyeballer_results
@@ -600,7 +734,7 @@ def main():
                     from runners.run_eyeballer import generate_analysis_report
                     analysis_report = generate_analysis_report(
                         eyeballer_results["interesting_findings"], 
-                        output_dir
+                        eyeballer_output_path
                     )
                     all_results["eyeballer"]["analysis_report"] = analysis_report
                 
@@ -714,8 +848,15 @@ def create_directory_structure(output_dir: str, all_results: Dict[str, Any]) -> 
         "enumeration/scrapped_files",
         "enumeration/js_endpoints",
         "enumeration/parameters",
-        "enumeration/eyewitness",
-        "enumeration/eyeballer",
+        "enumeration/screenshots",
+        "enumeration/live_servers",
+        "enumeration/findings",
+        "enumeration/endpoint-json",
+        "enumeration/infrastructure",
+        "enumeration/http-requests",
+        "enumeration/http-responses",
+        "enumeration/IPs-and-open-ports",
+        "enumeration/domains",
         "port_scanning",
         "technology_detection",
         "proxy_capture",
