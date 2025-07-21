@@ -19,10 +19,10 @@ import enum
 
 class TargetScope(enum.Enum):
     """Enumeration for target scope types."""
-    DOMAIN = "DOMAIN"
-    IP_RANGE = "IP_RANGE"
-    SUBNET = "SUBNET"
-    WILDCARD = "WILDCARD"
+    DOMAIN = "domain"
+    IP_RANGE = "ip_range"
+    SUBNET = "subnet"
+    WILDCARD = "wildcard"
 
 
 class TargetStatus(enum.Enum):
@@ -31,6 +31,15 @@ class TargetStatus(enum.Enum):
     INACTIVE = "inactive"
     ARCHIVED = "archived"
     BLACKLISTED = "blacklisted"
+
+
+class BugBountyPlatform(enum.Enum):
+    """Enumeration for bug bounty platforms."""
+    HACKERONE = "hackerone"
+    BUGCROWD = "bugcrowd"
+    INTIGRITI = "intigriti"
+    YESWEHACK = "yeswehack"
+    CUSTOM = "custom"
 
 
 class Target(BaseModel):
@@ -45,15 +54,38 @@ class Target(BaseModel):
     
     # Target identification
     name = Column(String(255), nullable=False, index=True)
-    scope = Column(Enum(TargetScope), nullable=False, default=TargetScope.DOMAIN)
+    scope = Column(Enum(TargetScope, values_callable=lambda obj: [e.value for e in obj]), nullable=False, default=TargetScope.DOMAIN)
     value = Column(String(500), nullable=False, index=True)  # Domain, IP, or range
     
     # Target configuration
-    status = Column(Enum(TargetStatus), nullable=False, default=TargetStatus.ACTIVE)
+    status = Column(Enum(TargetStatus, values_callable=lambda obj: [e.value for e in obj]), nullable=False, default=TargetStatus.ACTIVE)
     is_primary = Column(Boolean, default=False, index=True)  # Primary target for the scope
     
     # Scope configuration
     scope_config = Column(JSONB, nullable=True)  # Additional scope-specific configuration
+    
+    # Bug Bounty Program Information
+    program_name = Column(String(255), nullable=True, index=True)
+    platform = Column(Enum(BugBountyPlatform, values_callable=lambda obj: [e.value for e in obj]), nullable=True)
+    program_description = Column(Text, nullable=True)
+    contact_email = Column(String(255), nullable=True)
+    contact_url = Column(String(500), nullable=True)
+    
+    # Scope Configuration
+    approved_urls = Column(JSONB, nullable=True)  # List of approved URLs
+    blacklisted_urls = Column(JSONB, nullable=True)  # List of blacklisted URLs
+    scope_rules = Column(JSONB, nullable=True)  # List of scope rules
+    restrictions = Column(JSONB, nullable=True)  # List of restrictions
+    
+    # Rate Limiting Configuration
+    rate_limits = Column(JSONB, nullable=True)  # Rate limiting configuration
+    
+    # Custom Headers
+    custom_headers = Column(JSONB, nullable=True)  # List of custom headers
+    
+    # Additional Configuration
+    special_instructions = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
     
     # Relationships
     user_id = Column(PGUUID(as_uuid=True), ForeignKey("public.users.id"), nullable=True)
@@ -139,7 +171,7 @@ class Target(BaseModel):
             return value
         elif isinstance(value, str):
             try:
-                return TargetScope(value.upper())
+                return TargetScope(value.lower())
             except ValueError:
                 # Let SQLAlchemy handle database-level validation for invalid values
                 return value
@@ -244,6 +276,24 @@ class Target(BaseModel):
             'is_primary': self.is_primary,
             'scope_config': self.scope_config,
             'user_id': str(self.user_id) if self.user_id else None,
+            # Bug Bounty Program Information
+            'program_name': self.program_name,
+            'platform': self.platform.value if self.platform else None,
+            'program_description': self.program_description,
+            'contact_email': self.contact_email,
+            'contact_url': self.contact_url,
+            # Scope Configuration
+            'approved_urls': self.approved_urls,
+            'blacklisted_urls': self.blacklisted_urls,
+            'scope_rules': self.scope_rules,
+            'restrictions': self.restrictions,
+            # Rate Limiting Configuration
+            'rate_limits': self.rate_limits,
+            # Custom Headers
+            'custom_headers': self.custom_headers,
+            # Additional Configuration
+            'special_instructions': self.special_instructions,
+            'notes': self.notes,
         }
     
     @property

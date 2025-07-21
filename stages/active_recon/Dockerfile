@@ -53,11 +53,11 @@ RUN go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
 RUN CGO_ENABLED=1 go install github.com/projectdiscovery/katana/cmd/katana@latest
 
 # Install Feroxbuster (web directory/file bruteforcer)
-RUN wget https://github.com/epi052/feroxbuster/releases/download/v2.10.1/x86_64-unknown-linux-gnu-feroxbuster.zip
-RUN unzip x86_64-unknown-linux-gnu-feroxbuster.zip
+RUN wget https://github.com/epi052/feroxbuster/releases/download/v2.11.0/x86_64-linux-feroxbuster.zip
+RUN unzip x86_64-linux-feroxbuster.zip
 RUN mv feroxbuster /usr/local/bin/feroxbuster
 RUN chmod +x /usr/local/bin/feroxbuster
-RUN rm x86_64-unknown-linux-gnu-feroxbuster.zip
+RUN rm x86_64-linux-feroxbuster.zip
 
 # Install GoBuster (DNS/VHost bruteforcer)
 RUN go install -v github.com/OJ/gobuster/v3@latest

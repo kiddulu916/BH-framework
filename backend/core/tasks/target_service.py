@@ -52,12 +52,29 @@ class TargetService:
         
         # Convert scope and status to Enum if provided as strings
         create_data = payload.model_dump()
+        
         if isinstance(create_data.get("scope"), str):
             from core.models.target import TargetScope
-            create_data["scope"] = TargetScope(create_data["scope"])
+            # Find enum by value, not by name
+            scope_value = create_data["scope"]
+            for scope_enum in TargetScope:
+                if scope_enum.value == scope_value:
+                    create_data["scope"] = scope_enum
+                    break
+            else:
+                raise ValidationError(f"Invalid scope value: {scope_value}")
+        
         if "status" in create_data and isinstance(create_data["status"], str):
             from core.models.target import TargetStatus
-            create_data["status"] = TargetStatus(create_data["status"])
+            # Find enum by value, not by name
+            status_value = create_data["status"]
+            for status_enum in TargetStatus:
+                if status_enum.value == status_value:
+                    create_data["status"] = status_enum
+                    break
+            else:
+                raise ValidationError(f"Invalid status value: {status_value}")
+        
         # Create target
         target = await self.repository.create(**create_data)
         return TargetResponse.model_validate(target, from_attributes=True)
@@ -164,10 +181,24 @@ class TargetService:
         # Convert scope and status to Enum if provided as strings
         if isinstance(filtered_data.get("scope"), str):
             from core.models.target import TargetScope
-            filtered_data["scope"] = TargetScope(filtered_data["scope"])
+            # Find enum by value, not by name
+            scope_value = filtered_data["scope"]
+            for scope_enum in TargetScope:
+                if scope_enum.value == scope_value:
+                    filtered_data["scope"] = scope_enum
+                    break
+            else:
+                raise ValidationError(f"Invalid scope value: {scope_value}")
         if "status" in filtered_data and isinstance(filtered_data["status"], str):
             from core.models.target import TargetStatus
-            filtered_data["status"] = TargetStatus(filtered_data["status"])
+            # Find enum by value, not by name
+            status_value = filtered_data["status"]
+            for status_enum in TargetStatus:
+                if status_enum.value == status_value:
+                    filtered_data["status"] = status_enum
+                    break
+            else:
+                raise ValidationError(f"Invalid status value: {status_value}")
         # Remove 'id' if present to avoid multiple values for 'id'
         filtered_data.pop("id", None)
         updated_target = await self.repository.update(target_id, **filtered_data)

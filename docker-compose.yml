@@ -105,34 +105,34 @@ services:
   # - Parsed outputs: /outputs/passive_recon/<TARGET>/parsed/<TOOL>_subdomains.json (or similar)
   # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN from .env
   # - Error handling: Each runner and API submission is wrapped in try/except; failures are logged and do not halt the overall process. A summary is printed at the end.
-  passive_recon:
-    build:
-      context: ./stages/passive_recon
-      dockerfile: Dockerfile
-    container_name: bug-hunting-passive-recon
-    ports:
-      - "8001:8001"
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-    environment:
-      - BACKEND_API_URL=${BACKEND_API_URL}
-      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
-      - STAGE_TIMEOUT_SECONDS=${PASSIVE_RECON_TIMEOUT}
-      - PYTHONPATH=/app
-    volumes:
-      - ./stages/passive_recon:/app
-      - ./outputs:/app/outputs
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - bug-hunting-network
-    deploy:
-      resources:
-        limits:
-          memory: ${STAGE_MAX_MEMORY_MB:-2048}M
-          cpus: '0.8'
-
+  #passive_recon:
+  #  build:
+  #    context: ./stages/passive_recon
+  #    dockerfile: Dockerfile
+  #  container_name: bug-hunting-passive-recon
+  #  ports:
+  #    - "8001:8001"
+  #  restart: unless-stopped
+  #  depends_on:
+  #    backend:
+  #      condition: service_healthy
+  #  environment:
+  #    - BACKEND_API_URL=${BACKEND_API_URL}
+  #    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+  #    - STAGE_TIMEOUT_SECONDS=${PASSIVE_RECON_TIMEOUT}
+  #    - PYTHONPATH=/app
+  #  volumes:
+  #    - ./stages/passive_recon:/app
+  #    - ./outputs:/app/outputs
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  networks:
+  #    - bug-hunting-network
+  #  deploy:
+  #    resources:
+  #      limits:
+  #        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+  #        cpus: '0.8'
+#
   # Active Recon Stage: Performs comprehensive active reconnaissance using multiple tools on subdomains discovered by passive recon.
   # - Queries passive recon results from backend API to get subdomains
   # - Runs port scanning (nmap, naabu), web server detection, directory enumeration (feroxbuster, katana)
@@ -141,36 +141,34 @@ services:
   # - Raw outputs: /outputs/active_recon/<TARGET>/<TOOL>.*
   # - Parsed outputs: /outputs/active_recon/<TARGET>/parsed/<TOOL>_results.json
   # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
-  active_recon:
-    build:
-      context: ./stages/active_recon
-      dockerfile: Dockerfile
-    container_name: bug-hunting-active-recon
-    ports:
-      - "8002:8002"
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-      passive_recon:
-        condition: service_started
-    environment:
-      - BACKEND_API_URL=${BACKEND_API_URL}
-      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
-      - STAGE_TIMEOUT_SECONDS=${ACTIVE_RECON_TIMEOUT}
-      - PYTHONPATH=/app
-    volumes:
-      - ./stages/active_recon:/app
-      - ./outputs:/app/outputs
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - bug-hunting-network
-    deploy:
-      resources:
-        limits:
-          memory: ${STAGE_MAX_MEMORY_MB:-2048}M
-          cpus: '0.8'
-
+  #active_recon:
+  #  build:
+  #    context: ./stages/active_recon
+  #    dockerfile: Dockerfile
+  #  container_name: bug-hunting-active-recon
+  #  ports:
+  #    - "8002:8002"
+  #  restart: unless-stopped
+  #  depends_on:
+  #    backend:
+  #      condition: service_healthy
+  #  environment:
+  #    - BACKEND_API_URL=${BACKEND_API_URL}
+  #    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+  #    - STAGE_TIMEOUT_SECONDS=${ACTIVE_RECON_TIMEOUT:-3600}
+  #    - PYTHONPATH=/app
+  #  volumes:
+  #    - ./stages/active_recon:/app
+  #    - ./outputs:/app/outputs
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  networks:
+  #    - bug-hunting-network
+  #  deploy:
+  #    resources:
+  #      limits:
+  #        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+  #        cpus: '0.8'
+#
   # Vulnerability Scanning Stage: Performs automated vulnerability scanning using nuclei and other tools.
   # - Queries active recon results from backend API to get live web servers and services
   # - Runs vulnerability scanning tools (nuclei) against discovered targets

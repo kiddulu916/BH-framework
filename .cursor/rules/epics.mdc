@@ -1,13 +1,9 @@
 ---
-description: 
-globs: 
-alwaysApply: true
----
----
 description: Used when referred by @@EPIC or @@EPICS or when writing or completing any epic level of work or epic level of capabilities.
 globs: 
 alwaysApply: true
 ---
+
 # **Epic Planning & Tracking System**
 
 **Purpose:**
@@ -43,42 +39,51 @@ Plan and track all major initiatives for the Bug Hunting Framework using a unifi
 ## ACTIVE EPICS
 
 ### 1. **EPIC**: PLATFORM_INFRASTRUCTURE_EPIC
+
 **Status:** COMPLETED
 **Priority:** HIGH
 **Started:** 2025-06-07
 **Target Completion:** 2025-08-01
 
 #### **Goal**
+
 Establish the core infrastructure containers (`db`, `backend`, `frontend`) and the communication layer that enables the stage-based workflow.
 
 #### **Success Criteria**
+
 - [ ] Docker Compose orchestrates `db`, `backend`, and `frontend` containers successfully with persistent data and inter-container networking.
 - [ ] Backend API provides fully tested and documented endpoints for stage management and result submission, including validation schemas.
 - [ ] Database schema, created via Alembic migrations, is in place to store results from all stages with appropriate relations.
 - [ ] Secure, environment-aware communication is established between all infrastructure containers.
 
 #### Dependencies & Blockers
+
 - None (foundation epic)
 
 #### **PHASE 1:** CORE_INFRASTRUCTURE_SETUP_PHASE - ✅ COMPLETED
+
 **Goal:** Stand up, configure, and network the three main infrastructure containers.
 
 **STEPS:**
-1.  **DB_CONTAINER_STEP**: Implement the PostgreSQL `db` container.
+
+1. **DB_CONTAINER_STEP**: Implement the PostgreSQL `db` container.
     - **SUB-STEP**: Define the `postgres` service in `docker-compose.yml`.
     - **Sub-step**: Configure environment variables for the database user, password, and name.
     - **Sub-step**: Mount a local volume (`./data/postgres`) to `/var/lib/postgresql/data` for data persistence.
     - **Sub-step**: Expose the port (e.g., `5432:5432`) for local debugging access. - ✅ 100%
-2.  **BACKEND_CONTAINER_STEP**: Implement the Django Ninja `backend` container.
+
+2. **BACKEND_CONTAINER_STEP**: Implement the Django Ninja `backend` container.
     - **Sub-step**: Create a `Dockerfile` specifying the Python version, installing dependencies from `requirements.txt`, and setting the `CMD` to run the ASGI server (e.g., Gunicorn with Uvicorn workers).
     - **Sub-step**: Configure the `backend` service in `docker-compose.yml` to build from the Dockerfile.
     - **Sub-step**: Set `depends_on: [db]` to ensure correct startup order.
     - **Sub-step**: Pass the database connection URL via an environment variable. - ✅ 100%
-3.  **FRONTEND_CONTAINER_STEP**: Implement the Next.js `frontend` container.
+
+3. **FRONTEND_CONTAINER_STEP**: Implement the Next.js `frontend` container.
     - **Sub-step**: Create a `Dockerfile` to install Node.js dependencies (`pnpm install`) and start the Next.js development server.
     - **Sub-step**: Configure the `frontend` service in `docker-compose.yml`.
     - **Sub-step**: Configure an environment variable for the backend API URL (`http://backend:8000`). - ✅ 100%
-4.  **DOCKER_COMPOSE_STEP**: Finalize the orchestration and networking.
+
+4. **DOCKER_COMPOSE_STEP**: Finalize the orchestration and networking.
     - **Sub-step**: Create a shared bridge network in `docker-compose.yml` to allow containers to communicate via service names.
     - **Sub-step**: Write startup scripts or health checks to ensure services are fully operational before dependent services start.
     - **Sub-step**: Document all environment variables in a `.env` file. - ✅ 100%
@@ -92,10 +97,12 @@ Establish the core infrastructure containers (`db`, `backend`, `frontend`) and t
 - Database connection and inter-container communication working
 
 #### **PHASE 2:** STAGE_API_INTEGRATION_PHASE - ✅ COMPLETED
+
 **Goal:** Build and test the backend API endpoints and database schemas required to manage and integrate the Stage Containers.
 
 **STEPS:**
-1.  **DB_SCHEMA_STEP**: Design and implement the database schema using SQLAlchemy and Alembic.
+
+1. **DB_SCHEMA_STEP**: Design and implement the database schema using SQLAlchemy and Alembic.
     - **Sub-step**: Create base models in SQLAlchemy with shared fields (`id`, `created_at`, `updated_at`).
     - **Sub-step**: Define models for each stage's results (`PassiveReconResult`, `ActiveReconResult`, `Vulnerability`, etc.) with appropriate fields and relationships (e.g., foreign key to a `Target` table).
     - **Sub-step**: Generate an initial Alembic migration script and apply it to the database.

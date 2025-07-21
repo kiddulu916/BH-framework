@@ -39,34 +39,16 @@ class BaseRepository:
         self.model_class = model_class
     
     async def create(self, **kwargs) -> T:
-        """
-        Create a new record.
-        
-        Args:
-            **kwargs: Model attributes
-            
-        Returns:
-            Created model instance
-            
-        Raises:
-            DatabaseError: If creation fails
-        """
+        """Create a new entity."""
         try:
-            # Debug: Print the kwargs being passed to create
-            print(f"Debug: BaseRepository.create() called with kwargs: {kwargs}")
-            for k, v in kwargs.items():
-                print(f"  {k}: type={type(v)}, value={v}")
-            
-            instance = self.model_class(**kwargs)
-            self.session.add(instance)
-            await self.session.flush()
-            await self.session.refresh(instance)
-            return instance
+            entity = self.model_class(**kwargs)
+            self.session.add(entity)
+            await self.session.commit()
+            await self.session.refresh(entity)
+            return entity
         except Exception as e:
             await self.session.rollback()
-            print(f"Debug: Exception in BaseRepository.create(): {e}")
-            print(f"Debug: Exception type: {type(e)}")
-            raise DatabaseError(f"Failed to create {self.model_class.__name__}: {str(e)}")
+            raise e
     
     async def get_by_id(self, id: Union[str, UUID], include_relationships: Optional[List[str]] = None) -> Optional[T]:
         """

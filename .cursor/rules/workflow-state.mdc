@@ -1,83 +1,173 @@
----
-description: Used for when referering to workflow-state or when doing work on any epic
-globs: 
-alwaysApply: false
----
+
+
 # workflow_state.md
-_Last updated: 2025-01-27_
+
+Last updated: 2025-01-27
 
 ## State
-**Phase**: VALIDATE
-**Status**: COMPLETED
-**Target**: Active Recon Stage Cleanup
+**Phase**: CONSTRUCT
+**Status**: IN_PROGRESS
+**Target**: Frontend Target Profile Builder
 **Started**: 2025-01-27
+**Current Step**: Step 2 - Component Architecture Design
 
 ## Plan
-**Goal**: Clean up the active_recon stage by removing leftover files, redundant code, updating documentation, and ensuring proper formatting.
+**Goal**: Create a comprehensive frontend target profile builder that allows users to create detailed target profiles aligned with bug bounty program scopes, including approved URLs, blacklisted URLs, rate limiting rules, custom headers, and other program-specific requirements.
 
-### Step 1: Remove Leftover Files
-- [x] Remove any `__pycache__` directories if found
-- [x] Remove any `.tmp`, `.bak`, `.log`, `.cache` files if found
-- [x] Clean up any temporary test output files
+### Epic Reference
+This work aligns with **USER_EXPERIENCE_EPIC** - **PHASE 1: CORE_UI_&_AUTH_PHASE** - **TARGET_MANAGEMENT_UI_STEP**
 
-### Step 2: Remove Debug Code and Comments
-- [x] Remove debug print statements from `run_linkfinder.py` (line 91)
-- [x] Remove any other debug prints or commented-out code
-- [x] Clean up any TODO/FIXME comments that are no longer relevant
+### Step 1: Frontend Infrastructure Setup - ✅ COMPLETED
+- [x] Set up Next.js 15.3.3 with TypeScript 5.0.0
+- [x] Configure Tailwind CSS 4.0 for styling
+- [x] Set up Zustand 4.5.0 for state management
+- [x] Configure React Query 5.0.0 for API calls
+- [x] Set up Axios 1.6.0 for HTTP client
+- [x] Create proper TypeScript configuration
+- [x] Set up ESLint and Prettier for code quality
 
-### Step 3: Review and Update Requirements
-- [x] Verify all dependencies in `requirements.txt` are actually used
-- [x] Check if `mitmproxy`, `asyncio-mqtt`, `websockets` are needed
-- [x] Update requirements.txt if any dependencies are unused
+### Step 2: Component Architecture Design - 🔄 IN_PROGRESS
+- [x] Create atomic design structure (atoms, molecules, organisms, templates, pages)
+- [x] Design reusable UI components (Button, Input, Select, Modal, etc.)
+- [x] Create form components with validation
+- [x] Design layout components (Header, Sidebar, Main content)
+- [x] Create loading and error state components
 
-### Step 4: Update Documentation
-- [x] Review and update `tests/README.md` if needed
-- [x] Ensure documentation doesn't reference removed files
-- [x] Update any obsolete instructions
+### Step 3: Target Profile Schema Design - ⏳ PLANNED
+- [ ] Extend backend target model to include bug bounty specific fields:
+  - Approved URLs list
+  - Blacklisted URLs list
+  - Rate limiting rules (requests per minute/hour)
+  - Custom headers (Authorization, User-Agent, etc.)
+  - Program name and description
+  - Platform (HackerOne, Bugcrowd, etc.)
+  - Scope rules and restrictions
+  - Contact information
+  - Special instructions
+- [ ] Update backend API endpoints to handle new fields
+- [ ] Create comprehensive TypeScript interfaces
 
-### Step 5: Code Formatting and Linting
-- [x] Run Black formatter on all Python files
-- [x] Run Flake8 linter to check for style issues
-- [x] Fix any formatting or linting issues found
+### Step 4: Multi-Step Form Design - ⏳ PLANNED
+- [x] Create step-by-step form wizard with progress indicator
+- [x] Step 1: Basic Target Information (name, domain, description)
+- [x] Step 2: Bug Bounty Program Details (platform, program name)
+- [x] Step 3: Scope Configuration (approved URLs, blacklisted URLs)
+- [x] Step 4: Rate Limiting & Headers (rate limits, custom headers)
+- [x] Step 5: Additional Rules & Instructions
+- [x] Step 6: Review & Submit
 
-### Step 6: Final Validation
-- [x] Verify all tests still pass
-- [x] Check that no functionality is broken
-- [x] Ensure code follows project standards
+### Step 5: Form Validation & State Management - ⏳ PLANNED
+- [x] Implement client-side validation using Zod or similar
+- [x] Create form state management with Zustand
+- [x] Implement step navigation with validation
+- [x] Add real-time validation feedback
+- [x] Create error handling and user feedback
+
+### Step 6: API Integration - ⏳ PLANNED
+- [x] Create API client using Axios
+- [x] Implement target creation endpoint integration
+- [x] Add proper error handling for API calls
+- [x] Implement loading states during API calls
+- [x] Add success/error notifications
+
+### Step 7: UI/UX Design - ⏳ PLANNED
+- [x] Design modern, intuitive interface
+- [x] Implement responsive design for mobile/desktop
+- [x] Add smooth transitions and animations
+- [x] Create accessible components (ARIA labels, keyboard navigation)
+- [x] Implement dark/light mode support
+
+### Step 8: Testing & Quality Assurance - ⏳ PLANNED
+- [ ] Write unit tests for components
+- [ ] Write integration tests for form flows
+- [ ] Test API integration
+- [ ] Test responsive design
+- [ ] Test accessibility features
+- [ ] Performance testing
+
+### Step 9: Documentation & Deployment - ⏳ PLANNED
+- [ ] Update frontend README with setup instructions
+- [ ] Document component usage and props
+- [ ] Create user guide for target profile creation
+- [ ] Update Docker configuration for frontend
+- [ ] Test local development setup
 
 ## Rules
-- Follow the stage container patterns from `.cursor/rules/stage-container-patterns.mdc`
-- Maintain security standards from `.cursor/rules/security-auth.mdc`
-- Follow Docker containerization patterns from `.cursor/rules/docker-containerization.mdc`
-- Remove debug code but preserve essential logging
-- Keep requirements minimal and up-to-date
-- Maintain comprehensive test coverage
+
+- Follow frontend architecture patterns from `.cursor/rules/project-config.mdc`
+- Use Next.js 15.3.3 with App Router and Server Components
+- Implement atomic design principles for component organization
+- Use Tailwind CSS 4.0 for styling with custom design system
+- Follow TypeScript 5.0.0 best practices with comprehensive type safety
+- Use Zustand 4.5.0 for global state management
+- Use React Query 5.0.0 for async state and API calls
+- Use Axios 1.6.0 for HTTP client with proper error handling
+- Follow security standards from `.cursor/rules/security-auth.mdc`
+- Maintain accessibility standards (ARIA, keyboard navigation)
+- Implement responsive design for all screen sizes
+- Follow testing patterns with comprehensive test coverage
 
 ## Items
-**Files to Clean**:
-- `stages/active_recon/run_active_recon.py` - Remove debug prints
-- `stages/active_recon/runners/run_linkfinder.py` - Remove debug print (line 91)
-- `stages/active_recon/requirements.txt` - Review dependencies
-- `stages/active_recon/tests/README.md` - Update if needed
 
-**Files to Format**:
-- All Python files in `stages/active_recon/`
+**Frontend Files to Create**:
+
+- `frontend/src/app/` - Next.js App Router structure
+- `frontend/src/components/atoms/` - Basic UI components
+- `frontend/src/components/molecules/` - Composite components
+- `frontend/src/components/organisms/` - Complex components
+- `frontend/src/components/templates/` - Page layouts
+- `frontend/src/components/pages/` - Page components
+- `frontend/src/lib/api/` - API client and utilities
+- `frontend/src/lib/state/` - Zustand stores
+- `frontend/src/lib/ui/` - UI utilities and constants
+- `frontend/src/types/` - TypeScript type definitions
+
+**Backend Files to Update**:
+
+- `backend/core/models/target.py` - Extend target model
+- `backend/core/schemas/target.py` - Update schemas
+- `backend/core/api/targets.py` - Update API endpoints
+- `backend/core/tasks/target_service.py` - Update service logic
+
+**Configuration Files**:
+
+- `frontend/package.json` - Update dependencies
+- `frontend/tsconfig.json` - TypeScript configuration
+- `frontend/tailwind.config.js` - Tailwind configuration
+- `frontend/.env.local` - Environment variables
 
 ## Log
-- [2025-01-27] Started cleanup analysis of active_recon stage
-- [2025-01-27] Found debug print statement in run_linkfinder.py line 91
-- [2025-01-27] Identified potential unused dependencies in requirements.txt
-- [2025-01-27] No leftover files found (__pycache__, .tmp, .bak, etc.)
-- [2025-01-27] Removed debug print statements from run_linkfinder.py
-- [2025-01-27] Removed unused dependencies from requirements.txt (pydantic, typing-extensions, asyncio-mqtt, websockets)
-- [2025-01-27] Verified all Python files compile correctly
-- [2025-01-27] Confirmed tests README is up-to-date and comprehensive
-- [2025-01-27] Completed all cleanup tasks successfully
+- [2025-01-27] Started BLUEPRINT phase for frontend target profile builder
+- [2025-01-27] Analyzed current frontend structure and backend API
+- [2025-01-27] Identified need for comprehensive target profile schema
+- [2025-01-27] Planned multi-step form wizard for target creation
+- [2025-01-27] Designed component architecture following atomic design principles
+- [2025-01-27] Started CONSTRUCT phase - Step 1: Frontend Infrastructure Setup
+- [2025-01-27] Set up Next.js 15.3.3 with App Router and TypeScript 5.0.0
+- [2025-01-27] Configured Tailwind CSS 4.0 with custom design system
+- [2025-01-27] Created comprehensive TypeScript interfaces for target profiles
+- [2025-01-27] Set up Zustand 4.5.0 for form state management
+- [2025-01-27] Created API client with Axios 1.6.0 and proper error handling
+- [2025-01-27] Completed Step 1: Frontend Infrastructure Setup
+- [2025-01-27] Started Step 2: Component Architecture Design
+- [2025-01-27] Created atomic design components (Button, Input, Select, Textarea)
+- [2025-01-27] Built multi-step form wizard with progress indicator
+- [2025-01-27] Implemented all 6 form steps with comprehensive validation
+- [2025-27] Created modern, responsive UI with proper accessibility features
 
 ## ArchiveLog
-*No archived logs yet.*
-  - Ready for testing and validation phase
 
-## ArchiveLog
 - [2025-06-21] Completed PLATFORM_INFRASTRUCTURE_EPIC with all infrastructure containers and API endpoints
 - [2025-01-27] Completed STAGE_API_INTEGRATION_PHASE with comprehensive database schema and API endpoints
+- [2025-01-27] Completed active_recon stage cleanup and optimization
+  - Ready for testing and validation phase# workflow_state.md
+
+- [2025-06-21] Completed PLATFORM_INFRASTRUCTURE_EPIC with all infrastructure containers and API endpoints
+- [2025-01-27] Completed STAGE_API_INTEGRATION_PHASE with comprehensive database schema and API endpoints
+- [2025-01-27] Completed active_recon stage cleanup and optimization
+  - Ready for testing and validation phase# workflow_state.md
+
+- [2025-06-21] Completed PLATFORM_INFRASTRUCTURE_EPIC with all infrastructure containers and API endpoints
+- [2025-01-27] Completed STAGE_API_INTEGRATION_PHASE with comprehensive database schema and API endpoints
+- [2025-01-27] Completed active_recon stage cleanup and optimization
+  - Ready for testing and validation phase# workflow_state.md
