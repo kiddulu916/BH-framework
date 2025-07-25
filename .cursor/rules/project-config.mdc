@@ -69,16 +69,15 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
   * Security documentation
 
 ### **Frontend**
-- **Framework**: Next.js 15.3.3
-  * React 19.0.0
-  * TypeScript 5.0.0
+- **Framework**: Next.js 15.4.2
+  * React 19.1.0
+  * TypeScript 5.0
   * App Router and Server Components
   * Built-in optimization
   * Hot reloading for development
 
-- **State Management**: Zustand + React Query
-  * Zustand 4.5.0 for global state
-  * @tanstack/react-query 5.0.0 for async state
+- **State Management**: Zustand
+  * Zustand 5.0.6 for global state
   * Optimistic updates
   * Background refetching
   * Cache management
@@ -90,7 +89,14 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
   * Responsive design
   * Dark mode support
 
-- **HTTP Client**: Axios 1.6.0
+- **Animation**: Framer Motion 12.23.6
+  * Component-level animations
+  * Page transitions
+
+- **Icons**: Lucide React 0.525.0
+  * SVG-based icon library
+
+- **HTTP Client**: Axios 1.10.0
   * Promise-based HTTP client
   * Request/response interceptors
   * Error handling
@@ -98,10 +104,12 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
   * Progress tracking
 
 - **Development Tools**
-  * ESLint 9.0.0 for linting
+  * ESLint 9.0 for linting
   * TypeScript for type checking
   * Hot reloading for development
   * Build optimization
+  * Vitest for unit/integration testing
+  * React Testing Library for component testing
 
 ### **Stage Containers**
 - **Base Image**: Python 3.11-slim
@@ -387,7 +395,7 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
 
 ### Frontend Standards
 - **Component Structure**: Functional components with hooks
-- **State Management**: Zustand for global state, React Query for async data
+- **State Management**: Zustand for global state
 - **Styling**: Tailwind CSS with custom design system
 - **Type Safety**: TypeScript for all components and functions
 - **Error Boundaries**: Implement error boundaries for component error handling
@@ -446,22 +454,23 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
 - **Management Script**: `manage.py` (at root level)
 
 ### **Core Dependencies**
-- **Framework**: Next.js 15.3.3
-- **Language**: TypeScript 5.0.0
+- **Framework**: Next.js 15.4.2
+- **Language**: TypeScript 5.0
 - **Package Manager**: npm (package-lock.json)
-- **State Management**: Zustand 4.5.0 + React Query 5.0.0
-- **HTTP Client**: Axios 1.6.0
+- **State Management**: Zustand 5.0.6
+- **Animation**: Framer Motion 12.23.6
+- **HTTP Client**: Axios 1.10.0
 
 ### **UI & Styling**
 - **Styling**: Tailwind CSS 4.0
-- **Icons**: SVG icons in public directory
+- **Icons**: Lucide React 0.525.0
 - **Development**: Hot reloading enabled
 - **Build**: Next.js build optimization
 
 ### **Development Tools**
-- **Testing**: Built-in Next.js testing
-- **Linting**: ESLint 9.0.0
-- **Type Checking**: TypeScript 5.0.0
+- **Testing**: Vitest + React Testing Library
+- **Linting**: ESLint 9.0
+- **Type Checking**: TypeScript 5.0
 - **Git Hooks**: Standard Git workflow
 - **Code Quality**: ESLint configuration
 
@@ -517,6 +526,11 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
 
 ### Checklist for Introducing New Project-Wide Patterns/Dependencies
 - [ ] Cross-reference with architecture and epic plans
+- [ ] Update this file and relevant rules/epics
+- [ ] Document integration and usage patterns
+- [ ] Add/expand tests and documentation as needed
+- [ ] Review for security, performance, and maintainability
+
 - [ ] Update this file and relevant rules/epics
 - [ ] Document integration and usage patterns
 - [ ] Add/expand tests and documentation as needed

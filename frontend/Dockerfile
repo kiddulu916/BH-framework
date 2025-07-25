@@ -1,52 +1,79 @@
-# 1. Installer stage for fetching dependencies
-FROM node:20 AS deps
+# Multi-stage build for optimized Docker container
+# Stage 1: Dependencies
+FROM node:20-bullseye AS deps
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package files
 COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci && npm cache clean --force
 
-# 2. Builder stage for creating the production build
-FROM node:20 AS builder
+# Stage 2: Builder
+FROM node:20-bullseye AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy dependencies from the 'deps' stage
+# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code
 COPY . .
 
-# Build the Next.js app
+# Set environment variables for build optimization
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
+ENV KEEP_ALIVE_TIMEOUT=60000
+ENV DOCKER_ENV=true
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PRIVATE_DISABLE_LIGHTNINGCSS=1
+
+# Build the application with optimizations
 RUN npm run build
 
-# 3. Runner stage for running the app
-FROM node:20-alpine AS runner
+# Stage 3: Production runner
+FROM node:20-bullseye AS runner
 
 # Set working directory
 WORKDIR /app
 
-# Create a non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+# Install dumb-init for proper signal handling
+RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 
-# Copy built app from the 'builder' stage
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Copy necessary files from builder
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/.next/standalone/server.js ./server.js
+COPY --from=builder /app/.next/standalone/package.json ./package.json
+COPY --from=builder /app/.next/standalone/.next ./.next
+COPY --from=builder /app/.next/standalone/node_modules ./node_modules
+COPY --from=builder /app/.next/static ./.next/static
 
-# Change ownership of the app directory
-RUN chown -R nextjs:nodejs /app/.next
+# Set proper permissions
+RUN chown -R appuser:appuser /app
 
-# Set the user
-USER nextjs
+# Switch to non-root user
+USER appuser
 
-# Expose the port
+# Expose port
 EXPOSE 3000
 
-# Set the entrypoint
-CMD ["npm", "start"] 
+# Set environment variables for container optimization
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" || exit 1
+
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+
+CMD ["node", "server.js"]

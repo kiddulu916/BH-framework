@@ -1,35 +1,90 @@
 import { create } from 'zustand';
-import { TargetCreateRequest, BugBountyPlatform } from '@/types/target';
+import { TargetCreateRequest, BugBountyPlatform, TargetScope, RateLimitConfig, CustomHeader, TargetStatus } from '@/types/target';
+import { ValidationError } from '@/lib/utils/validation';
+
+// Extended interface for form data that includes legacy fields for backward compatibility
+interface TargetFormData extends Partial<TargetCreateRequest> {
+  // Legacy field mappings for backward compatibility
+  target?: string;
+  domain?: string;
+  login_email?: string;
+  researcher_email?: string;
+  in_scope?: string[];
+  out_of_scope?: string[];
+  rate_limits?: RateLimitConfig;
+  rate_limit_requests?: number;
+  rate_limit_seconds?: number;
+  custom_headers?: CustomHeader[];
+  additional_info?: string[];
+  notes?: string[];
+}
 
 interface TargetFormState {
-  formData: Partial<TargetCreateRequest>;
+  formData: TargetFormData;
   currentStep: number;
+  validationErrors: ValidationError[];
+  isSubmitting: boolean;
+  submitError: string | null;
   nextStep: () => void;
   prevStep: () => void;
-  updateFormData: (data: Partial<TargetCreateRequest>) => void;
+  updateFormData: (data: Partial<TargetFormData>) => void;
+  setValidationErrors: (errors: ValidationError[]) => void;
+  clearValidationErrors: () => void;
+  setSubmitting: (isSubmitting: boolean) => void;
+  setSubmitError: (error: string | null) => void;
   resetForm: () => void;
 }
 
-const initialFormData: Partial<TargetCreateRequest> = {
+const initialFormData: TargetFormData = {
+  // Basic target information
   target: '',
+  name: '',
   domain: '',
   is_primary: false,
   platform: BugBountyPlatform.HACKERONE,
-  platform_email: '',
+  login_email: '',
   researcher_email: '',
+  status: TargetStatus.ACTIVE,
   in_scope: [],
   out_of_scope: [],
-  rules_to_follow: [],
-  rules_to_avoid: [],
+  rate_limits: {
+    requests_per_second: 0,
+    requests_per_minute: 0,
+    requests_per_hour: 0,
+  },
   rate_limit_requests: 0,
   rate_limit_seconds: 0,
+  custom_headers: [],
+  additional_info: [],
+  notes: [],
 };
 
-export const useTargetFormStore = create<TargetFormState>((set) => ({
+export const useTargetFormStore = create<TargetFormState>((set, get) => ({
   formData: initialFormData,
   currentStep: 1,
+  validationErrors: [],
+  isSubmitting: false,
+  submitError: null,
+  
   nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 6) })),
   prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1) })),
-  updateFormData: (data) => set((state) => ({ formData: { ...state.formData, ...data } })),
-  resetForm: () => set({ formData: initialFormData, currentStep: 1 }),
+  
+  updateFormData: (data) => set((state) => ({ 
+    formData: { ...state.formData, ...data },
+    validationErrors: [], // Clear validation errors when data is updated
+    submitError: null
+  })),
+  
+  setValidationErrors: (errors) => set({ validationErrors: errors }),
+  clearValidationErrors: () => set({ validationErrors: [] }),
+  setSubmitting: (isSubmitting) => set({ isSubmitting }),
+  setSubmitError: (error) => set({ submitError: error }),
+  
+  resetForm: () => set({ 
+    formData: initialFormData, 
+    currentStep: 1, 
+    validationErrors: [], 
+    isSubmitting: false, 
+    submitError: null 
+  }),
 })); 

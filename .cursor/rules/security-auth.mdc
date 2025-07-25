@@ -1,11 +1,6 @@
 ---
-description: 
-globs: backend/**/*.*,frontend/**/*.*,stages/**/*.*
-alwaysApply: false
----
----
 description: Security, authentication, and authorization rules
-globs: backend/**/*.*, frontend/**/*, stages/**/*
+globs: backend/**/*.*, frontend/**/*.*, stages/**/*.*
 alwaysApply: true
 ---
 # Security & Authentication Rules

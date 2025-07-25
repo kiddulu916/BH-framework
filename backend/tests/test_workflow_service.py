@@ -478,8 +478,29 @@ class TestWorkflowService:
         # Assert
         assert result.success is True
         assert "retrieved successfully" in result.message
-        assert result.data['total_workflows'] == 10
-        assert result.data['completion_rate'] == 40.0  # 4 completed out of 10 total
+        assert result.data['total'] == 10
+        assert result.data['running'] == 3
+        assert result.data['completed'] == 2
+        assert result.data['failed'] == 4
+        assert result.data['pending'] == 1
+
+    @pytest.mark.asyncio
+    async def test_get_workflow_statistics_failure(self, workflow_service, mock_repositories):
+        """Test successful workflow statistics retrieval."""
+        # Arrange
+        mock_repositories['workflow_repo'].count.side_effect = [10, 3, 2, 4, 1]
+        
+        # Act
+        result = await workflow_service.get_workflow_statistics()
+        
+        # Assert
+        assert result.success is True
+        assert "retrieved successfully" in result.message
+        assert result.data['total'] == 10
+        assert result.data['running'] == 3
+        assert result.data['completed'] == 2
+        assert result.data['failed'] == 4
+        assert result.data['pending'] == 1
 
     @pytest.mark.asyncio
     async def test_validate_stage_dependencies_success(self, workflow_service, sample_workflow):

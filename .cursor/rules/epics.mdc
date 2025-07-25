@@ -109,7 +109,7 @@ Establish the core infrastructure containers (`db`, `backend`, `frontend`) and t
     - **Sub-step**: Implement repository classes for each model to abstract database queries. - ✅ 100%
 2.  **TOOL_RESULT_API_STEP**: Create backend endpoints for Stage Containers to submit their tool outputs.
     - **Sub-step**: Define Pydantic schemas for result submission to ensure data validation.
-    - **Sub-step**: Implement the API endpoint (e.g., `POST /api/v1/targets/{target_id}/results/{stage_name}`) in a Django Ninja router.
+    - **Sub-step**: Implement the API endpoint (e.g., `POST /api/targets/{target_id}/results/{stage_name}`) in a Django Ninja router.
     - **Sub-step**: Write the service logic to process the validated data and use the appropriate repository to save it to the database.
     - **Sub-step**: Implement unit and integration tests for this endpoint. - ✅ 100%
 3.  **STAGE_EXECUTION_API_STEP**: Create backend endpoints for the frontend to trigger a stage for a target.

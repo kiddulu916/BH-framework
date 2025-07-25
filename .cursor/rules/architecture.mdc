@@ -92,7 +92,7 @@ Domains are mapped to epics and phases as tracked in `epics.mdc`. Each domain is
 ### **API Architecture**
 - **Pattern:** RESTful endpoints via Django Ninja, async support
 - **Auth:** JWT (access/refresh tokens, HTTP-only cookies)
-- **Versioning:** URL-based (e.g., `/api/v1/`)
+- **Versioning:** URL-based (e.g., `/api/`)
 - **Validation:** Pydantic schemas for all requests/responses
 - **Error Handling:** Standardized APIResponse model, global exception handlers
 - **Docs:** OpenAPI/Swagger auto-generated

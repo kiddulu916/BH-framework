@@ -333,7 +333,7 @@ class TestTargetModel:
         assert target_dict["id"] == str(target_id)
         assert target_dict["name"] == "Test Target"
         assert target_dict["value"] == "example.com"
-        assert target_dict["scope"] == "DOMAIN"
+        assert target_dict["scope"] == "domain"
         assert target_dict["status"] == "active"
         assert target_dict["is_primary"] is True
         assert target_dict["scope_config"] == {"key": "value"}
@@ -350,7 +350,7 @@ class TestTargetModel:
             updated_at=datetime.now(timezone.utc)
         )
 
-        expected_repr = "<Target(name='Test Target', scope='DOMAIN', value='example.com')>"
+        expected_repr = "<Target(name='Test Target', scope='domain', value='example.com')>"
         assert repr(target) == expected_repr
 
     @pytest.mark.asyncio

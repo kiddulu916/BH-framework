@@ -1,67 +1,129 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useImperativeHandle, useEffect } from 'react';
 import { useTargetFormStore } from '@/lib/state/targetFormStore';
-import Select from '@/components/atoms/Select';
 import Input from '@/components/atoms/Input';
+import Select from '@/components/atoms/Select';
+import ValidationError from '@/components/atoms/ValidationError';
+import { validateProgramDetails, getFieldErrors, ValidationError as ValidationErrorType } from '@/lib/utils/validation';
 import { BugBountyPlatform } from '@/types/target';
+import { StepRef } from './BasicInfoStep';
 
-export default function ProgramDetailsStep() {
-  const { formData, updateFormData } = useTargetFormStore();
-  const [platform, setPlatform] = useState(formData.platform || BugBountyPlatform.HACKERONE);
-  const [platformEmail, setPlatformEmail] = useState(formData.platform_email || '');
+export default function ProgramDetailsStep({ stepRef }: { stepRef: React.RefObject<StepRef | null> }) {
+  const { formData, updateFormData, setValidationErrors } = useTargetFormStore();
+  const [platform, setPlatform] = useState<BugBountyPlatform>(formData.platform || BugBountyPlatform.HACKERONE);
+  const [loginEmail, setLoginEmail] = useState(formData.login_email || '');
   const [researcherEmail, setResearcherEmail] = useState(formData.researcher_email || '');
+  const [validationErrors, setLocalValidationErrors] = useState<ValidationErrorType[]>([]);
+  const [touched, setTouched] = useState<{ loginEmail: boolean; researcherEmail: boolean }>({ loginEmail: false, researcherEmail: false });
 
-  const platformOptions = [
-    { value: BugBountyPlatform.HACKERONE, label: 'HackerOne' },
-    { value: BugBountyPlatform.BUGCROWD, label: 'Bugcrowd' },
-    { value: BugBountyPlatform.CUSTOM, label: 'Custom/Private Program' },
-  ];
+  // Real-time validation
+  useEffect(() => {
+    const validation = validateProgramDetails({ 
+      login_email: loginEmail, 
+      researcher_email: researcherEmail 
+    });
+    if (!validation.isValid) {
+      setLocalValidationErrors(validation.errors);
+      setValidationErrors(validation.errors);
+    } else {
+      setLocalValidationErrors([]);
+      setValidationErrors([]);
+    }
+  }, [loginEmail, researcherEmail, setValidationErrors]);
 
-  const handleSave = () => {
-    updateFormData({ platform, platform_email: platformEmail, researcher_email: researcherEmail });
-    alert('Step 2 data saved!');
+  const handlePlatformChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value as BugBountyPlatform;
+    setPlatform(value);
+    updateFormData({ platform: value });
   };
+
+  const handleLoginEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLoginEmail(value);
+    updateFormData({ login_email: value });
+    setTouched((prev) => ({ ...prev, loginEmail: true }));
+  };
+
+  const handleResearcherEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setResearcherEmail(value);
+    updateFormData({ researcher_email: value });
+    setTouched((prev) => ({ ...prev, researcherEmail: true }));
+  };
+
+  useImperativeHandle(stepRef, () => ({
+    handleSave: () => {
+      const validation = validateProgramDetails({ 
+        login_email: loginEmail, 
+        researcher_email: researcherEmail 
+      });
+      if (validation.isValid) {
+        updateFormData({ platform, login_email: loginEmail, researcher_email: researcherEmail });
+        alert('Step 2 data saved!');
+      } else {
+        setLocalValidationErrors(validation.errors);
+        alert('Please fix validation errors before saving.');
+      }
+    },
+    validate: () => {
+      const validation = validateProgramDetails({ 
+        login_email: loginEmail, 
+        researcher_email: researcherEmail 
+      });
+      return validation.isValid;
+    },
+  }));
 
   return (
     <div>
-      <h3 className="text-4xl font-bold text-white text-center mb-8">Bug Bounty Program Details</h3>
+      <h3 className="text-4xl font-bold text-white text-center mb-8">Program Details</h3>
+      
       <div className="mb-6">
+        <label className="block text-gray-200 text-sm font-medium mb-2">Bug Bounty Platform</label>
         <Select
-          label="Platform:"
-          options={platformOptions}
+          label=""
           value={platform}
-          onChange={(e) => setPlatform(e.target.value as BugBountyPlatform)}
+          onChange={handlePlatformChange}
+          options={[
+            { value: BugBountyPlatform.HACKERONE, label: 'HackerOne' },
+            { value: BugBountyPlatform.BUGCROWD, label: 'Bugcrowd' },
+            { value: BugBountyPlatform.INTIGRITI, label: 'Intigriti' },
+            { value: BugBountyPlatform.YESWEHACK, label: 'YesWeHack' },
+            { value: BugBountyPlatform.CUSTOM, label: 'Custom' },
+          ]}
         />
       </div>
+
       <div className="mb-6">
+        <label className="block text-gray-200 text-sm font-medium mb-2">Login Email</label>
         <Input
-          label="Login Email:"
-          type="email"
-          placeholder="login@example.com"
-          value={platformEmail}
-          onChange={(e) => setPlatformEmail(e.target.value)}
-          title="Email you use to login for report generation"
+          label=""
+          placeholder="Enter your login email for the platform"
+          value={loginEmail}
+          onChange={handleLoginEmailChange}
+          title="Email address used to log into the bug bounty platform"
+          onBlur={() => setTouched((prev) => ({ ...prev, loginEmail: true }))}
         />
+        {touched.loginEmail && (
+          <ValidationError errors={getFieldErrors(validationErrors, 'login_email')} />
+        )}
       </div>
+
       <div className="mb-6">
+        <label className="block text-gray-200 text-sm font-medium mb-2">Researcher Email</label>
         <Input
-          label="Researcher Email:"
-          type="email"
-          placeholder="researcher@example.com"
+          label=""
+          placeholder="Enter your researcher email"
           value={researcherEmail}
-          onChange={(e) => setResearcherEmail(e.target.value)}
-          title="Email provided by the platform for research purposes"
+          onChange={handleResearcherEmailChange}
+          title="Email address associated with your researcher profile"
+          onBlur={() => setTouched((prev) => ({ ...prev, researcherEmail: true }))}
         />
-      </div>
-      <div className="text-center">
-        <button
-          onClick={handleSave}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium shadow hover:bg-blue-700 transition"
-        >
-          Save Step Data
-        </button>
+        {touched.researcherEmail && (
+          <ValidationError errors={getFieldErrors(validationErrors, 'researcher_email')} />
+        )}
       </div>
     </div>
   );
-}; 
+} 

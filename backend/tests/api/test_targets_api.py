@@ -79,7 +79,7 @@ class TestTargetsAPI:
         assert data["data"]["id"] == str(sample_target.id)
         assert data["data"]["value"] == sample_target.value
         assert data["data"]["scope_config"] == sample_target.scope_config
-        assert data["data"]["scope"] == sample_target.scope.value  # Compare to Enum value
+        assert data["data"]["scope"] == sample_target.scope.value
         assert data["data"]["name"] == sample_target.name
     
     @pytest.mark.asyncio

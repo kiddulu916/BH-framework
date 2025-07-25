@@ -19,27 +19,27 @@ import enum
 
 class TargetScope(enum.Enum):
     """Enumeration for target scope types."""
-    DOMAIN = "domain"
-    IP_RANGE = "ip_range"
-    SUBNET = "subnet"
-    WILDCARD = "wildcard"
+    DOMAIN = "DOMAIN"
+    IP_RANGE = "IP_RANGE"
+    SUBNET = "SUBNET"
+    WILDCARD = "WILDCARD"
 
 
 class TargetStatus(enum.Enum):
     """Enumeration for target status."""
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    ARCHIVED = "archived"
-    BLACKLISTED = "blacklisted"
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    ARCHIVED = "ARCHIVED"
+    BLACKLISTED = "BLACKLISTED"
 
 
 class BugBountyPlatform(enum.Enum):
     """Enumeration for bug bounty platforms."""
-    HACKERONE = "hackerone"
-    BUGCROWD = "bugcrowd"
-    INTIGRITI = "intigriti"
-    YESWEHACK = "yeswehack"
-    CUSTOM = "custom"
+    HACKERONE = "HACKERONE"
+    BUGCROWD = "BUGCROWD"
+    INTIGRITI = "INTIGRITI"
+    YESWEHACK = "YESWEHACK"
+    CUSTOM = "CUSTOM"
 
 
 class Target(BaseModel):

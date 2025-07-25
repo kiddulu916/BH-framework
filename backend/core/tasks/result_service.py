@@ -805,14 +805,65 @@ class ResultService:
             target_id, page=page, per_page=per_page, severity=severity
         )
         
+        response_data = []
+        for vuln_result in results:
+            findings_data = []
+            for finding in vuln_result.findings:
+                finding_data = {
+                    'id': finding.id,
+                    'target_id': target_id,
+                    'vulnerability_id': finding.vulnerability_id,
+                    'title': finding.title,
+                    'description': finding.description or '',
+                    'severity': finding.severity.value.lower(),
+                    'status': finding.status.value.lower(),
+                    'vulnerability_type': finding.vuln_type.value.lower(),
+                    'tool': finding.detection_tool or 'custom',
+                    'host': finding.affected_host or '',
+                    'port': finding.affected_port,
+                    'url': finding.affected_url,
+                    'parameter': None,
+                    'payload': finding.proof_of_concept,
+                    'evidence': finding.proof_of_concept,
+                    'cve_id': finding.cve_id,
+                    'cvss_score': finding.cvss_score,
+                    'cvss_vector': finding.cvss_vector,
+                    'references': finding.references or [],
+                    'tags': finding.tags or [],
+                    'metadata': {},
+                    'created_at': finding.created_at,
+                    'updated_at': finding.updated_at,
+                }
+                findings_data.append(finding_data)
+            
+            response_data.append({
+                'id': vuln_result.id,
+                'target_id': vuln_result.target_id,
+                'execution_id': vuln_result.execution_id,
+                'tools_used': vuln_result.tools_used or [],
+                'findings': findings_data,
+                'total_findings': vuln_result.total_findings,
+                'critical_count': vuln_result.critical_findings,
+                'high_count': vuln_result.high_findings,
+                'medium_count': vuln_result.medium_findings,
+                'low_count': vuln_result.low_findings,
+                'info_count': vuln_result.info_findings,
+                'execution_time': vuln_result.execution_time,
+                'scan_config': vuln_result.configuration or {},
+                'raw_output': vuln_result.raw_output or {},
+                'metadata': vuln_result.metadata or {},
+                'created_at': vuln_result.created_at,
+                'updated_at': vuln_result.updated_at,
+            })
+
         return {
-            "findings": [VulnerabilityResponse.model_validate(result, from_attributes=True) for result in results],
+            "findings": response_data,
             "pagination": {
                 "page": page,
                 "per_page": per_page,
                 "total": total,
-                "pages": (total + per_page - 1) // per_page
-            }
+                "pages": (total + per_page - 1) // per_page,
+            },
         }
     
     async def get_kill_chain_results(
