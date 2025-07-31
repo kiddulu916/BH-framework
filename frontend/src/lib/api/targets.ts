@@ -1,14 +1,12 @@
 import axios from 'axios';
-import { TargetCreateRequest, TargetScope, RateLimitConfig, TargetFilters, BugBountyPlatform, CustomHeader } from '@/types/target';
-
+import { TargetCreateRequest, TargetFilters, BugBountyPlatform, CustomHeader } from '@/types/target';
 // Interface for form data that includes legacy fields for backward compatibility
 interface TargetFormData {
   // Basic target information
-  name?: string;
+  id?: string;
   target?: string; // Legacy field
   domain?: string; // Legacy field
   is_primary?: boolean;
-  user_id?: string;
   
   // Bug Bounty Program Information
   platform?: BugBountyPlatform;
@@ -22,7 +20,6 @@ interface TargetFormData {
   notes?: string[];
   
   // Rate Limiting Configuration
-  rate_limits?: RateLimitConfig;
   rate_limit_requests?: number; // Legacy field
   rate_limit_seconds?: number; // Legacy field
   
@@ -32,55 +29,62 @@ interface TargetFormData {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+function getAuthHeaders() {
+  // Try from env for server-side calls
+  const envToken = process.env.NEXT_PUBLIC_JWT_TOKEN;
+  let token = envToken;
+
+  if (typeof window !== 'undefined') {
+    // Client-side: prefer localStorage first
+    token = localStorage.getItem('BACKEND_JWT_TOKEN') || envToken || '';
+    // Fallback to cookie if present
+    if (!token) {
+      const match = document.cookie.match(/(?:^|; )BACKEND_JWT_TOKEN=([^;]*)/);
+      token = match ? decodeURIComponent(match[1]) : '';
+    }
+  }
+
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export const createTarget = async (formData: TargetFormData) => {
-  // Transform frontend data to backend schema
+  // Send data directly as the backend schema now supports frontend field names
   const backendData: TargetCreateRequest = {
     // Basic target information
-    name: formData.target || formData.name || '',
-    scope: TargetScope.DOMAIN, // Defaulting to DOMAIN as per previous implementation
-    domain: formData.domain || '',
+    id: crypto.randomUUID(),
+    target: formData.target,
+    domain: formData.domain,
     is_primary: formData.is_primary || false,
-    user_id: formData.user_id,
+    
     // Bug Bounty Program Information
     platform: formData.platform,
     login_email: formData.login_email,
     researcher_email: formData.researcher_email,
+    
     // Scope Configuration
-    in_scope: (Array.isArray(formData.in_scope)
-      ? formData.in_scope
-      : formData.in_scope
-        ? [formData.in_scope]
-        : []) as string[],
-    out_of_scope: (Array.isArray(formData.out_of_scope)
-      ? formData.out_of_scope
-      : formData.out_of_scope
-        ? [formData.out_of_scope]
-        : []) as string[],
-    custom_headers: (Array.isArray(formData.custom_headers)
-      ? formData.custom_headers
-      : formData.custom_headers
-        ? [formData.custom_headers]
-        : []) as CustomHeader[],
-    additional_info: (Array.isArray(formData.additional_info)
-      ? formData.additional_info
-      : formData.additional_info
-        ? [formData.additional_info]
-        : []) as string[],
-    notes: (Array.isArray(formData.notes)
-      ? formData.notes
-      : formData.notes
-        ? [formData.notes]
-        : []) as string[],
+    in_scope: Array.isArray(formData.in_scope) ? formData.in_scope : formData.in_scope ? [formData.in_scope] : [],
+    out_of_scope: Array.isArray(formData.out_of_scope) ? formData.out_of_scope : formData.out_of_scope ? [formData.out_of_scope] : [],
+    
+    // Custom Headers
+    custom_headers: Array.isArray(formData.custom_headers) ? formData.custom_headers : formData.custom_headers ? [formData.custom_headers] : [],
+    
+    // Additional Configuration
+    additional_info: Array.isArray(formData.additional_info) ? formData.additional_info : formData.additional_info ? [formData.additional_info] : [],
+    notes: Array.isArray(formData.notes) ? formData.notes : formData.notes ? [formData.notes] : [],
+    
     // Rate Limiting Configuration
-    rate_limits: {
-      requests_per_second: formData.rate_limits?.requests_per_second ?? 0,
-      requests_per_minute: formData.rate_limits?.requests_per_minute ?? 0,
-      requests_per_hour: formData.rate_limits?.requests_per_hour ?? 0,
-    },
+    rate_limit_requests: formData.rate_limit_requests,
+    rate_limit_seconds: formData.rate_limit_seconds,
   };
 
   try {
-    const response = await axios.post(`${API_URL}/api/targets/`, backendData);
+    const response = await axios.post(`${API_URL}/api/targets/`, backendData, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error('Failed to create target:', error);

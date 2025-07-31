@@ -7,9 +7,13 @@ organized by domain and functionality.
 
 from .base import BaseModel
 from .target import Target
-from .user import User
 from .workflow import Workflow, WorkflowExecution
-from .passive_recon import PassiveReconResult, Subdomain
+from .passive_recon import (
+    PassiveReconResult, Subdomain, ReconCategory,
+    WHOISRecord, CertificateLog, RepositoryFinding,
+    SearchDorkResult, BreachRecord, InfrastructureExposure,
+    ArchiveFinding, SocialMediaIntel, CloudAsset
+)
 from .active_recon import ActiveReconResult, Port, Service
 from .vulnerability import Vulnerability, VulnerabilityFinding
 from .kill_chain import KillChain, AttackPath
@@ -21,13 +25,22 @@ __all__ = [
     
     # Core Domain
     'Target',
-    'User',
     'Workflow',
     'WorkflowExecution',
     
     # Stage Results
     'PassiveReconResult',
     'Subdomain',
+    'ReconCategory',
+    'WHOISRecord',
+    'CertificateLog',
+    'RepositoryFinding',
+    'SearchDorkResult',
+    'BreachRecord',
+    'InfrastructureExposure',
+    'ArchiveFinding',
+    'SocialMediaIntel',
+    'CloudAsset',
     'ActiveReconResult',
     'Port',
     'Service',

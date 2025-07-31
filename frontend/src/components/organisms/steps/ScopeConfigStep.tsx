@@ -8,9 +8,8 @@ import {
   validateScopeConfig, 
   getFieldErrors, 
   ValidationError as ValidationErrorType,
-  sanitizeUrl,
   validateScopeUrl
-} from '@/lib/utils/validation';
+} from '@/lib/validation';
 import { Plus, X, HelpCircle } from 'lucide-react';
 import { StepRef } from './BasicInfoStep';
 import { AlertCircle } from 'lucide-react';
@@ -42,7 +41,7 @@ export default function ScopeConfigStep({ stepRef }: { stepRef: React.RefObject<
 
   const handleInScopeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    const sanitizedValue = sanitizeUrl(rawValue);
+    const sanitizedValue = rawValue; // No longer using sanitizeUrl
     setNewInScope(sanitizedValue);
     
     // Validate input field
@@ -59,7 +58,7 @@ export default function ScopeConfigStep({ stepRef }: { stepRef: React.RefObject<
 
   const handleOutOfScopeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    const sanitizedValue = sanitizeUrl(rawValue);
+    const sanitizedValue = rawValue; // No longer using sanitizeUrl
     setNewOutOfScope(sanitizedValue);
     
     // Validate input field

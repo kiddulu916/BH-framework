@@ -18,6 +18,18 @@ from runners.run_linkfinder import run_linkfinder
 from runners.run_arjun import run_arjun
 from runners.run_eyewitness import run_eyewitness
 from runners.run_eyeballer import run_eyeballer
+
+# Enhanced Active Recon Tools
+from runners.run_enhanced_subdomain_enum import run_enhanced_subdomain_enumeration
+from runners.run_waf_cdn_detection import run_waf_cdn_detection
+from runners.run_cloud_infrastructure import run_cloud_infrastructure_enumeration
+from runners.run_input_vectors_discovery import run_input_vectors_discovery
+from runners.run_dynamic_analysis import run_dynamic_analysis
+from runners.run_misconfiguration_detection import run_misconfiguration_detection
+
+# Recursive Reconnaissance
+from runners.run_recursive_recon import run_recursive_reconnaissance
+
 from runners.utils import save_raw_to_db, save_parsed_to_db
 
 def setup_output_dirs(stage: str, target: str):
@@ -47,6 +59,23 @@ def setup_output_dirs(stage: str, target: str):
         os.path.join(output_dir, "enumeration", "scrapped_files"),
         os.path.join(output_dir, "enumeration", "endpoints"),
         os.path.join(output_dir, "enumeration", "endpoint-json"),
+        
+        # Enhanced Active Recon Directories
+        os.path.join(output_dir, "enumeration", "enhanced_subdomains"),
+        os.path.join(output_dir, "enumeration", "waf_cdn"),
+        os.path.join(output_dir, "enumeration", "cloud_infrastructure"),
+        os.path.join(output_dir, "enumeration", "input_vectors"),
+        os.path.join(output_dir, "enumeration", "dynamic_analysis"),
+        os.path.join(output_dir, "enumeration", "misconfigurations"),
+        os.path.join(output_dir, "enumeration", "takeover_checks"),
+        os.path.join(output_dir, "enumeration", "third_party_services"),
+        os.path.join(output_dir, "enumeration", "origin_servers"),
+        os.path.join(output_dir, "enumeration", "security_headers"),
+        os.path.join(output_dir, "enumeration", "tls_analysis"),
+        os.path.join(output_dir, "enumeration", "exposed_files"),
+        os.path.join(output_dir, "enumeration", "default_credentials"),
+        os.path.join(output_dir, "enumeration", "directory_listings"),
+        os.path.join(output_dir, "enumeration", "unnecessary_services"),
     ]
     
     for dir_path in enumeration_dirs:
@@ -70,6 +99,33 @@ def get_target_id_by_domain(domain: str, targets_api_url: str, jwt_token: str) -
         return None
     except Exception as e:
         print(f"[WARNING] Failed to get target ID for domain {domain}: {e}")
+        return None
+
+
+def get_target_domain_by_id(target_id: str, targets_api_url: str, jwt_token: str) -> Optional[str]:
+    """
+    Get the domain for a given target ID from the database.
+    
+    Args:
+        target_id: Target ID
+        targets_api_url: Backend API URL for targets
+        jwt_token: JWT token for authentication
+        
+    Returns:
+        Domain if found, None otherwise
+    """
+    try:
+        headers = {"Authorization": f"Bearer {jwt_token}"} if jwt_token else {}
+        response = requests.get(f"{targets_api_url}{target_id}/", headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        
+        if data.get("success") and data.get("data"):
+            target = data["data"]
+            return target.get("value")
+        return None
+    except Exception as e:
+        print(f"[ERROR] Failed to get domain for target ID {target_id}: {e}")
         return None
 
 def get_passive_recon_results(target_id: str, api_url: str, jwt_token: str) -> List[str]:
@@ -152,6 +208,8 @@ def main():
     parser.add_argument("--stage", default="active_recon", help="Stage name (default: active_recon)")
     parser.add_argument("--no-proxy-capture", action="store_true", help="Disable proxy traffic capture (enabled by default)")
     parser.add_argument("--capture-duration", type=int, default=0, help="Proxy capture duration in seconds (default: 0 = never ending)")
+    parser.add_argument("--enable-recursive", action="store_true", help="Enable recursive reconnaissance on discovered subdomains")
+    parser.add_argument("--max-concurrent-subtargets", type=int, default=3, help="Maximum concurrent subtarget scans (default: 3)")
     args = parser.parse_args()
 
     # Load API URL and JWT token from environment
@@ -161,6 +219,28 @@ def main():
     targets_api_url = os.environ.get("TARGETS_API_URL", "http://backend:8000/api/targets/")
     passive_api_url = os.environ.get("PASSIVE_API_URL", "http://backend:8000/api/results/passive-recon")
     active_api_url = os.environ.get("ACTIVE_API_URL", "http://backend:8000/api/results/active-recon")
+    
+    # Check for target_id from environment variable (from API)
+    target_id = os.environ.get("TARGET_ID")
+    if target_id:
+        print(f"[INFO] Using target ID from environment: {target_id}")
+        # Get domain from target ID
+        target_domain = get_target_domain_by_id(target_id, targets_api_url, jwt_token)
+        if target_domain:
+            args.target = target_domain
+            print(f"[INFO] Resolved target domain: {args.target}")
+        else:
+            print(f"[ERROR] Could not get domain for target ID: {target_id}")
+            exit(1)
+    
+    # Check for recursive options from environment variables
+    enable_recursive = os.environ.get("OPTION_ENABLE_RECURSIVE", "").lower() == "true"
+    max_concurrent_subtargets = int(os.environ.get("OPTION_MAX_CONCURRENT_SUBTARGETS", "3"))
+    
+    if enable_recursive:
+        args.enable_recursive = True
+        args.max_concurrent_subtargets = max_concurrent_subtargets
+        print(f"[INFO] Recursive recon enabled from environment: max {max_concurrent_subtargets} concurrent subtargets")
     
     # Fix API URLs to use correct endpoints
     raw_api_url = f"{results_api_url}/active-recon/raw"  # For raw file uploads
@@ -755,6 +835,235 @@ def main():
         print("[WARNING] No screenshots available for EyeBaller analysis")
         summary["eyeballer"] = {"runner": False, "error": "No screenshots available"}
 
+    # Enhanced Active Recon Tools Execution
+    
+    # Step 9: Enhanced Subdomain Enumeration
+    print(f"[INFO] Starting enhanced subdomain enumeration")
+    try:
+        enhanced_subdomain_raw_path = os.path.join(raw_dir, "enhanced_subdomain_enum.txt")
+        enhanced_subdomain_results = run_enhanced_subdomain_enumeration(args.target, passive_results, enhanced_subdomain_raw_path)
+        if enhanced_subdomain_results.get("success"):
+            save_json(enhanced_subdomain_results, os.path.join(parsed_dir, "enhanced_subdomain_results.json"))
+            all_results["enhanced_subdomain_enum"] = enhanced_subdomain_results
+            
+            # Save takeover checks
+            if enhanced_subdomain_results.get("results", {}).get("takeover_checks", {}).get("results"):
+                takeover_file = os.path.join(output_dir, "enumeration", "takeover_checks", "takeover_checks.json")
+                with open(takeover_file, 'w') as f:
+                    json.dump(enhanced_subdomain_results["results"]["takeover_checks"]["results"], f, indent=2)
+            
+            # Save third-party services
+            if enhanced_subdomain_results.get("results", {}).get("third_party_services", {}).get("services_found"):
+                third_party_file = os.path.join(output_dir, "enumeration", "third_party_services", "third_party_services.json")
+                with open(third_party_file, 'w') as f:
+                    json.dump(enhanced_subdomain_results["results"]["third_party_services"]["services_found"], f, indent=2)
+            
+            raw_ok = save_raw_to_db("enhanced_subdomain_enum", args.target, enhanced_subdomain_raw_path, raw_api_url, jwt_token)
+            parsed_ok = save_parsed_to_db("enhanced_subdomain_enum", args.target, enhanced_subdomain_results, parsed_api_url, jwt_token)
+            summary["enhanced_subdomain_enum"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+            
+            print(f"[INFO] Enhanced subdomain enumeration completed successfully")
+            print(f"  - Total unique subdomains: {enhanced_subdomain_results.get('summary', {}).get('total_unique_subdomains', 0)}")
+            print(f"  - Takeover vulnerabilities: {enhanced_subdomain_results.get('summary', {}).get('takeover_vulnerabilities', 0)}")
+            print(f"  - Third-party services: {enhanced_subdomain_results.get('summary', {}).get('third_party_services', 0)}")
+        else:
+            print(f"[ERROR] Enhanced subdomain enumeration failed: {enhanced_subdomain_results.get('error', 'Unknown error')}")
+            summary["enhanced_subdomain_enum"] = {"runner": False, "error": enhanced_subdomain_results.get('error', 'Unknown error')}
+    except Exception as e:
+        print(f"[ERROR] Enhanced subdomain enumeration runner failed: {e}")
+        summary["enhanced_subdomain_enum"] = {"runner": False, "error": str(e)}
+
+    # Step 10: WAF and CDN Detection
+    print(f"[INFO] Starting WAF and CDN detection")
+    try:
+        waf_cdn_raw_path = os.path.join(raw_dir, "waf_cdn_detection.txt")
+        waf_cdn_results = run_waf_cdn_detection(args.target, waf_cdn_raw_path)
+        if waf_cdn_results.get("success"):
+            save_json(waf_cdn_results, os.path.join(parsed_dir, "waf_cdn_results.json"))
+            all_results["waf_cdn_detection"] = waf_cdn_results
+            
+            # Save origin servers
+            if waf_cdn_results.get("results", {}).get("origin_discovery", {}).get("origin_ips"):
+                origin_file = os.path.join(output_dir, "enumeration", "origin_servers", "origin_servers.json")
+                with open(origin_file, 'w') as f:
+                    json.dump(waf_cdn_results["results"]["origin_discovery"]["origin_ips"], f, indent=2)
+            
+            # Save security headers
+            if waf_cdn_results.get("results", {}).get("security_headers", {}).get("security_headers"):
+                headers_file = os.path.join(output_dir, "enumeration", "security_headers", "security_headers.json")
+                with open(headers_file, 'w') as f:
+                    json.dump(waf_cdn_results["results"]["security_headers"]["security_headers"], f, indent=2)
+            
+            raw_ok = save_raw_to_db("waf_cdn_detection", args.target, waf_cdn_raw_path, raw_api_url, jwt_token)
+            parsed_ok = save_parsed_to_db("waf_cdn_detection", args.target, waf_cdn_results, parsed_api_url, jwt_token)
+            summary["waf_cdn_detection"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+            
+            print(f"[INFO] WAF and CDN detection completed successfully")
+            print(f"  - WAF detected: {waf_cdn_results.get('summary', {}).get('waf_detected', False)}")
+            print(f"  - CDN detected: {waf_cdn_results.get('summary', {}).get('cdn_detected', False)}")
+            print(f"  - Origin IPs found: {waf_cdn_results.get('summary', {}).get('origin_ips_found', 0)}")
+        else:
+            print(f"[ERROR] WAF and CDN detection failed: {waf_cdn_results.get('error', 'Unknown error')}")
+            summary["waf_cdn_detection"] = {"runner": False, "error": waf_cdn_results.get('error', 'Unknown error')}
+    except Exception as e:
+        print(f"[ERROR] WAF and CDN detection runner failed: {e}")
+        summary["waf_cdn_detection"] = {"runner": False, "error": str(e)}
+
+    # Step 11: Cloud Infrastructure Enumeration
+    print(f"[INFO] Starting cloud infrastructure enumeration")
+    try:
+        cloud_raw_path = os.path.join(raw_dir, "cloud_infrastructure.txt")
+        cloud_results = run_cloud_infrastructure_enumeration(args.target, cloud_raw_path)
+        if cloud_results.get("success"):
+            save_json(cloud_results, os.path.join(parsed_dir, "cloud_infrastructure_results.json"))
+            all_results["cloud_infrastructure"] = cloud_results
+            
+            # Save cloud findings
+            cloud_file = os.path.join(output_dir, "enumeration", "cloud_infrastructure", "cloud_findings.json")
+            with open(cloud_file, 'w') as f:
+                json.dump(cloud_results["results"], f, indent=2)
+            
+            raw_ok = save_raw_to_db("cloud_infrastructure", args.target, cloud_raw_path, raw_api_url, jwt_token)
+            parsed_ok = save_parsed_to_db("cloud_infrastructure", args.target, cloud_results, parsed_api_url, jwt_token)
+            summary["cloud_infrastructure"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+            
+            print(f"[INFO] Cloud infrastructure enumeration completed successfully")
+            print(f"  - S3 buckets found: {cloud_results.get('summary', {}).get('s3_buckets_found', 0)}")
+            print(f"  - Azure containers found: {cloud_results.get('summary', {}).get('azure_containers_found', 0)}")
+            print(f"  - GCP buckets found: {cloud_results.get('summary', {}).get('gcp_buckets_found', 0)}")
+        else:
+            print(f"[ERROR] Cloud infrastructure enumeration failed: {cloud_results.get('error', 'Unknown error')}")
+            summary["cloud_infrastructure"] = {"runner": False, "error": cloud_results.get('error', 'Unknown error')}
+    except Exception as e:
+        print(f"[ERROR] Cloud infrastructure enumeration runner failed: {e}")
+        summary["cloud_infrastructure"] = {"runner": False, "error": str(e)}
+
+    # Step 12: Input Vectors Discovery
+    print(f"[INFO] Starting input vectors discovery")
+    try:
+        # Collect all discovered endpoints for input vectors analysis
+        all_endpoints = []
+        if "katana" in all_results and all_results["katana"].get("success"):
+            for url_data in all_results["katana"].get("urls_found", []):
+                all_endpoints.append(url_data.get("url", ""))
+        if "feroxbuster" in all_results and all_results["feroxbuster"].get("success"):
+            for url_data in all_results["feroxbuster"].get("urls_found", []):
+                all_endpoints.append(url_data.get("url", ""))
+        
+        if all_endpoints:
+            input_vectors_raw_path = os.path.join(raw_dir, "input_vectors_discovery.txt")
+            input_vectors_results = run_input_vectors_discovery(args.target, all_endpoints, input_vectors_raw_path)
+            if input_vectors_results.get("success"):
+                save_json(input_vectors_results, os.path.join(parsed_dir, "input_vectors_results.json"))
+                all_results["input_vectors_discovery"] = input_vectors_results
+                
+                # Save input vectors findings
+                input_vectors_file = os.path.join(output_dir, "enumeration", "input_vectors", "input_vectors.json")
+                with open(input_vectors_file, 'w') as f:
+                    json.dump(input_vectors_results["results"], f, indent=2)
+                
+                raw_ok = save_raw_to_db("input_vectors_discovery", args.target, input_vectors_raw_path, raw_api_url, jwt_token)
+                parsed_ok = save_parsed_to_db("input_vectors_discovery", args.target, input_vectors_results, parsed_api_url, jwt_token)
+                summary["input_vectors_discovery"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+                
+                print(f"[INFO] Input vectors discovery completed successfully")
+                print(f"  - HTTP header inputs: {input_vectors_results.get('summary', {}).get('http_header_inputs', 0)}")
+                print(f"  - JSON endpoints: {input_vectors_results.get('summary', {}).get('json_endpoints', 0)}")
+                print(f"  - Upload endpoints: {input_vectors_results.get('summary', {}).get('upload_endpoints', 0)}")
+            else:
+                print(f"[ERROR] Input vectors discovery failed: {input_vectors_results.get('error', 'Unknown error')}")
+                summary["input_vectors_discovery"] = {"runner": False, "error": input_vectors_results.get('error', 'Unknown error')}
+        else:
+            print("[WARNING] No endpoints found for input vectors discovery")
+            summary["input_vectors_discovery"] = {"runner": False, "error": "No endpoints available"}
+    except Exception as e:
+        print(f"[ERROR] Input vectors discovery runner failed: {e}")
+        summary["input_vectors_discovery"] = {"runner": False, "error": str(e)}
+
+    # Step 13: Dynamic Analysis
+    print(f"[INFO] Starting dynamic analysis")
+    try:
+        # Collect JavaScript files for dynamic analysis
+        js_files = []
+        if "getjs" in all_results and all_results["getjs"].get("success"):
+            for js_file_info in all_results["getjs"].get("js_files_found", []):
+                js_files.append(js_file_info.get("file_path", ""))
+        
+        if js_files:
+            dynamic_raw_path = os.path.join(raw_dir, "dynamic_analysis.txt")
+            dynamic_results = run_dynamic_analysis(args.target, js_files, dynamic_raw_path)
+            if dynamic_results.get("success"):
+                save_json(dynamic_results, os.path.join(parsed_dir, "dynamic_analysis_results.json"))
+                all_results["dynamic_analysis"] = dynamic_results
+                
+                # Save dynamic analysis findings
+                dynamic_file = os.path.join(output_dir, "enumeration", "dynamic_analysis", "dynamic_findings.json")
+                with open(dynamic_file, 'w') as f:
+                    json.dump(dynamic_results["results"], f, indent=2)
+                
+                raw_ok = save_raw_to_db("dynamic_analysis", args.target, dynamic_raw_path, raw_api_url, jwt_token)
+                parsed_ok = save_parsed_to_db("dynamic_analysis", args.target, dynamic_results, parsed_api_url, jwt_token)
+                summary["dynamic_analysis"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+                
+                print(f"[INFO] Dynamic analysis completed successfully")
+                print(f"  - URLs found: {dynamic_results.get('summary', {}).get('urls_found', 0)}")
+                print(f"  - SPA indicators: {dynamic_results.get('summary', {}).get('spa_indicators', 0)}")
+                print(f"  - Dynamic forms: {dynamic_results.get('summary', {}).get('dynamic_forms', 0)}")
+            else:
+                print(f"[ERROR] Dynamic analysis failed: {dynamic_results.get('error', 'Unknown error')}")
+                summary["dynamic_analysis"] = {"runner": False, "error": dynamic_results.get('error', 'Unknown error')}
+        else:
+            print("[WARNING] No JavaScript files found for dynamic analysis")
+            summary["dynamic_analysis"] = {"runner": False, "error": "No JavaScript files available"}
+    except Exception as e:
+        print(f"[ERROR] Dynamic analysis runner failed: {e}")
+        summary["dynamic_analysis"] = {"runner": False, "error": str(e)}
+
+    # Step 14: Misconfiguration Detection
+    print(f"[INFO] Starting misconfiguration detection")
+    try:
+        misconfig_raw_path = os.path.join(raw_dir, "misconfiguration_detection.txt")
+        misconfig_results = run_misconfiguration_detection(args.target, misconfig_raw_path)
+        if misconfig_results.get("success"):
+            save_json(misconfig_results, os.path.join(parsed_dir, "misconfiguration_results.json"))
+            all_results["misconfiguration_detection"] = misconfig_results
+            
+            # Save misconfiguration findings
+            misconfig_file = os.path.join(output_dir, "enumeration", "misconfigurations", "misconfigurations.json")
+            with open(misconfig_file, 'w') as f:
+                json.dump(misconfig_results["results"], f, indent=2)
+            
+            # Save specific findings to separate files
+            if misconfig_results.get("results", {}).get("exposed_files", {}).get("exposed_files"):
+                exposed_files_file = os.path.join(output_dir, "enumeration", "exposed_files", "exposed_files.json")
+                with open(exposed_files_file, 'w') as f:
+                    json.dump(misconfig_results["results"]["exposed_files"]["exposed_files"], f, indent=2)
+            
+            if misconfig_results.get("results", {}).get("default_credentials", {}).get("successful_logins"):
+                default_creds_file = os.path.join(output_dir, "enumeration", "default_credentials", "default_credentials.json")
+                with open(default_creds_file, 'w') as f:
+                    json.dump(misconfig_results["results"]["default_credentials"]["successful_logins"], f, indent=2)
+            
+            if misconfig_results.get("results", {}).get("directory_listings", {}).get("directory_listings"):
+                dir_listings_file = os.path.join(output_dir, "enumeration", "directory_listings", "directory_listings.json")
+                with open(dir_listings_file, 'w') as f:
+                    json.dump(misconfig_results["results"]["directory_listings"]["directory_listings"], f, indent=2)
+            
+            raw_ok = save_raw_to_db("misconfiguration_detection", args.target, misconfig_raw_path, raw_api_url, jwt_token)
+            parsed_ok = save_parsed_to_db("misconfiguration_detection", args.target, misconfig_results, parsed_api_url, jwt_token)
+            summary["misconfiguration_detection"] = {"runner": True, "raw_api": raw_ok, "parsed_api": parsed_ok}
+            
+            print(f"[INFO] Misconfiguration detection completed successfully")
+            print(f"  - Exposed files: {misconfig_results.get('summary', {}).get('exposed_files', 0)}")
+            print(f"  - Default credentials: {misconfig_results.get('summary', {}).get('default_credentials', 0)}")
+            print(f"  - Directory listings: {misconfig_results.get('summary', {}).get('directory_listings', 0)}")
+        else:
+            print(f"[ERROR] Misconfiguration detection failed: {misconfig_results.get('error', 'Unknown error')}")
+            summary["misconfiguration_detection"] = {"runner": False, "error": misconfig_results.get('error', 'Unknown error')}
+    except Exception as e:
+        print(f"[ERROR] Misconfiguration detection runner failed: {e}")
+        summary["misconfiguration_detection"] = {"runner": False, "error": str(e)}
+
     # Final Step: Directory Structure & API Integration
     print(f"[INFO] Organizing outputs and preparing final results")
     
@@ -778,6 +1087,26 @@ def main():
     total_screenshots = len(all_results.get("eyewitness", {}).get("screenshots", []))
     total_interesting_findings = len(all_results.get("eyeballer", {}).get("interesting_findings", []))
     
+    # Enhanced Active Recon Metrics
+    total_enhanced_subdomains = all_results.get("enhanced_subdomain_enum", {}).get("summary", {}).get("total_unique_subdomains", 0)
+    total_takeover_vulnerabilities = all_results.get("enhanced_subdomain_enum", {}).get("summary", {}).get("takeover_vulnerabilities", 0)
+    total_third_party_services = all_results.get("enhanced_subdomain_enum", {}).get("summary", {}).get("third_party_services", 0)
+    waf_detected = all_results.get("waf_cdn_detection", {}).get("summary", {}).get("waf_detected", False)
+    cdn_detected = all_results.get("waf_cdn_detection", {}).get("summary", {}).get("cdn_detected", False)
+    total_origin_ips = all_results.get("waf_cdn_detection", {}).get("summary", {}).get("origin_ips_found", 0)
+    total_s3_buckets = all_results.get("cloud_infrastructure", {}).get("summary", {}).get("s3_buckets_found", 0)
+    total_azure_containers = all_results.get("cloud_infrastructure", {}).get("summary", {}).get("azure_containers_found", 0)
+    total_gcp_buckets = all_results.get("cloud_infrastructure", {}).get("summary", {}).get("gcp_buckets_found", 0)
+    total_http_header_inputs = all_results.get("input_vectors_discovery", {}).get("summary", {}).get("http_header_inputs", 0)
+    total_json_endpoints = all_results.get("input_vectors_discovery", {}).get("summary", {}).get("json_endpoints", 0)
+    total_upload_endpoints = all_results.get("input_vectors_discovery", {}).get("summary", {}).get("upload_endpoints", 0)
+    total_dynamic_urls = all_results.get("dynamic_analysis", {}).get("summary", {}).get("urls_found", 0)
+    total_spa_indicators = all_results.get("dynamic_analysis", {}).get("summary", {}).get("spa_indicators", 0)
+    total_dynamic_forms = all_results.get("dynamic_analysis", {}).get("summary", {}).get("dynamic_forms", 0)
+    total_exposed_files = all_results.get("misconfiguration_detection", {}).get("summary", {}).get("exposed_files", 0)
+    total_default_credentials = all_results.get("misconfiguration_detection", {}).get("summary", {}).get("default_credentials", 0)
+    total_directory_listings = all_results.get("misconfiguration_detection", {}).get("summary", {}).get("directory_listings", 0)
+    
     # Create final results summary
     final_results = {
         "target": args.target,
@@ -793,6 +1122,27 @@ def main():
             "total_parameters": total_parameters,
             "total_screenshots": total_screenshots,
             "total_interesting_findings": total_interesting_findings,
+            
+            # Enhanced Active Recon Summary
+            "total_enhanced_subdomains": total_enhanced_subdomains,
+            "total_takeover_vulnerabilities": total_takeover_vulnerabilities,
+            "total_third_party_services": total_third_party_services,
+            "waf_detected": waf_detected,
+            "cdn_detected": cdn_detected,
+            "total_origin_ips": total_origin_ips,
+            "total_s3_buckets": total_s3_buckets,
+            "total_azure_containers": total_azure_containers,
+            "total_gcp_buckets": total_gcp_buckets,
+            "total_http_header_inputs": total_http_header_inputs,
+            "total_json_endpoints": total_json_endpoints,
+            "total_upload_endpoints": total_upload_endpoints,
+            "total_dynamic_urls": total_dynamic_urls,
+            "total_spa_indicators": total_spa_indicators,
+            "total_dynamic_forms": total_dynamic_forms,
+            "total_exposed_files": total_exposed_files,
+            "total_default_credentials": total_default_credentials,
+            "total_directory_listings": total_directory_listings,
+            
             "tools_executed": list(all_results.keys()),
             "successful_tools": [tool for tool, result in summary.items() if result.get("runner")],
             "execution_summary": summary
@@ -832,6 +1182,54 @@ def main():
             print(f"✅ {tool}: Success")
         else:
             print(f"❌ {tool}: {result.get('error', 'Unknown error')}")
+
+    # Step 7: Recursive Reconnaissance
+    if args.enable_recursive:
+        print(f"\n[STEP 7] Starting recursive reconnaissance for {args.target}")
+        try:
+            recursive_results = run_recursive_reconnaissance(
+                target_id=target_id,
+                main_target=args.target,
+                all_results=all_results,
+                api_url=api_url,
+                jwt_token=jwt_token,
+                max_concurrent=args.max_concurrent_subtargets
+            )
+            
+            # Save recursive recon results
+            recursive_results_file = os.path.join(parsed_dir, "recursive_recon_results.json")
+            save_json(recursive_results, recursive_results_file)
+            
+            # Submit recursive recon results to API
+            recursive_raw_ok = save_raw_to_db("recursive_recon", args.target, recursive_results_file, api_url, jwt_token)
+            recursive_parsed_ok = save_parsed_to_db("recursive_recon", args.target, recursive_results, api_url, jwt_token)
+            print(f"[INFO] Recursive recon results submitted to API - Raw: {recursive_raw_ok}, Parsed: {recursive_parsed_ok}")
+            
+            # Print recursive recon summary
+            print(f"\n[RECURSIVE RECON SUMMARY]")
+            print(f"  - Total subdomains discovered: {recursive_results.get('total_subdomains', 0)}")
+            print(f"  - Subtargets created: {recursive_results.get('subtargets_created', 0)}")
+            print(f"  - Passive recon successful: {recursive_results.get('passive_recon_successful', 0)}")
+            print(f"  - Active recon successful: {recursive_results.get('active_recon_successful', 0)}")
+            print(f"  - Passive recon success rate: {recursive_results.get('passive_recon_success_rate', 0):.1f}%")
+            print(f"  - Active recon success rate: {recursive_results.get('active_recon_success_rate', 0):.1f}%")
+            
+            # Update final results with recursive recon data
+            final_results["recursive_reconnaissance"] = recursive_results
+            
+        except Exception as e:
+            print(f"[ERROR] Recursive reconnaissance failed: {e}")
+            final_results["recursive_reconnaissance"] = {
+                "success": False,
+                "error": str(e)
+            }
+    else:
+        print(f"\n[STEP 7] Recursive reconnaissance skipped (use --enable-recursive to enable)")
+        final_results["recursive_reconnaissance"] = {
+            "success": True,
+            "enabled": False,
+            "message": "Recursive reconnaissance was not enabled"
+        }
 
 def create_directory_structure(output_dir: str, all_results: Dict[str, Any]) -> None:
     """

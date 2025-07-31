@@ -18,6 +18,7 @@ api = NinjaAPI(
     docs_url="/docs",
     openapi_url="/openapi.json",
     csrf=False,  # Disable CSRF for API endpoints
+    urls_namespace="api",  # Add namespace for URL resolution
 )
 
 # Import and register all API routers
@@ -26,6 +27,7 @@ from .results import router as results_router
 from .workflow_api import router as workflow_api_router
 from .report_api import router as report_api_router
 from .execution import router as execution_router
+from .stages import router as stages_router
 
 # Register API routers
 api.add_router("/targets/", targets_router, tags=["Targets"])
@@ -33,8 +35,17 @@ api.add_router("/results/", results_router, tags=["Results"])
 api.add_router("/workflows/", workflow_api_router, tags=["Workflows"])
 api.add_router("/reports/", report_api_router, tags=["Reports"])
 api.add_router("/execution/", execution_router, tags=["Execution"])
+api.add_router("/stages/", stages_router, tags=["Stages"])
 
 # Global exception handlers
+from core.utils.exceptions import (
+    ValidationError, NotFoundError, AuthenticationError, AuthorizationError,
+    DatabaseError, ServiceError, WorkflowError, StageExecutionError,
+    ExecutionError, ContainerError, ConfigurationError, ReportGenerationError,
+    ExportError, TargetValidationError, RateLimitError, DependencyError,
+    get_status_code_for_exception
+)
+
 @api.exception_handler(Exception)
 def global_exception_handler(request, exc):
     """Global exception handler for unhandled exceptions."""
@@ -62,6 +73,47 @@ def key_error_handler(request, exc):
         success=False,
         message="Missing required field",
         errors=[f"Missing field: {exc}"],
+        data=None
+    )
+
+# Custom exception handlers for proper HTTP status codes
+@api.exception_handler(ValidationError)
+def validation_error_handler(request, exc):
+    """Handler for validation errors."""
+    return APIResponse(
+        success=False,
+        message="Validation error",
+        errors=[str(exc)],
+        data=None
+    )
+
+@api.exception_handler(NotFoundError)
+def not_found_error_handler(request, exc):
+    """Handler for not found errors."""
+    return APIResponse(
+        success=False,
+        message=str(exc),
+        errors=[str(exc)],
+        data=None
+    )
+
+@api.exception_handler(AuthenticationError)
+def authentication_error_handler(request, exc):
+    """Handler for authentication errors."""
+    return APIResponse(
+        success=False,
+        message="Authentication failed",
+        errors=[str(exc)],
+        data=None
+    )
+
+@api.exception_handler(AuthorizationError)
+def authorization_error_handler(request, exc):
+    """Handler for authorization errors."""
+    return APIResponse(
+        success=False,
+        message="Authorization failed",
+        errors=[str(exc)],
         data=None
     )
 
@@ -97,6 +149,7 @@ def api_info(request):
                 "workflows": "/api/workflows/",
                 "reports": "/api/reports/",
                 "execution": "/api/execution/",
+                "stages": "/api/stages/",
                 "health": "/api/health",
                 "docs": "/api/docs"
             }

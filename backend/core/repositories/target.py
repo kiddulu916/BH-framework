@@ -11,7 +11,7 @@ from uuid import UUID
 from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.target import Target, TargetScope, TargetStatus
+from ..models.target import Target, TargetStatus
 from .base import BaseRepository
 
 
@@ -27,97 +27,107 @@ class TargetRepository(BaseRepository):
         """Initialize the target repository."""
         super().__init__(session, Target)
     
-    async def get_by_value(self, value: str) -> Optional[Target]:
+    async def get_by_target_and_domain(self, target: str, domain: str) -> Optional[Target]:
         """
-        Get target by value (domain, IP, etc.).
+        Get target by target and domain (target, domain).
         
         Args:
-            value: Target value (domain, IP, etc.)
+            target: Target
+            domain: Domain
             
         Returns:
             Target instance or None if not found
         """
-        return await self.find_one({'value': value})
+        return await self.find_one({'target': target, 'domain': domain})
     
-    async def get_by_scope_and_value(self, scope: TargetScope, value: str) -> Optional[Target]:
+    async def get_by_target_and_domain(self, target: str, domain: str) -> Optional[Target]:
         """
-        Get target by scope and value.
+        Get target by target and domain.
         
         Args:
-            scope: Target scope
-            value: Target value (domain, IP, etc.)
+            target: Target
+            domain: Domain
             
         Returns:
             Target instance or None if not found
         """
         return await self.find_one({
-            'scope': scope,
-            'value': value
+            'target': target,
+            'domain': domain
         })
     
-    async def get_active_targets(self, user_id: Optional[UUID] = None) -> List[Target]:
+    async def get_active_targets(self, target: str, domain: str) -> List[Target]:
         """
         Get all active targets.
         
         Args:
-            user_id: Optional user ID to filter by
+            target: Target
+            domain: Domain
             
         Returns:
             List of active targets
         """
         filters = {'status': TargetStatus.ACTIVE}
-        if user_id:
-            filters['user_id'] = user_id
+        if target:
+            filters['target'] = target
+        if domain:
+            filters['domain'] = domain
         
         return await self.list(filters=filters, order_by=['created_at'])
     
-    async def get_targets_by_user(self, user_id: UUID) -> List[Target]:
+    async def get_targets_by_target_and_domain(self, target: str, domain: str) -> List[Target]:
         """
         Get all targets for a specific user.
         
         Args:
-            user_id: User ID
+            target: Target
+            domain: Domain
             
         Returns:
             List of targets for the user
         """
-        return await self.list(filters={'user_id': user_id}, order_by=['created_at'])
+        return await self.list(filters={'target': target, 'domain': domain}, order_by=['created_at'])
     
-    async def get_primary_targets(self, user_id: Optional[UUID] = None) -> List[Target]:
+    async def get_primary_targets(self, target: str, domain: str) -> List[Target]:
         """
         Get all primary targets.
         
         Args:
-            user_id: Optional user ID to filter by
+            target: Target
+            domain: Domain
             
         Returns:
             List of primary targets
         """
         filters = {'is_primary': True}
-        if user_id:
-            filters['user_id'] = user_id
+        if target:
+            filters['target'] = target
+        if domain:
+            filters['domain'] = domain
         
         return await self.list(filters=filters, order_by=['created_at'])
     
-    async def get_targets_by_value(self, value: str) -> List[Target]:
+    async def get_targets_by_target_and_domain(self, target: str, domain: str) -> List[Target]:
         """
         Get all targets for a specific value (domain, IP, etc.).
         
         Args:
-            value: Target value (domain, IP, etc.)
+            target: Target
+            domain: Domain
             
         Returns:
             List of targets for the value
         """
-        return await self.list(filters={'value': value}, order_by=['created_at'])
+        return await self.list(filters={'target': target, 'domain': domain}, order_by=['created_at'])
     
-    async def search_targets(self, search_term: str, user_id: Optional[UUID] = None) -> List[Target]:
+    async def search_targets(self, search_term: str, target: str, domain: str) -> List[Target]:
         """
         Search targets by name or value.
         
         Args:
             search_term: Search term
-            user_id: Optional user ID to filter by
+            target: Target
+            domain: Domain
             
         Returns:
             List of matching targets
@@ -131,20 +141,23 @@ class TargetRepository(BaseRepository):
             )
         )
         
-        if user_id:
-            query = query.where(self.model_class.user_id == user_id)
+        if target:
+            query = query.where(self.model_class.target == target)
+        if domain:
+            query = query.where(self.model_class.domain == domain)
         
         query = query.order_by(self.model_class.created_at)
         
         result = await self.session.execute(query)
         return result.scalars().all()
     
-    async def get_targets_with_results(self, user_id: Optional[UUID] = None) -> List[Target]:
+    async def get_targets_with_results(self, target: str, domain: str) -> List[Target]:
         """
         Get targets that have associated results from any stage.
         
         Args:
-            user_id: Optional user ID to filter by
+            target: Target
+            domain: Domain
             
         Returns:
             List of targets with results
@@ -157,27 +170,32 @@ class TargetRepository(BaseRepository):
             selectinload(self.model_class.reports)
         )
         
-        if user_id:
-            query = query.where(self.model_class.user_id == user_id)
+        if target:
+            query = query.where(self.model_class.target == target)
+        if domain:
+            query = query.where(self.model_class.domain == domain)
         
         query = query.order_by(self.model_class.created_at)
         
         result = await self.session.execute(query)
         return result.scalars().all()
     
-    async def get_target_statistics(self, user_id: Optional[UUID] = None) -> dict:
+    async def get_target_statistics(self, target: str, domain: str) -> dict:
         """
         Get target statistics.
         
         Args:
-            user_id: Optional user ID to filter by
+            target: Target
+            domain: Domain
             
         Returns:
             Dictionary with target statistics
         """
         filters = {}
-        if user_id:
-            filters['user_id'] = user_id
+        if target:
+            filters['target'] = target
+        if domain:
+            filters['domain'] = domain
         
         total_targets = await self.count(filters)
         
@@ -189,12 +207,10 @@ class TargetRepository(BaseRepository):
         
         return {
             'total_targets': total_targets,
-            'active_targets': active_targets,
             'primary_targets': primary_targets,
-            'inactive_targets': total_targets - active_targets,
         }
     
-    async def list_with_pagination(self, pagination=None, filters=None, search_expr=None) -> (List[Target], int):
+    async def list_with_pagination(self, target: str = None, domain: str = None, pagination=None, filters=None, search_expr=None) -> (List[Target], int):
         """
         List targets with pagination and filtering.
         

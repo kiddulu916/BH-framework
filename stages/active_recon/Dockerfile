@@ -116,6 +116,40 @@ RUN echo "8.8.8.8\n8.8.4.4\n1.1.1.1\n1.0.0.1\n208.67.222.222\n208.67.220.220" > 
 # Install ffuf (web directory/file bruteforcer)
 RUN go install github.com/ffuf/ffuf@latest
 
+# Install WAFW00F (WAF detection)
+RUN pip install wafw00f
+
+# Install cloudfail (CDN detection)
+RUN git clone https://github.com/m0rtem/CloudFail.git /root/CloudFail
+RUN cd /root/CloudFail && pip install -r requirements.txt
+ENV PATH="/root/CloudFail:$PATH"
+
+# Install CF-Hero (Cloudflare bypass) - Repository removed due to accessibility issues
+# Alternative: Use cloudfail for CDN detection instead
+
+# Install cloud_enum (cloud enumeration)
+RUN git clone https://github.com/initstring/cloud_enum.git /root/cloud_enum
+RUN cd /root/cloud_enum && pip install -r requirements.txt
+ENV PATH="/root/cloud_enum:$PATH"
+
+# Install S3enum (S3 bucket enumeration)
+RUN git clone https://github.com/koenrh/s3enum.git /root/s3enum
+# Note: s3enum doesn't have requirements.txt, it's a standalone script
+ENV PATH="/root/s3enum:$PATH"
+
+# Install additional Python dependencies for enhanced tools
+RUN pip install --no-cache-dir \
+    playwright \
+    beautifulsoup4 \
+    lxml \
+    ipcalc \
+    shodan \
+    censys
+# Note: binaryedge, hunterio, leakix packages not available - removed
+
+# Install Playwright browsers
+RUN playwright install chromium
+
 # Set environment variables for tool paths
 ENV NMAP_PATH=/usr/bin/nmap
 ENV HTTPX_PATH=/root/go/bin/httpx
@@ -134,8 +168,13 @@ ENV FFUF_PATH=/root/go/bin/ffuf
 ENV FINGERPRINTX_PATH=/root/go/bin/fingerprintx
 ENV MASSDNS_PATH=/root/massdns/bin/massdns
 ENV PUREDNS_PATH=/root/go/bin/puredns
+ENV WAFW00F_PATH=/usr/local/bin/wafw00f
+ENV CLOUDFAIL_PATH=/root/CloudFail/cloudfail.py
+ENV CF_HERO_PATH=/root/cf-hero/cf-hero.py
+ENV CLOUD_ENUM_PATH=/root/cloud_enum/cloud_enum.py
+ENV S3ENUM_PATH=/root/s3enum/s3enum.py
 
-ENV PATH="/root/EyeWitness/Python/:/root/eyeballer:/root/massdns/bin/:/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/sbin:/root/.local/bin:/root/go/bin"
+ENV PATH="/root/EyeWitness/Python/:/root/eyeballer:/root/massdns/bin/:/root/CloudFail:/root/cloud_enum:/root/s3enum:/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/sbin:/root/.local/bin:/root/go/bin"
 
 # Entrypoint
 ENTRYPOINT ["python", "run_active_recon.py"]

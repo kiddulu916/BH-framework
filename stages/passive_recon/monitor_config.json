@@ -1,0 +1,35 @@
+{
+  "targets": [
+    "example.com",
+    "test.example.com"
+  ],
+  "schedule_interval": 24,
+  "alert_threshold": 5,
+  "email": {
+    "enabled": false,
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "username": "your-email@gmail.com",
+    "password": "your-app-password",
+    "from_email": "your-email@gmail.com",
+    "to_email": "alerts@yourdomain.com"
+  },
+  "performance": {
+    "max_parallel_executions": 3,
+    "rate_limit_per_second": 1.0,
+    "retry_attempts": 3,
+    "retry_delay": 5
+  },
+  "output": {
+    "save_raw_outputs": true,
+    "save_parsed_outputs": true,
+    "save_correlation_analysis": true,
+    "save_performance_metrics": true
+  },
+  "monitoring": {
+    "enable_continuous_monitoring": true,
+    "enable_email_alerts": false,
+    "enable_performance_tracking": true,
+    "enable_discovery_tracking": true
+  }
+}

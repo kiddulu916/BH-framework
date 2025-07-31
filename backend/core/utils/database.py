@@ -17,37 +17,54 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 # Database configuration
-# Construct DATABASE_URL from environment variables
-DB_HOST = os.getenv('DB_HOST', 'localhost')
-DB_PORT = os.getenv('DB_PORT', '5432')
-DB_NAME = os.getenv('DB_NAME', 'bug_hunting_framework')
-DB_USER = os.getenv('DB_USER', 'postgres')
-DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
+# Check if we're in a test environment
+TESTING = os.getenv('TESTING', 'false').lower() == 'true' or 'test' in os.getenv('DJANGO_SETTINGS_MODULE', '').lower()
 
-DATABASE_URL = os.getenv('DATABASE_URL', f'postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
+if TESTING:
+    # Use a file-based SQLite database for testing (more reliable than shared in-memory)
+    DATABASE_URL = "sqlite+aiosqlite:///./test_db.sqlite3"
+    print(f"DEBUG: Using file-based test database: {DATABASE_URL}")
+else:
+    # Use PostgreSQL for production/development
+    DB_HOST = os.getenv('DB_HOST', 'localhost')
+    DB_PORT = os.getenv('DB_PORT', '5432')
+    DB_NAME = os.getenv('DB_NAME', 'bug_hunting_framework')
+    DB_USER = os.getenv('DB_USER', 'postgres')
+    DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
 
-# Ensure we're using asyncpg
-if not DATABASE_URL.startswith('postgresql+asyncpg://'):
-    # Replace any other postgresql:// with postgresql+asyncpg://
-    DATABASE_URL = DATABASE_URL.replace('postgresql://', 'postgresql+asyncpg://', 1)
+    DATABASE_URL = os.getenv('DATABASE_URL', f'postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
 
-print(f"DEBUG: Using DATABASE_URL: {DATABASE_URL}")
+    # Ensure we're using asyncpg
+    if not DATABASE_URL.startswith('postgresql+asyncpg://'):
+        # Replace any other postgresql:// with postgresql+asyncpg://
+        DATABASE_URL = DATABASE_URL.replace('postgresql://', 'postgresql+asyncpg://', 1)
 
-# Create async engine
-engine = create_async_engine(
-    DATABASE_URL,
-    echo=os.getenv('DB_ECHO', 'false').lower() == 'true',  # Set to True for SQL debugging
-    poolclass=NullPool,  # Use NullPool for development
-    pool_pre_ping=True,
-    pool_recycle=int(os.getenv('DB_POOL_RECYCLE', '300')),
-)
+    print(f"DEBUG: Using production database: {DATABASE_URL}")
 
-# Set search_path to public on each new connection
+# Create async engine with appropriate connect_args for SQLite
+if TESTING:
+    engine = create_async_engine(
+        DATABASE_URL,
+        echo=os.getenv('DB_ECHO', 'false').lower() == 'true',
+        poolclass=NullPool,
+        connect_args={"check_same_thread": False}  # Required for SQLite in async context
+    )
+else:
+    engine = create_async_engine(
+        DATABASE_URL,
+        echo=os.getenv('DB_ECHO', 'false').lower() == 'true',
+        poolclass=NullPool,
+        pool_pre_ping=True,
+        pool_recycle=int(os.getenv('DB_POOL_RECYCLE', '300')),
+    )
+
+# Set search_path to public on each new connection (PostgreSQL only)
 @event.listens_for(engine.sync_engine, "connect")
 def set_search_path(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("SET search_path TO public")
-    cursor.close()
+    if not TESTING:  # Only for PostgreSQL
+        cursor = dbapi_connection.cursor()
+        cursor.execute("SET search_path TO public")
+        cursor.close()
 
 # Create async session factory
 async_session_factory = async_sessionmaker(
@@ -111,7 +128,6 @@ async def init_database():
     
     # Import all models to ensure they are registered with SQLAlchemy
     from core.models import (
-        user,
         target,
         passive_recon,
         active_recon,

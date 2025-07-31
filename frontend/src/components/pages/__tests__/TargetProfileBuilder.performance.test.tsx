@@ -188,15 +188,18 @@ describe('TargetProfileBuilder Performance', () => {
   });
 
   it('handles form submission efficiently', async () => {
-    const { createTarget } = await import('@/lib/api/targets');
-    vi.mocked(createTarget).mockResolvedValue({ success: true, data: { id: '1' } });
+    // Mock the API function
+    const mockCreateTarget = vi.fn().mockResolvedValue({ success: true, data: { id: '1' } });
+    vi.doMock('@/lib/api/targets', () => ({
+      createTarget: mockCreateTarget
+    }));
     
     render(<TargetProfileBuilder />);
     
     const startTime = performance.now();
     
     // Trigger form submission (simplified)
-    const submitButton = screen.getByText('Create Target Profile');
+    const submitButton = screen.getByText('Save to Target\'s Profile');
     fireEvent.click(submitButton);
     
     const endTime = performance.now();

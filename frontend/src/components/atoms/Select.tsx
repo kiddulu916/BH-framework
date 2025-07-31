@@ -33,13 +33,13 @@ const SelectWithRef = React.forwardRef<HTMLSelectElement, SelectProps>(
     );
     
     return (
-      <div className={className}>
+      <div>
         {label && (
           <label htmlFor={selectId} className="block text-gray-200 text-sm font-medium mb-2">
             {label}
           </label>
         )}
-        <div className="relative">
+        <div className={`relative ${className}`}>
           {icon && (
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               {icon}

@@ -43,6 +43,7 @@ class TestResultsAPI:
         return {"Authorization": f"Bearer {jwt_token}"}
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_submit_passive_recon_result_success(self, api_client: AsyncClient, sample_target, auth_headers):
         """Test successful passive recon result submission."""
         # Arrange
@@ -110,6 +111,7 @@ class TestResultsAPI:
         assert "amass" in data["data"]["tools_used"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_submit_passive_recon_result_validation_error(self, api_client: AsyncClient, auth_headers):
         """Test passive recon result submission with validation errors."""
         # Arrange
@@ -133,6 +135,7 @@ class TestResultsAPI:
         assert "detail" in data
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_submit_passive_recon_result_unauthorized(self, api_client: AsyncClient, sample_target):
         """Test passive recon result submission without authentication."""
         # Arrange
@@ -165,6 +168,7 @@ class TestResultsAPI:
         assert response.status_code == 401  # Unauthorized
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_submit_active_recon_result_success(self, api_client: AsyncClient, sample_target):
         """Test successful active recon result submission."""
         # Arrange
@@ -256,6 +260,7 @@ class TestResultsAPI:
         assert "nmap" in data["data"]["tools_used"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_submit_vulnerability_findings_success(self, api_client: AsyncClient, sample_target):
         """Test successful vulnerability findings submission."""
         # Arrange
@@ -325,6 +330,7 @@ class TestResultsAPI:
         assert isinstance(data["data"]["findings"], list)
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_submit_kill_chain_results_success(self, api_client: AsyncClient, sample_target):
         """Test successful kill chain analysis results submission."""
         # Arrange
@@ -385,6 +391,7 @@ class TestResultsAPI:
         assert isinstance(data["data"]["attack_paths"], list)
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_target_results_summary_success(self, api_client: AsyncClient, sample_target):
         """Test successful target results summary retrieval."""
         # Act
@@ -401,6 +408,7 @@ class TestResultsAPI:
         assert data["data"]["target_id"] == str(sample_target.id)
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_target_results_summary_not_found(self, api_client: AsyncClient):
         """Test target results summary retrieval with non-existent target."""
         # Arrange
@@ -418,6 +426,7 @@ class TestResultsAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_passive_recon_results_success(self, api_client: AsyncClient, sample_target):
         """Test successful passive recon results retrieval."""
         # Act
@@ -433,6 +442,7 @@ class TestResultsAPI:
         assert "pagination" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_active_recon_results_success(self, api_client: AsyncClient, sample_target):
         """Test successful active recon results retrieval."""
         # Act
@@ -448,6 +458,7 @@ class TestResultsAPI:
         assert "pagination" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_vulnerability_findings_success(self, api_client: AsyncClient, sample_target):
         """Test successful vulnerability findings retrieval."""
         # Act
@@ -465,6 +476,7 @@ class TestResultsAPI:
         assert isinstance(data["data"]["findings"], list)
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_vulnerability_findings_with_severity_filter(self, api_client: AsyncClient, sample_target):
         """Test vulnerability findings retrieval with severity filter."""
         # Act
@@ -481,6 +493,7 @@ class TestResultsAPI:
         assert isinstance(data["data"]["findings"], list)
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_kill_chain_results_success(self, api_client: AsyncClient, sample_target):
         """Test successful kill chain results retrieval."""
         # Act
@@ -496,6 +509,7 @@ class TestResultsAPI:
         assert "pagination" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_results_with_pagination(self, api_client: AsyncClient, sample_target):
         """Test results retrieval with pagination."""
         # Act
@@ -511,6 +525,7 @@ class TestResultsAPI:
         assert data["data"]["pagination"]["per_page"] == 5
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_api_response_format_consistency(self, api_client: AsyncClient, sample_target):
         """Test that all API responses follow the standardized format."""
         # Test multiple endpoints to ensure consistent response format

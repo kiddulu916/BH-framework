@@ -1,7 +1,7 @@
 import pytest
 from uuid import uuid4
 from datetime import datetime, timezone
-from core.models.passive_recon import PassiveReconResult, Subdomain, ReconSource, SubdomainStatus
+from core.models.passive_recon import PassiveReconResult, Subdomain, SubdomainStatus
 from core.models.target import Target
 
 class TestPassiveReconResultModel:
@@ -13,7 +13,6 @@ class TestPassiveReconResultModel:
             configuration={"depth": 2},
             total_subdomains=5,
             unique_subdomains=4,
-            active_subdomains=3,
             raw_output={"subfinder": "output"},
             processed_data={"subdomains": ["a.example.com"]},
             execution_time="10.5",
@@ -35,7 +34,6 @@ class TestPassiveReconResultModel:
             tools_used=[{"name": "amass", "version": "3.15.0"}],
             total_subdomains=2,
             unique_subdomains=2,
-            active_subdomains=2,
             raw_output={"amass": "output"},
             processed_data={"subdomains": ["b.example.com"]},
             execution_time="5.0",
@@ -63,7 +61,7 @@ class TestSubdomainModel:
             mx_records=None,
             txt_records=None,
             ns_records=None,
-            sources=[ReconSource.SUBFINDER.value],
+            sources=["subfinder"],
             first_seen="2024-01-01T00:00:00Z",
             last_seen="2024-01-02T00:00:00Z",
             tags=["test"],
@@ -89,7 +87,7 @@ class TestSubdomainModel:
             status=SubdomainStatus.UNKNOWN,
             is_verified=False,
             ip_addresses=None,
-            sources=[ReconSource.AMASS.value],
+            sources=["amass"],
             passive_recon_result_id=uuid4(),
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
@@ -110,7 +108,6 @@ class TestSubdomainModel:
             tools_used=[],
             total_subdomains=0,
             unique_subdomains=0,
-            active_subdomains=0,
             target_id=target_id,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)

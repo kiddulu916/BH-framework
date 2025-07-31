@@ -6,27 +6,10 @@ export enum BugBountyPlatform {
   CUSTOM = "CUSTOM",
 }
 
-export enum TargetScope {
-  TARGET = "TARGET",
-  DOMAIN = "DOMAIN",
-  IN_SCOPE = "IN_SCOPE",
-  OUT_OF_SCOPE = "OUT_OF_SCOPE",
-  RATE_LIMITS = "RATE_LIMITS",
-  CUSTOM_HEADER = "CUSTOM_HEADER",
-  ADDITIONAL_INFO = "ADDITIONAL_INFO",
-  NOTES = "NOTES"
-}
-
 export enum TargetStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
   ARCHIVED = "ARCHIVED",
-}
-
-export interface RateLimitConfig {
-  requests_per_second: number;
-  requests_per_minute: number;
-  requests_per_hour: number;
 }
 
 export interface CustomHeader {
@@ -35,28 +18,27 @@ export interface CustomHeader {
 }
 
 export interface TargetProfile {
-  name: string;
-  scope: TargetScope;
+  id?: string;
+  target: string;
+  domain?: string;
+  is_primary?: boolean;
   status: TargetStatus;
   platform: BugBountyPlatform;
   login_email?: string;
   researcher_email?: string;
   in_scope?: string[];
   out_of_scope?: string[];
-  rate_limits?: RateLimitConfig;
   custom_headers?: CustomHeader[];
   additional_info?: string[];
   notes?: string[];
 }
 
 export interface TargetCreateRequest {
+  // Basic target information
+  id?: string;
   target?: string;
-  // Basic target information (legacy and new)
-  name?: string;
   domain?: string;
-  scope?: TargetScope;
   is_primary?: boolean;
-  user_id?: string;
   status?: TargetStatus;
 
   // Bug Bounty Program Information
@@ -69,7 +51,6 @@ export interface TargetCreateRequest {
   out_of_scope?: string[];
   
   // Rate Limiting Configuration
-  rate_limits?: RateLimitConfig;
   rate_limit_requests?: number;
   rate_limit_seconds?: number;
 
@@ -82,11 +63,10 @@ export interface TargetCreateRequest {
 }
 
 export interface TargetUpdateRequest {
-  target?: string;
   // Basic target information
-  name?: string;
+  id?: string;
+  target?: string;
   domain?: string;
-  scope?: TargetScope;
   status?: TargetStatus;
   is_primary?: boolean;
   
@@ -100,7 +80,6 @@ export interface TargetUpdateRequest {
   out_of_scope?: string[];
 
   // Rate Limiting Configuration
-  rate_limits?: RateLimitConfig;
   rate_limit_requests?: number;
   rate_limit_seconds?: number;
   
@@ -113,18 +92,13 @@ export interface TargetUpdateRequest {
 }
 
 export interface TargetResponse {
-  target?: string;
   id: string;
-  name: string;
+  target: string;
   domain?: string;
-  scope: TargetScope;
   status: TargetStatus;
   is_primary: boolean;
-  user_id?: string;
   created_at: string;
   updated_at: string;
-  is_active: boolean;
-  display_name: string;
   
   // Bug Bounty Program Information
   platform?: BugBountyPlatform;
@@ -134,9 +108,8 @@ export interface TargetResponse {
   // Scope Configuration
   in_scope?: string[];
   out_of_scope?: string[];
-  
+
   // Rate Limiting Configuration
-  rate_limits?: RateLimitConfig;
   rate_limit_requests?: number;
   rate_limit_seconds?: number;
   
@@ -158,10 +131,9 @@ export interface TargetListResponse {
 }
 
 export interface TargetFilters {
-  scope?: TargetScope;
+  id?: string;
   status?: TargetStatus;
   is_primary?: boolean;
-  user_id?: string;
   search?: string;
 }
 

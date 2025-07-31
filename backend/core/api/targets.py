@@ -57,7 +57,8 @@ async def list_targets(
     per_page: int = 10,
     search: Optional[str] = None,
     status: Optional[str] = None,
-    value: Optional[str] = None
+    target: Optional[str] = None,
+    domain: Optional[str] = None
 ):
     """
     List all targets with optional filtering and pagination.
@@ -76,7 +77,8 @@ async def list_targets(
                 pagination=pagination,
                 search=search,
                 status=status,
-                value=value
+                target=target,
+                domain=domain
             )
             
             # Create response
@@ -89,10 +91,7 @@ async def list_targets(
                 has_next=page * per_page < total,
                 has_prev=page > 1
             )
-            # Patch: add 'targets' and 'per_page' for test compatibility
             data = target_list.model_dump()
-            data["targets"] = data["items"]
-            data["per_page"] = data["page_size"]
             return APIResponse(
                 success=True,
                 message="Targets retrieved successfully",

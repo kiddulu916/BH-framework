@@ -29,12 +29,31 @@
       "name": "bug-hunting-db",
       "port": 5432
     },
-        {
+    {
       "name": "bug-hunting-passive-recon",
       "port": 8001
-    }
-  ],
-  "terminals": [
+    },
+    {
+      "name": "bug-hunting-active-recon",
+      "port": 8002
+    },
+    {
+      "name": "bug-hunting-vulnerability-scanning",
+      "port": 8003
+    },
+    {
+      "name": "bug-hunting-vulnerability-testing",
+      "port": 8004
+    },
+    {
+      "name": "bug-hunting-kill-chain",
+      "port": 8005
+    },
+    {
+      "name": "bug-hunting-reporting",
+      "port": 8006
+    },
+
     {
       "name": "Initial Setup",
       "command": "cd /home/ubuntu/projects/bug-hunting-framework && docker compose up -d",
@@ -48,7 +67,7 @@
     {
       "name": "Frontend Development",
       "command": "cd /home/ubuntu/projects/bug-hunting-framework/frontend && npm install && docker exec -it bug-hunting-frontend bash",
-      "description": "Runs the Next.js frontend development server with hot reloading"
+      "description": "Run"
     },
     {
       "name": "Database Management",

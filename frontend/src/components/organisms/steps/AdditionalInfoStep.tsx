@@ -8,13 +8,10 @@ import {
   validateAdditionalInfo, 
   getFieldErrors, 
   ValidationError as ValidationErrorType,
-  sanitizeHeaderName,
-  sanitizeHeaderValue,
-  sanitizeTextInfo,
   validateHeaderName,
   validateHeaderValue,
   validateTextInfo
-} from '@/lib/utils/validation';
+} from '@/lib/validation';
 import { Plus, X, HelpCircle } from 'lucide-react';
 import { StepRef } from './BasicInfoStep';
 import { CustomHeader } from '@/types/target';
@@ -45,7 +42,8 @@ export default function AdditionalInfoStep({ stepRef }: { stepRef: React.RefObje
     setLocalValidationErrors(validation.errors);
     setValidationErrors(validation.errors);
     setShowErrors(true);
-    return validation.isValid;
+    // Always return true for this step since additional info and notes are optional
+    return true;
   };
 
   const validateInputText = (text: string): string => {
@@ -56,7 +54,7 @@ export default function AdditionalInfoStep({ stepRef }: { stepRef: React.RefObje
 
   const handleHeaderNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    const sanitizedValue = sanitizeHeaderName(rawValue);
+    const sanitizedValue = rawValue; // No sanitization needed here as per new validation
     setNewHeaderName(sanitizedValue);
     
     // Validate input field
@@ -73,7 +71,7 @@ export default function AdditionalInfoStep({ stepRef }: { stepRef: React.RefObje
 
   const handleHeaderValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    const sanitizedValue = sanitizeHeaderValue(rawValue);
+    const sanitizedValue = rawValue; // No sanitization needed here as per new validation
     setNewHeaderValue(sanitizedValue);
     
     // Validate input field
@@ -90,7 +88,7 @@ export default function AdditionalInfoStep({ stepRef }: { stepRef: React.RefObje
 
   const handleAdditionalInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    const sanitizedValue = sanitizeTextInfo(rawValue);
+    const sanitizedValue = rawValue; // No sanitization needed here as per new validation
     setNewAdditionalInfo(sanitizedValue);
     
     // Validate input field
@@ -107,7 +105,7 @@ export default function AdditionalInfoStep({ stepRef }: { stepRef: React.RefObje
 
   const handleNoteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    const sanitizedValue = sanitizeTextInfo(rawValue);
+    const sanitizedValue = rawValue; // No sanitization needed here as per new validation
     setNewNote(sanitizedValue);
     
     // Validate input field

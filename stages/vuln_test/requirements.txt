@@ -1,0 +1,65 @@
+# Core dependencies
+requests>=2.31.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+colorama>=0.4.6
+argparse>=1.4.0
+json5>=0.9.14
+pyyaml>=6.0.1
+
+# Browser automation
+selenium>=4.15.0
+playwright>=1.40.0
+webdriver-manager>=4.0.1
+
+# AI and ML dependencies
+tensorflow>=2.15.0
+torch>=2.1.0
+transformers>=4.36.0
+scikit-learn>=1.3.0
+numpy>=1.24.0
+pandas>=2.1.0
+
+# Scanning tools integration
+python-nmap>=0.7.1
+python-zap>=0.0.20
+sqlmap-python>=1.7.0
+hydra-python>=0.1.0
+
+# Evidence collection
+pillow>=10.1.0
+opencv-python>=4.8.0
+moviepy>=1.0.3
+
+# API and HTTP testing
+httpx>=0.25.0
+aiohttp>=3.9.0
+websockets>=12.0
+
+# Data processing and export
+pandas>=2.1.0
+openpyxl>=3.1.0
+xlsxwriter>=3.1.0
+
+# Logging and monitoring
+structlog>=23.2.0
+rich>=13.7.0
+
+# Security and cryptography
+cryptography>=41.0.0
+pycryptodome>=3.19.0
+
+# Cloud scanning
+boto3>=1.34.0
+azure-storage-blob>=12.19.0
+google-cloud-storage>=2.10.0
+
+# Testing and validation
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.12.0
+
+# Development tools
+black>=23.11.0
+flake8>=6.1.0
+mypy>=1.7.0

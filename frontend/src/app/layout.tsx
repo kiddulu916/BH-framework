@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
+import AuthTokenProvider from "@/components/providers/AuthTokenProvider";
 import { PerformanceMonitorComponent } from "@/components/atoms/PerformanceMonitor";
 
 const inter = Inter({
@@ -24,10 +25,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased`}
       >
-        <QueryProvider>
-          {children}
-          <PerformanceMonitorComponent />
-        </QueryProvider>
+        <AuthTokenProvider>
+          <QueryProvider>
+            {children}
+            <PerformanceMonitorComponent />
+          </QueryProvider>
+        </AuthTokenProvider>
       </body>
     </html>
   );

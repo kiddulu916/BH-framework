@@ -42,16 +42,25 @@ class TargetService:
             ValidationError: If target data is invalid
         """
         # Validate domain format
-        if not self._is_valid_domain(payload.value):
-            raise ValidationError(f"Invalid domain format: {payload.value}")
+        if payload.domain and not self._is_valid_domain(payload.domain):
+            raise ValidationError(f"Invalid domain format: {payload.domain}")
         
         # Check if target already exists
-        existing_target = await self.repository.get_by_value(payload.value)
-        if existing_target:
-            raise ValidationError(f"Target with value {payload.value} already exists")
+        if payload.domain:
+            existing_target = await self.repository.get_by_target_and_domain(payload.target, payload.domain)
+            if existing_target:
+                raise ValidationError(f"Target with domain {payload.domain} already exists")
         
         # Convert scope and status to Enum if provided as strings
-        create_data = payload.model_dump()
+        create_data = payload.model_dump(exclude_none=True)
+
+        # Drop legacy/ignored fields that Target model doesn't accept
+        for legacy_key in ("name", "scope", "rate_limits"):
+            create_data.pop(legacy_key, None)
+
+        # Convert notes list to single string (newline-separated) for Text column
+        if isinstance(create_data.get("notes"), list):
+            create_data["notes"] = "\n".join(create_data["notes"])
         
         if isinstance(create_data.get("scope"), str):
             from core.models.target import TargetScope
@@ -99,7 +108,8 @@ class TargetService:
         pagination: PaginationParams,
         search: Optional[str] = None,
         status: Optional[str] = None,
-        value: Optional[str] = None
+        target: Optional[str] = None,
+        domain: Optional[str] = None
     ) -> Tuple[List[TargetResponse], int]:
         """
         List targets with filtering and pagination.
@@ -108,20 +118,23 @@ class TargetService:
             pagination: Pagination parameters
             search: Search term for domain or description
             status: Filter by target status
-            value: Filter by target value
+            target: Filter by target name
+            domain: Filter by domain
             
         Returns:
             Tuple of (targets, total_count)
         """
         filters = {}
-        if value:
-            filters["value"] = value
+        if target:
+            filters["target"] = target
+        if domain:
+            filters["domain"] = domain
         if status:
             filters["status"] = status
         # For search, use SQLAlchemy or_ expression
         search_expr = None
         if search:
-            search_expr = or_(Target.value.ilike(f"%{search}%"), Target.description.ilike(f"%{search}%"))
+            search_expr = or_(Target.target.ilike(f"%{search}%"), Target.domain.ilike(f"%{search}%"))
         # Get targets with pagination
         if search_expr:
             # If search, pass as a special filter (repository may need to handle this)

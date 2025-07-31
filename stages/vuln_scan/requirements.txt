@@ -1,0 +1,36 @@
+# Core dependencies for black-box vulnerability scanning
+requests>=2.31.0
+python-dotenv>=1.0.0
+argparse>=1.4.0
+json5>=0.9.14
+pyyaml>=6.0.1
+colorama>=0.4.6
+tqdm>=4.66.1
+
+# Nuclei integration
+nuclei-python>=0.1.0
+
+# OWASP ZAP integration
+python-owasp-zap-v2.4>=0.0.20
+
+# Additional scanning tools
+nikto>=1.0.0
+wapiti>=3.1.0
+arachni>=1.0.0
+
+# Cloud scanning tools
+boto3>=1.34.0
+azure-storage-blob>=12.19.0
+google-cloud-storage>=2.10.0
+
+# API scanning tools
+openapi-spec-validator>=0.7.1
+graphql-core>=3.2.3
+
+# Result analysis and processing
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Testing and validation
+pytest>=7.4.0
+pytest-asyncio>=0.21.0

@@ -5,7 +5,7 @@ import { useTargetFormStore } from '@/lib/state/targetFormStore';
 import Input from '@/components/atoms/Input';
 import Select from '@/components/atoms/Select';
 import ValidationError from '@/components/atoms/ValidationError';
-import { validateProgramDetails, getFieldErrors, ValidationError as ValidationErrorType } from '@/lib/utils/validation';
+import { validateProgramDetails, getFieldErrors, ValidationError as ValidationErrorType } from '@/lib/validation';
 import { BugBountyPlatform } from '@/types/target';
 import { StepRef } from './BasicInfoStep';
 

@@ -26,7 +26,7 @@ def create_example_target():
     
     # Create new target
     target = Target.objects.create(
-        name="Example Domain",
+        target="Example Domain",
         value="example.com",
         scope=TargetScope.DOMAIN,
         status=TargetStatus.ACTIVE,

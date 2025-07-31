@@ -12,7 +12,8 @@ from sqlalchemy import Column, String, Text, Boolean, Enum, ForeignKey, Index, I
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, JSONB
 from sqlalchemy.orm import relationship
 
-from .base import BaseModel
+from .base import BaseModel, get_foreign_key, get_table_args, get_foreign_key
+from sqlalchemy.dialects.postgresql import JSONB as JSONType
 import enum
 import json
 
@@ -44,21 +45,20 @@ class ActiveReconResult(BaseModel):
     """
     
     __tablename__ = "active_recon_results"
-    __table_args__ = (
+    __table_args__ = get_table_args(
         Index('idx_active_recon_target', 'target_id'),
         Index('idx_active_recon_execution', 'execution_id'),
         Index('idx_active_recon_created', 'created_at'),
-        {'schema': 'public'}
     )
     
     # Result identification
     execution_id = Column(String(255), nullable=False, index=True)  # Link to workflow execution
     
     # Reconnaissance details
-    tools_used = Column(JSONB, nullable=True)  # List of tools used and their versions
-    configuration = Column(JSONB, nullable=True)  # Configuration used for the recon
+    tools_used = Column(JSONType, nullable=True)  # List of tools used and their versions
+    configuration = Column(JSONType, nullable=True)  # Configuration used for the recon
     scan_type = Column(String(100), nullable=True)  # Type of scan performed
-    hosts_scanned = Column(JSONB, nullable=False, default=list)  # List of hosts scanned
+    hosts_scanned = Column(JSONType, nullable=False, default=list)  # List of hosts scanned
     
     # Results summary
     total_hosts_scanned = Column(Integer, default=0, nullable=False)
@@ -67,15 +67,15 @@ class ActiveReconResult(BaseModel):
     total_services_detected = Column(Integer, default=0, nullable=False)
     
     # Raw results
-    raw_output = Column(JSONB, nullable=True)  # Raw tool outputs
-    processed_data = Column(JSONB, nullable=True)  # Processed and normalized data
+    raw_output = Column(JSONType, nullable=True)  # Raw tool outputs
+    processed_data = Column(JSONType, nullable=True)  # Processed and normalized data
     
     # Execution metadata
     execution_time = Column(Float, nullable=True)  # Total execution time in seconds
-    errors = Column(JSONB, nullable=True)  # Any errors encountered
+    errors = Column(JSONType, nullable=True)  # Any errors encountered
     
     # Relationships
-    target_id = Column(PGUUID(as_uuid=True), ForeignKey("public.targets.id"), nullable=False)
+    target_id = Column(PGUUID(as_uuid=True), ForeignKey(get_foreign_key("targets", "id")), nullable=False)
     target = relationship("Target", back_populates="active_recon_results")
     
     # Ports and services
@@ -128,7 +128,7 @@ class Port(BaseModel):
     """
     
     __tablename__ = "ports"
-    __table_args__ = (
+    __table_args__ = get_table_args(
         Index('idx_ports_host', 'host'),
         Index('idx_ports_number', 'port_number'),
         Index('idx_ports_protocol', 'protocol'),
@@ -137,7 +137,6 @@ class Port(BaseModel):
         Index('idx_ports_service', 'service_name'),
         Index('idx_ports_active_recon', 'active_recon_result_id'),
         Index('idx_ports_host_port', 'host', 'port_number', 'protocol'),
-        {'schema': 'public'}
     )
     
     # Port identification
@@ -156,11 +155,11 @@ class Port(BaseModel):
     
     # Additional information
     banner = Column(Text, nullable=True)  # Service banner
-    script_output = Column(JSONB, nullable=True)  # Nmap script output
+    script_output = Column(JSONType, nullable=True)  # Nmap script output
     notes = Column(Text, nullable=True)  # Additional notes
     
     # Relationships
-    active_recon_result_id = Column(PGUUID(as_uuid=True), ForeignKey("public.active_recon_results.id"), nullable=False)
+    active_recon_result_id = Column(PGUUID(as_uuid=True), ForeignKey(get_foreign_key("active_recon_results", "id")), nullable=False)
     active_recon_result = relationship("ActiveReconResult", back_populates="ports")
     
     # Services
@@ -223,14 +222,13 @@ class Service(BaseModel):
     """
     
     __tablename__ = "services"
-    __table_args__ = (
+    __table_args__ = get_table_args(
         Index('idx_services_name', 'name'),
         Index('idx_services_product', 'product'),
         Index('idx_services_status', 'status'),
         Index('idx_services_confirmed', 'is_confirmed'),
         Index('idx_services_port', 'port_id'),
         Index('idx_services_active_recon', 'active_recon_result_id'),
-        {'schema': 'public'}
     )
     
     # Service identification
@@ -245,18 +243,18 @@ class Service(BaseModel):
     
     # Service details
     banner = Column(Text, nullable=True)  # Service banner
-    fingerprint = Column(JSONB, nullable=True)  # Service fingerprint
+    fingerprint = Column(JSONType, nullable=True)  # Service fingerprint
     cpe = Column(String(500), nullable=True)  # Common Platform Enumeration
     
     # Additional information
-    tags = Column(JSONB, nullable=True)  # Tags for categorization
+    tags = Column(JSONType, nullable=True)  # Tags for categorization
     notes = Column(Text, nullable=True)  # Additional notes
     
     # Relationships
-    port_id = Column(PGUUID(as_uuid=True), ForeignKey("public.ports.id"), nullable=False)
+    port_id = Column(PGUUID(as_uuid=True), ForeignKey(get_foreign_key("ports", "id")), nullable=False)
     port = relationship("Port", back_populates="services")
     
-    active_recon_result_id = Column(PGUUID(as_uuid=True), ForeignKey("public.active_recon_results.id"), nullable=False)
+    active_recon_result_id = Column(PGUUID(as_uuid=True), ForeignKey(get_foreign_key("active_recon_results", "id")), nullable=False)
     active_recon_result = relationship("ActiveReconResult", back_populates="services")
     
     def __repr__(self) -> str:

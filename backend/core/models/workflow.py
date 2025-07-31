@@ -13,7 +13,8 @@ from sqlalchemy import Column, String, Text, Boolean, Enum, ForeignKey, Index, D
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, JSONB
 from sqlalchemy.orm import relationship
 
-from .base import BaseModel
+from .base import BaseModel, get_foreign_key, get_table_args, get_foreign_key
+from sqlalchemy.dialects.postgresql import JSONB as JSONType
 import enum
 
 
@@ -55,16 +56,15 @@ class Workflow(BaseModel):
     """
     
     __tablename__ = "workflows"
-    __table_args__ = {'schema': 'public'}
     
     # Workflow identification
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
     
     # Workflow configuration
-    stages = Column(JSONB, nullable=False)  # List of stages and their configuration
-    dependencies = Column(JSONB, nullable=True)  # Stage dependencies
-    settings = Column(JSONB, nullable=True)  # Workflow-specific settings
+    stages = Column(JSONType, nullable=False)  # List of stages and their configuration
+    dependencies = Column(JSONType, nullable=True)  # Stage dependencies
+    settings = Column(JSONType, nullable=True)  # Workflow-specific settings
     
     # Status and tracking
     status = Column(Enum(WorkflowStatus), nullable=False, default=WorkflowStatus.PENDING, index=True)
@@ -72,11 +72,8 @@ class Workflow(BaseModel):
     progress = Column(String(50), nullable=True)  # Human-readable progress
     
     # Relationships
-    target_id = Column(PGUUID(as_uuid=True), ForeignKey("public.targets.id"), nullable=False)
+    target_id = Column(PGUUID(as_uuid=True), ForeignKey(get_foreign_key("targets", "id")), nullable=False)
     target = relationship("Target", backref="workflows")
-    
-    user_id = Column(PGUUID(as_uuid=True), ForeignKey("public.users.id"), nullable=True)
-    user = relationship("User", backref="workflows")
     
     # Executions
     executions = relationship("WorkflowExecution", back_populates="workflow", cascade="all, delete-orphan")
@@ -85,12 +82,10 @@ class Workflow(BaseModel):
     reports = relationship("Report", back_populates="workflow", cascade="all, delete-orphan")
     
     # Indexes
-    __table_args__ = (
+    __table_args__ = get_table_args(
         Index('idx_workflows_target', 'target_id'),
-        Index('idx_workflows_user', 'user_id'),
         Index('idx_workflows_status', 'status'),
         Index('idx_workflows_current_stage', 'current_stage'),
-        {'schema': 'public'}
     )
     
     def __repr__(self) -> str:
@@ -110,7 +105,6 @@ class Workflow(BaseModel):
             'current_stage': self.current_stage.value if self.current_stage else None,
             'progress': self.progress,
             'target_id': str(self.target_id),
-            'user_id': str(self.user_id) if self.user_id else None,
         }
     
     @property
@@ -133,7 +127,6 @@ class WorkflowExecution(BaseModel):
     """
     
     __tablename__ = "workflow_executions"
-    __table_args__ = {'schema': 'public'}
     
     # Execution identification
     stage = Column(Enum(WorkflowStage), nullable=False, index=True)
@@ -145,25 +138,24 @@ class WorkflowExecution(BaseModel):
     completed_at = Column(DateTime, nullable=True)
     
     # Execution details
-    configuration = Column(JSONB, nullable=True)  # Stage-specific configuration
-    results = Column(JSONB, nullable=True)  # Execution results
-    errors = Column(JSONB, nullable=True)  # Error details if failed
+    configuration = Column(JSONType, nullable=True)  # Stage-specific configuration
+    results = Column(JSONType, nullable=True)  # Execution results
+    errors = Column(JSONType, nullable=True)  # Error details if failed
     
     # Progress tracking
     progress_percentage = Column(String(10), nullable=True)  # Progress as percentage
     current_step = Column(String(255), nullable=True)  # Current step being executed
     
     # Relationships
-    workflow_id = Column(PGUUID(as_uuid=True), ForeignKey("public.workflows.id"), nullable=False)
+    workflow_id = Column(PGUUID(as_uuid=True), ForeignKey(get_foreign_key("workflows", "id")), nullable=False)
     workflow = relationship("Workflow", back_populates="executions")
     
     # Indexes
-    __table_args__ = (
+    __table_args__ = get_table_args(
         Index('idx_workflow_executions_workflow', 'workflow_id'),
         Index('idx_workflow_executions_stage', 'stage'),
         Index('idx_workflow_executions_status', 'status'),
         Index('idx_workflow_executions_execution_id', 'execution_id'),
-        {'schema': 'public'}
     )
     
     def __repr__(self) -> str:

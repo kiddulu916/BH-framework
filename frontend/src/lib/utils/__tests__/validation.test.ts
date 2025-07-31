@@ -15,7 +15,7 @@ import {
   getFieldErrors,
   formatValidationErrors,
 } from '../validation';
-import { BugBountyPlatform, TargetScope } from '@/types/target';
+import { BugBountyPlatform } from '@/types/target';
 
 describe('Validation Utilities', () => {
   describe('Basic Validation Functions', () => {

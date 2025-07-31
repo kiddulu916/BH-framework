@@ -7,7 +7,6 @@ data access functionality for all models in the application.
 
 from .base import BaseRepository
 from .target import TargetRepository
-from .user import UserRepository
 from .workflow import WorkflowRepository, WorkflowExecutionRepository
 from .passive_recon import PassiveReconRepository, SubdomainRepository
 from .active_recon import ActiveReconRepository, PortRepository, ServiceRepository
@@ -21,7 +20,6 @@ __all__ = [
     
     # Core Domain
     'TargetRepository',
-    'UserRepository',
     'WorkflowRepository',
     'WorkflowExecutionRepository',
     

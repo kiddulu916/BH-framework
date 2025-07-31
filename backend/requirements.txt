@@ -10,6 +10,7 @@ SQLAlchemy>=2.0.25
 psycopg2-binary>=2.9.9  # PostgreSQL adapter
 alembic>=1.13.1  # Database migrations
 asyncpg>=0.29.0  # Async PostgreSQL support
+aiosqlite>=0.19.0  # Async SQLite support for testing
 dj-database-url>=2.1.0  # Database URL parsing
 
 # API & Validation

@@ -7,7 +7,6 @@ validation and data serialization throughout the application.
 
 from .base import APIResponse, PaginationParams
 from .target import TargetCreate, TargetUpdate, TargetResponse, TargetListResponse
-from .user import UserCreate, UserUpdate, UserResponse, UserListResponse
 from .workflow import (
     WorkflowCreate, WorkflowUpdate, WorkflowResponse, WorkflowListResponse,
     WorkflowExecutionCreate, WorkflowExecutionUpdate, WorkflowExecutionResponse
@@ -40,10 +39,6 @@ __all__ = [
     'TargetUpdate',
     'TargetResponse',
     'TargetListResponse',
-    'UserCreate',
-    'UserUpdate',
-    'UserResponse',
-    'UserListResponse',
     
     # Workflow
     'WorkflowCreate',

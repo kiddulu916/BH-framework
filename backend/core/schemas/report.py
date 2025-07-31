@@ -17,30 +17,30 @@ from .base import APIResponse
 
 class ReportFormat(str, Enum):
     """Report format enumeration."""
-    PDF = "pdf"
-    HTML = "html"
-    MARKDOWN = "markdown"
-    JSON = "json"
-    XML = "xml"
-    CSV = "csv"
+    PDF = "PDF"
+    HTML = "HTML"
+    MARKDOWN = "MARKDOWN"
+    JSON = "JSON"
+    XML = "XML"
+    CSV = "CSV"
 
 
 class ReportStatus(str, Enum):
     """Report status enumeration."""
-    PENDING = "pending"
-    GENERATING = "generating"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+    PENDING = "PENDING"
+    GENERATING = "GENERATING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
 
 
 class ReportType(str, Enum):
     """Report type enumeration."""
-    EXECUTIVE_SUMMARY = "executive_summary"
-    TECHNICAL_DETAILED = "technical_detailed"
-    COMPLIANCE = "compliance"
-    REMEDIATION = "remediation"
-    CUSTOM = "custom"
+    EXECUTIVE_SUMMARY = "EXECUTIVE_SUMMARY"
+    TECHNICAL_DETAILED = "TECHNICAL_DETAILED"
+    COMPLIANCE = "COMPLIANCE"
+    REMEDIATION = "REMEDIATION"
+    CUSTOM = "CUSTOM"
 
 
 class ReportSection(str, Enum):

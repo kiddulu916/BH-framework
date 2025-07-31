@@ -32,7 +32,7 @@ async def create_example_target():
         
         # Create new target
         target_data = {
-            "name": "Example Domain",
+            "target": "Example Domain",
             "value": "example.com",
             "scope": TargetScope.DOMAIN,
             "status": TargetStatus.ACTIVE,

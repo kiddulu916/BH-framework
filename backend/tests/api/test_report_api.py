@@ -6,6 +6,7 @@ including report creation, generation, export, and template management.
 """
 
 import pytest
+import pytest_asyncio
 from uuid import uuid4
 from httpx import AsyncClient
 from unittest.mock import patch, MagicMock
@@ -16,12 +17,67 @@ from core.models.workflow import Workflow, WorkflowStatus, StageStatus
 from core.models.report import Report, ReportStatus, ReportFormat
 from core.schemas.report import ReportCreateRequest, ReportUpdateRequest, ReportExportRequest
 from core.schemas.base import APIResponse
+from core.utils.database import db_manager
+
+
+@pytest_asyncio.fixture
+async def sample_workflow():
+    """Create a sample workflow for report API testing."""
+    from core.models import User, Target, Workflow
+    from core.models.target import TargetScope, TargetStatus
+    from core.models.workflow import WorkflowStatus
+    
+    async with db_manager.session_factory() as session:
+        # Create a test user
+        user = User(
+            name="Test User",
+            email="test@example.com",
+            platform="hackerone"
+        )
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        
+        # Create a test target
+        target = Target(
+            name="example.com",
+            value="example.com",
+            scope=TargetScope.DOMAIN,
+            status=TargetStatus.ACTIVE,
+            user_id=user.id
+        )
+        session.add(target)
+        await session.commit()
+        await session.refresh(target)
+        
+        # Create a test workflow
+        workflow = Workflow(
+            name="Test Workflow",
+            description="A test workflow",
+            stages={
+                "passive_recon": "PENDING",
+                "active_recon": "PENDING",
+                "vuln_scan": "PENDING",
+                "vuln_test": "PENDING",
+                "kill_chain": "PENDING",
+                "report": "PENDING"
+            },
+            status=WorkflowStatus.PENDING,
+            target_id=target.id,
+            user_id=user.id
+        )
+        session.add(workflow)
+        await session.commit()
+        await session.refresh(workflow)
+        
+        return workflow
 
 
 class TestReportAPI:
     """Test suite for report API endpoints."""
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_create_report_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful report creation."""
         # Arrange
@@ -30,7 +86,7 @@ class TestReportAPI:
             "title": "Test Report",
             "description": "Test report for bug hunting results",
             "template": "default",
-            "format": "pdf",
+            "format": "PDF",
             "include_passive_recon": True,
             "include_active_recon": True,
             "include_vulnerabilities": True,
@@ -49,12 +105,13 @@ class TestReportAPI:
         assert data["message"] == "Report created successfully"
         assert data["data"]["title"] == report_data["title"]
         assert data["data"]["execution_id"] == str(sample_workflow.id)
-        assert data["data"]["status"] == "generating"
+        assert data["data"]["status"] == "GENERATING"
         assert "id" in data["data"]
         assert "created_at" in data["data"]
         assert "updated_at" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_create_report_validation_error(self, api_client: AsyncClient):
         """Test report creation with validation errors."""
         # Arrange
@@ -74,6 +131,7 @@ class TestReportAPI:
         assert "detail" in data
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_create_report_workflow_not_found(self, api_client: AsyncClient):
         """Test report creation with non-existent workflow."""
         # Arrange
@@ -83,19 +141,20 @@ class TestReportAPI:
             "title": "Test Report",
             "description": "Test report",
             "template": "default",
-            "format": "pdf"
+            "format": "PDF"
         }
         
         # Act
         response = await api_client.post("/api/reports/", json=report_data)
         
         # Assert
-        assert response.status_code == 200
+        assert response.status_code == 200  # Business logic error returns 200 with success=False
         data = response.json()
         assert data["success"] is False
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_report_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful report retrieval."""
         # First create a report
@@ -104,7 +163,7 @@ class TestReportAPI:
             "title": "Test Report",
             "description": "Test report",
             "template": "default",
-            "format": "pdf"
+            "format": "PDF"
         }
         create_response = await api_client.post("/api/reports/", json=report_data)
         created_report = create_response.json()["data"]
@@ -122,6 +181,7 @@ class TestReportAPI:
         assert data["data"]["execution_id"] == str(sample_workflow.id)
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_report_not_found(self, api_client: AsyncClient):
         """Test report retrieval with non-existent ID."""
         # Arrange
@@ -137,6 +197,7 @@ class TestReportAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_list_reports_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful report listing."""
         # First create a report
@@ -145,7 +206,7 @@ class TestReportAPI:
             "title": "Test Report",
             "description": "Test report",
             "template": "default",
-            "format": "pdf"
+            "format": "PDF"
         }
         await api_client.post("/api/reports/", json=report_data)
         
@@ -162,6 +223,7 @@ class TestReportAPI:
         assert "pagination" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_list_reports_with_filtering(self, api_client: AsyncClient, sample_workflow):
         """Test report listing with workflow and status filter."""
         # First create a report
@@ -170,7 +232,7 @@ class TestReportAPI:
             "title": "Test Report",
             "description": "Test report",
             "template": "default",
-            "format": "pdf"
+            "format": "PDF"
         }
         create_response = await api_client.post("/api/reports/", json=report_data)
         created_report = create_response.json()["data"]
@@ -187,6 +249,7 @@ class TestReportAPI:
         assert "reports" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_list_reports_with_pagination(self, api_client: AsyncClient):
         """Test report listing with pagination."""
         # Act
@@ -202,6 +265,7 @@ class TestReportAPI:
         assert data["data"]["pagination"]["page"] == 1
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_update_report_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful report update."""
         # First create a report
@@ -210,7 +274,7 @@ class TestReportAPI:
             "title": "Test Report",
             "description": "Test report",
             "template": "default",
-            "format": "pdf"
+            "format": "PDF"
         }
         create_response = await api_client.post("/api/reports/", json=report_data)
         created_report = create_response.json()["data"]
@@ -239,6 +303,7 @@ class TestReportAPI:
         assert data["data"]["id"] == created_report["id"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_update_report_not_found(self, api_client: AsyncClient):
         """Test report update with non-existent ID."""
         # Arrange
@@ -255,6 +320,7 @@ class TestReportAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_delete_report_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful report deletion."""
         # First create a report
@@ -263,7 +329,7 @@ class TestReportAPI:
             "title": "Test Report",
             "description": "Test report",
             "template": "default",
-            "format": "pdf"
+            "format": "PDF"
         }
         create_response = await api_client.post("/api/reports/", json=report_data)
         created_report = create_response.json()["data"]
@@ -278,6 +344,7 @@ class TestReportAPI:
         assert data["message"] == "Report deleted successfully"
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_delete_report_not_found(self, api_client: AsyncClient):
         """Test report deletion with non-existent ID."""
         # Arrange
@@ -293,6 +360,7 @@ class TestReportAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_generate_report_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful report generation."""
         # Act
@@ -308,6 +376,7 @@ class TestReportAPI:
         assert "status" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_generate_report_workflow_not_found(self, api_client: AsyncClient):
         """Test report generation with non-existent workflow."""
         # Arrange
@@ -323,6 +392,7 @@ class TestReportAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_export_report_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful report export."""
         # First create a report
@@ -331,14 +401,14 @@ class TestReportAPI:
             "title": "Test Report",
             "description": "Test report",
             "template": "default",
-            "format": "pdf"
+            "format": "PDF"
         }
         create_response = await api_client.post("/api/reports/", json=report_data)
         created_report = create_response.json()["data"]
         
         # Arrange
         export_data = {
-            "format": "pdf",
+            "format": "PDF",
             "include_attachments": True,
             "compression": False
         }
@@ -356,11 +426,12 @@ class TestReportAPI:
         assert "status" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_export_report_not_found(self, api_client: AsyncClient):
         """Test report export with non-existent report."""
         # Arrange
         non_existent_id = uuid4()
-        export_data = {"format": "pdf"}
+        export_data = {"format": "PDF"}
         
         # Act
         response = await api_client.post(f"/api/reports/{non_existent_id}/export", json=export_data)
@@ -372,6 +443,7 @@ class TestReportAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_report_templates_success(self, api_client: AsyncClient):
         """Test successful report templates retrieval."""
         # Act
@@ -393,6 +465,7 @@ class TestReportAPI:
         assert "version" in template
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_workflow_reports_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful workflow reports retrieval."""
         # First create a report for the workflow
@@ -401,7 +474,7 @@ class TestReportAPI:
             "title": "Test Report",
             "description": "Test report",
             "template": "default",
-            "format": "pdf"
+            "format": "PDF"
         }
         await api_client.post("/api/reports/", json=report_data)
         
@@ -418,6 +491,7 @@ class TestReportAPI:
         assert "pagination" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_workflow_reports_not_found(self, api_client: AsyncClient):
         """Test workflow reports retrieval with non-existent workflow."""
         # Arrange
@@ -433,6 +507,7 @@ class TestReportAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_generate_workflow_report_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful workflow report generation."""
         # Act
@@ -448,6 +523,7 @@ class TestReportAPI:
         assert "status" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_generate_workflow_report_workflow_not_found(self, api_client: AsyncClient):
         """Test workflow report generation with non-existent workflow."""
         # Arrange
@@ -463,6 +539,7 @@ class TestReportAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_api_response_format_consistency(self, api_client: AsyncClient, sample_workflow):
         """Test that all API responses follow the standardized format."""
         # First create a report for testing
@@ -471,7 +548,7 @@ class TestReportAPI:
             "title": "Test Report",
             "description": "Test report",
             "template": "default",
-            "format": "pdf"
+            "format": "PDF"
         }
         create_response = await api_client.post("/api/reports/", json=report_data)
         created_report = create_response.json()["data"]

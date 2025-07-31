@@ -12,7 +12,7 @@ from unittest.mock import patch, MagicMock
 from ninja.responses import Response
 from datetime import datetime, timezone
 import pytest_asyncio
-from tests.conftest import create_test_target, create_test_workflow
+from tests.conftest import override_test_settings
 
 from core.models.workflow import Workflow, WorkflowStatus, StageStatus
 from core.schemas.workflow import WorkflowExecutionRequest, StageStatus
@@ -20,7 +20,7 @@ from core.schemas.base import APIResponse
 from core.tasks.execution_service import ExecutionService
 from core.tasks.workflow_service import WorkflowService
 from core.utils.database import get_db_session
-from tests.conftest import TestDataFactory
+
 from core.models.target import TargetScope
 
 
@@ -48,31 +48,64 @@ def mock_docker_client():
 
 
 @pytest_asyncio.fixture
-async def sample_workflow(db_session):
+async def sample_workflow(create_tables_once):
     """Create a real workflow and target in the database for testing."""
-    target = await create_test_target(db_session, name="Test Target", scope=TargetScope.DOMAIN, value="test-target.com")
-    workflow = await create_test_workflow(
-        db_session,
-        target_id=target.id,
-        name="Test Workflow",
-        description="Test workflow description",
-        stages={
-            "passive_recon": StageStatus.PENDING,
-            "active_recon": StageStatus.PENDING,
-            "vulnerability_scan": StageStatus.PENDING,
-            "vulnerability_test": StageStatus.PENDING,
-            "kill_chain_analysis": StageStatus.PENDING,
-            "report_generation": StageStatus.PENDING
-        },
-        settings={}
-    )
-    return workflow
+    from core.models import User, Target, Workflow
+    from core.models.target import TargetScope, TargetStatus
+    from core.models.workflow import WorkflowStatus
+    from core.utils.database import db_manager
+    
+    async with db_manager.session_factory() as session:
+        # Create a test user
+        user = User(
+            name="Test User",
+            email="test@example.com",
+            platform="hackerone"
+        )
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        
+        # Create a test target
+        target = Target(
+            name="example.com",
+            value="example.com",
+            scope=TargetScope.DOMAIN,
+            status=TargetStatus.ACTIVE,
+            user_id=user.id
+        )
+        session.add(target)
+        await session.commit()
+        await session.refresh(target)
+        
+        # Create a test workflow
+        workflow = Workflow(
+            name="Test Workflow",
+            description="A test workflow",
+            stages={
+                "passive_recon": "PENDING",
+                "active_recon": "PENDING",
+                "vuln_scan": "PENDING",
+                "vuln_test": "PENDING",
+                "kill_chain": "PENDING",
+                "report": "PENDING"
+            },
+            status=WorkflowStatus.PENDING,
+            target_id=target.id,
+            user_id=user.id
+        )
+        session.add(workflow)
+        await session.commit()
+        await session.refresh(workflow)
+        
+        return workflow
 
 
 class TestExecutionAPI:
     """Test suite for execution API endpoints."""
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_execute_workflow_stage_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful workflow stage execution."""
         # Arrange
@@ -130,6 +163,7 @@ class TestExecutionAPI:
             assert data["success"] is True
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_execute_workflow_stage_invalid_stage(self, api_client: AsyncClient, sample_workflow):
         """Test workflow stage execution with invalid stage name."""
         # Arrange
@@ -152,6 +186,7 @@ class TestExecutionAPI:
         assert "invalid" in data["message"].lower() or "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_execute_workflow_stage_workflow_not_found(self, api_client: AsyncClient):
         """Test workflow stage execution with non-existent workflow."""
         # Arrange
@@ -175,6 +210,7 @@ class TestExecutionAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_workflow_status_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful workflow status retrieval."""
         # Act
@@ -192,6 +228,7 @@ class TestExecutionAPI:
         assert "updated_at" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_workflow_status_not_found(self, api_client: AsyncClient):
         """Test workflow status retrieval with non-existent workflow."""
         # Arrange

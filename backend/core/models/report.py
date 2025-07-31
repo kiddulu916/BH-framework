@@ -13,35 +13,36 @@ from sqlalchemy import Column, String, Text, Boolean, Enum, ForeignKey, Index
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, JSONB
 from sqlalchemy.orm import relationship
 
-from .base import BaseModel
+from .base import BaseModel, get_foreign_key, get_table_args, get_foreign_key
+from sqlalchemy.dialects.postgresql import JSONB as JSONType
 import enum
 
 
 class ReportFormat(enum.Enum):
     """Enumeration for report formats."""
-    PDF = "pdf"
-    HTML = "html"
-    MARKDOWN = "markdown"
-    JSON = "json"
-    XML = "xml"
+    PDF = "PDF"
+    HTML = "HTML"
+    MARKDOWN = "MARKDOWN"
+    JSON = "JSON"
+    XML = "XML"
 
 
 class ReportStatus(enum.Enum):
     """Enumeration for report status."""
-    GENERATING = "generating"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+    GENERATING = "GENERATING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
 
 
 class ReportType(enum.Enum):
     """Enumeration for report types."""
-    EXECUTIVE_SUMMARY = "executive_summary"
-    TECHNICAL_DETAILED = "technical_detailed"
-    VULNERABILITY_REPORT = "vulnerability_report"
-    KILL_CHAIN_ANALYSIS = "kill_chain_analysis"
-    COMPLIANCE_REPORT = "compliance_report"
-    CUSTOM = "custom"
+    EXECUTIVE_SUMMARY = "EXECUTIVE_SUMMARY"
+    TECHNICAL_DETAILED = "TECHNICAL_DETAILED"
+    VULNERABILITY_REPORT = "VULNERABILITY_REPORT"
+    KILL_CHAIN_ANALYSIS = "KILL_CHAIN_ANALYSIS"
+    COMPLIANCE_REPORT = "COMPLIANCE_REPORT"
+    CUSTOM = "CUSTOM"
 
 
 class Report(BaseModel):
@@ -70,48 +71,43 @@ class Report(BaseModel):
     
     # Report configuration
     template_used = Column(String(255), nullable=True)  # Template used for generation
-    configuration = Column(JSONB, nullable=True)  # Configuration used for report generation
+    configuration = Column(JSONType, nullable=True)  # Configuration used for report generation
     
     # Report metadata
     summary = Column(Text, nullable=True)  # Executive summary
-    key_findings = Column(JSONB, nullable=True)  # Key findings summary
-    statistics = Column(JSONB, nullable=True)  # Report statistics
+    key_findings = Column(JSONType, nullable=True)  # Key findings summary
+    statistics = Column(JSONType, nullable=True)  # Report statistics
     
     # Generation metadata
     generation_time = Column(String(50), nullable=True)  # Time taken to generate
     generated_by = Column(String(255), nullable=True)  # Who/what generated the report
-    errors = Column(JSONB, nullable=True)  # Any errors during generation
+    errors = Column(JSONType, nullable=True)  # Any errors during generation
     
     # Access control
     access_token = Column(String(255), nullable=True, unique=True, index=True)  # Access token for secure sharing
     expires_at = Column(String(50), nullable=True)  # When access token expires
     
     # Relationships
-    target_id = Column(PGUUID(as_uuid=True), ForeignKey("public.targets.id"), nullable=False)
+    target_id = Column(PGUUID(as_uuid=True), ForeignKey(get_foreign_key("targets", "id")), nullable=False)
     target = relationship("Target", back_populates="reports")
     
-    user_id = Column(PGUUID(as_uuid=True), ForeignKey("public.users.id"), nullable=True)
-    user = relationship("User", backref="reports")
-    
-    workflow_id = Column(PGUUID(as_uuid=True), ForeignKey("public.workflows.id"), nullable=False, index=True)
+    workflow_id = Column(PGUUID(as_uuid=True), ForeignKey(get_foreign_key("workflows", "id")), nullable=False, index=True)
     workflow = relationship("Workflow", back_populates="reports")
     
     # Indexes
-    __table_args__ = (
+    __table_args__ = get_table_args(
         Index('idx_reports_name', 'name'),
         Index('idx_reports_type', 'report_type'),
         Index('idx_reports_format', 'format'),
         Index('idx_reports_status', 'status'),
         Index('idx_reports_target', 'target_id'),
-        Index('idx_reports_user', 'user_id'),
         Index('idx_reports_workflow', 'workflow_id'),
         Index('idx_reports_created', 'created_at'),
-        {'schema': 'public'}
     )
     
     def __repr__(self) -> str:
         """String representation of the report."""
-        return f"<Report(name='{self.name}', type='{self.report_type.value}', status='{self.status.value}')>"
+        return f"<Report(name='{self.name}', type='{self.report_type.value.lower()}', status='{self.status.value.lower()}')>"
     
     def to_dict(self) -> dict:
         """Convert report to dictionary."""
@@ -119,9 +115,9 @@ class Report(BaseModel):
         return {
             **base_dict,
             'name': self.name,
-            'report_type': self.report_type.value,
-            'format': self.format.value,
-            'status': self.status.value,
+            'report_type': self.report_type.value.lower(),
+            'format': self.format.value.lower(),
+            'status': self.status.value.lower(),
             'is_public': self.is_public,
             'content': self.content,
             'file_path': self.file_path,
@@ -137,7 +133,6 @@ class Report(BaseModel):
             'access_token': self.access_token,
             'expires_at': self.expires_at,
             'target_id': str(self.target_id),
-            'user_id': str(self.user_id) if self.user_id else None,
         }
     
     @property

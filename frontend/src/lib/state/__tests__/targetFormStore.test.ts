@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useTargetFormStore } from '../targetFormStore';
-import { BugBountyPlatform, TargetScope } from '@/types/target';
+import { BugBountyPlatform } from '@/types/target';
 
 describe('TargetFormStore', () => {
   beforeEach(() => {

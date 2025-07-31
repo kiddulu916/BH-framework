@@ -12,8 +12,10 @@ import ReviewStep from '@/components/organisms/steps/ReviewStep';
 import StepProgress from '@/components/molecules/StepProgress';
 import { StepRef } from '@/components/organisms/steps/BasicInfoStep';
 import { createTarget } from '@/lib/api/targets';
+import { useRouter } from 'next/navigation';
 
 export default function TargetProfileBuilder() {
+  const router = useRouter();
   const { 
     currentStep, 
     nextStep, 
@@ -92,8 +94,16 @@ export default function TargetProfileBuilder() {
     try {
       // Note: createTarget expects TargetFormData but formData is TargetFormData
       // The API client handles the mapping internally
-      await createTarget(formData as any);
-      // Remove alert popup - just reset form silently
+      const res = await createTarget(formData as any);
+      console.log('createTarget response', res);
+      const newId = res?.data?.data?.id ?? res?.data?.id;
+      if (newId) {
+        // Navigate to dashboard for the new target
+        router.push(`/dashboard?target=${newId}`);
+      } else {
+        // Fallback: reload targets list
+        router.push('/dashboard');
+      }
       resetForm();
     } catch (error) {
       console.error('Failed to create target:', error);
@@ -124,7 +134,7 @@ export default function TargetProfileBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center p-4 overflow-y-auto">
       {/* Blurry Dashboard Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20 backdrop-blur-sm">
         <div className="absolute inset-0 bg-black/40"></div>
@@ -141,7 +151,7 @@ export default function TargetProfileBuilder() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="bg-zinc-800/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-zinc-700/50"
+            className="bg-zinc-800/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-zinc-700/50 max-h-[90vh] overflow-y-auto"
             data-testid="form-container"
           >
             <StepProgress currentStep={currentStep} totalSteps={steps.length} />

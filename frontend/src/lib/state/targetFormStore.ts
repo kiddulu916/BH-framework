@@ -1,17 +1,17 @@
 import { create } from 'zustand';
-import { TargetCreateRequest, BugBountyPlatform, TargetScope, RateLimitConfig, CustomHeader, TargetStatus } from '@/types/target';
-import { ValidationError } from '@/lib/utils/validation';
+import { TargetCreateRequest, BugBountyPlatform, CustomHeader, TargetStatus } from '@/types/target';
+import { ValidationError } from '@/lib/validation';
 
 // Extended interface for form data that includes legacy fields for backward compatibility
 interface TargetFormData extends Partial<TargetCreateRequest> {
   // Legacy field mappings for backward compatibility
+  id?: string;
   target?: string;
   domain?: string;
   login_email?: string;
   researcher_email?: string;
   in_scope?: string[];
   out_of_scope?: string[];
-  rate_limits?: RateLimitConfig;
   rate_limit_requests?: number;
   rate_limit_seconds?: number;
   custom_headers?: CustomHeader[];
@@ -37,8 +37,8 @@ interface TargetFormState {
 
 const initialFormData: TargetFormData = {
   // Basic target information
+  id: crypto.randomUUID(),
   target: '',
-  name: '',
   domain: '',
   is_primary: false,
   platform: BugBountyPlatform.HACKERONE,
@@ -47,11 +47,6 @@ const initialFormData: TargetFormData = {
   status: TargetStatus.ACTIVE,
   in_scope: [],
   out_of_scope: [],
-  rate_limits: {
-    requests_per_second: 0,
-    requests_per_minute: 0,
-    requests_per_hour: 0,
-  },
   rate_limit_requests: 0,
   rate_limit_seconds: 0,
   custom_headers: [],

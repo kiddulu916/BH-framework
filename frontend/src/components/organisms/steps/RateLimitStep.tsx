@@ -4,7 +4,7 @@ import React, { useState, useImperativeHandle, useEffect } from 'react';
 import { useTargetFormStore } from '@/lib/state/targetFormStore';
 import Input from '@/components/atoms/Input';
 import ValidationError from '@/components/atoms/ValidationError';
-import { validateRateLimiting, getFieldErrors, ValidationError as ValidationErrorType } from '@/lib/utils/validation';
+import { validateRateLimiting, getFieldErrors, ValidationError as ValidationErrorType } from '@/lib/validation';
 import { StepRef } from './BasicInfoStep';
 
 export default function RateLimitStep({ stepRef }: { stepRef: React.RefObject<StepRef | null> }) {

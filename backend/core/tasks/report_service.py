@@ -93,10 +93,10 @@ class ReportService:
                 "workflow_id": payload.workflow_id,
                 "target_id": workflow.target_id,
                 "name": payload.title or f"Security Assessment Report - {workflow.name}",
-                "report_type": ReportType.TECHNICAL_DETAILED.name,
-                "format": payload.format.name if hasattr(payload.format, 'name') else str(payload.format).upper(),
+                "report_type": ReportType.TECHNICAL_DETAILED,
+                "format": payload.format,
                 "content": json.dumps(report_content),
-                "status": ReportStatus.GENERATING.name,
+                "status": ReportStatus.GENERATING,
                 "template_used": payload.template,
                 "configuration": {"template": payload.template, "format": payload.format.name if hasattr(payload.format, 'name') else str(payload.format).upper()},
                 "created_at": datetime.now(timezone.utc),
@@ -1041,10 +1041,10 @@ class ReportService:
             else:
                 content_data = report.content
             
-            if format_type == "json":
+            if format_type == "JSON":
                 return json.dumps(content_data, indent=2)
             
-            elif format_type == "csv":
+            elif format_type == "CSV":
                 # Convert report content to CSV format
                 csv_data = []
                 if "findings" in content_data.get("sections", {}):
@@ -1071,10 +1071,10 @@ class ReportService:
                 else:
                     return "No data to export"
             
-            elif format_type == "markdown":
+            elif format_type == "MARKDOWN":
                 return self._convert_to_markdown(content_data)
             
-            elif format_type == "pdf":
+            elif format_type == "PDF":
                 # For now, return markdown content as PDF is not fully implemented
                 # In a real implementation, you would use a library like weasyprint or reportlab
                 markdown_content = self._convert_to_markdown(content_data)

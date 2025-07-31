@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
 import { createTarget, getTargets, getTarget, updateTarget, deleteTarget } from '../targets';
-import { BugBountyPlatform, TargetScope } from '@/types/target';
+import { BugBountyPlatform } from '@/types/target';
 
 // Mock axios
 vi.mock('axios');
@@ -18,13 +18,13 @@ describe('Targets API Client', () => {
         data: {
           success: true,
           message: 'Target created successfully',
-          data: { id: '123', name: 'Test Company' },
+          data: { id: '123', target: 'Test Company' },
         },
       };
       mockAxios.post.mockResolvedValue(mockResponse);
 
       const formData = {
-        name: 'Test Company',
+        target: 'Test Company',
         domain: 'example.com',
         is_primary: true,
         platform: BugBountyPlatform.HACKERONE,
@@ -34,11 +34,8 @@ describe('Targets API Client', () => {
         out_of_scope: ['https://excluded.example.com'],
         additional_info: ['Follow responsible disclosure'],
         notes: ['No DDoS attacks'],
-        rate_limits: {
-          requests_per_minute: 10,
-          requests_per_second: 0,
-          requests_per_hour: 0,
-        },
+        rate_limit_requests: 10,
+        rate_limit_seconds: 60,
         custom_headers: [{ name: 'Authorization', value: 'Bearer token' }],
       };
 
@@ -47,7 +44,7 @@ describe('Targets API Client', () => {
       expect(mockAxios.post).toHaveBeenCalledWith(
         'http://localhost:8000/api/targets/',
         expect.objectContaining({
-          name: 'Test Company',
+          target: 'Test Company',
           domain: 'example.com',
           is_primary: true,
           platform: BugBountyPlatform.HACKERONE,
@@ -57,11 +54,8 @@ describe('Targets API Client', () => {
           out_of_scope: ['https://excluded.example.com'],
           additional_info: ['Follow responsible disclosure'],
           notes: ['No DDoS attacks'],
-          rate_limits: {
-            requests_per_minute: 10,
-            requests_per_second: 0,
-            requests_per_hour: 0,
-          },
+          rate_limit_requests: 10,
+          rate_limit_seconds: 60,
           custom_headers: [{ name: 'Authorization', value: 'Bearer token' }],
         })
       );
@@ -74,7 +68,7 @@ describe('Targets API Client', () => {
       mockAxios.post.mockRejectedValue(new Error(errorMessage));
 
       const formData = {
-        name: 'Test Company',
+        target: 'Test Company',
         domain: 'example.com',
       };
 
@@ -86,13 +80,13 @@ describe('Targets API Client', () => {
         data: {
           success: true,
           message: 'Target created successfully',
-          data: { id: '123', name: 'Test Company' },
+          data: { id: '123', target: 'Test Company' },
         },
       };
       mockAxios.post.mockResolvedValue(mockResponse);
 
       const formData = {
-        name: 'Test Company',
+        target: 'Test Company',
         domain: 'example.com',
         in_scope: [],
         out_of_scope: [],
@@ -106,6 +100,8 @@ describe('Targets API Client', () => {
       expect(mockAxios.post).toHaveBeenCalledWith(
         'http://localhost:8000/api/targets/',
         expect.objectContaining({
+          target: 'Test Company',
+          domain: 'example.com',
           in_scope: [],
           out_of_scope: [],
           additional_info: [],
@@ -122,13 +118,13 @@ describe('Targets API Client', () => {
         data: {
           success: true,
           message: 'Target created successfully',
-          data: { id: '123', name: 'Test Company' },
+          data: { id: '123', target: 'Test Company' },
         },
       };
       mockAxios.post.mockResolvedValue(mockResponse);
 
       const formData = {
-        name: 'Test Company',
+        target: undefined,
         domain: 'example.com',
         additional_info: undefined,
         notes: undefined,
@@ -139,8 +135,10 @@ describe('Targets API Client', () => {
       expect(mockAxios.post).toHaveBeenCalledWith(
         'http://localhost:8000/api/targets/',
         expect.objectContaining({
-          additional_info: undefined,
-          notes: undefined,
+          target: undefined,
+          domain: 'example.com',
+          additional_info: [],
+          notes: [],
         })
       );
 
@@ -152,13 +150,13 @@ describe('Targets API Client', () => {
         data: {
           success: true,
           message: 'Target created successfully',
-          data: { id: '123', name: 'Test Company' },
+          data: { id: '123', target: 'Test Company' },
         },
       };
       mockAxios.post.mockResolvedValue(mockResponse);
 
       const formData = {
-        name: 'Test Company',
+        target: 'Test Company',
         domain: 'example.com',
         // No rate limit fields
       };
@@ -168,11 +166,10 @@ describe('Targets API Client', () => {
       expect(mockAxios.post).toHaveBeenCalledWith(
         'http://localhost:8000/api/targets/',
         expect.objectContaining({
-          rate_limits: {
-            requests_per_second: 0,
-            requests_per_minute: 0,
-            requests_per_hour: 0,
-          },
+          target: 'Test Company',
+          domain: 'example.com',
+          rate_limit_requests: undefined,
+          rate_limit_seconds: undefined,
         })
       );
 
@@ -188,22 +185,21 @@ describe('Targets API Client', () => {
           message: 'Targets retrieved successfully',
           data: {
             items: [
-              { id: '123', name: 'Test Company 1' },
-              { id: '456', name: 'Test Company 2' },
+              { id: '1', target: 'Company A', domain: 'companya.com' },
+              { id: '2', target: 'Company B', domain: 'companyb.com' },
             ],
             total: 2,
             page: 1,
-            size: 10,
-            pages: 1,
+            per_page: 10,
           },
         },
       };
       mockAxios.get.mockResolvedValue(mockResponse);
 
       const filters = {
-        scope: TargetScope.DOMAIN,
-        is_primary: true,
-        search: 'test',
+        target: 'Company',
+        domain: 'companya.com',
+        platform: BugBountyPlatform.HACKERONE,
       };
 
       const result = await getTargets(filters);
@@ -222,11 +218,12 @@ describe('Targets API Client', () => {
           success: true,
           message: 'Targets retrieved successfully',
           data: {
-            items: [],
-            total: 0,
+            items: [
+              { id: '1', target: 'Company A', domain: 'companya.com' },
+            ],
+            total: 1,
             page: 1,
-            size: 10,
-            pages: 0,
+            per_page: 10,
           },
         },
       };
@@ -256,12 +253,7 @@ describe('Targets API Client', () => {
         data: {
           success: true,
           message: 'Target retrieved successfully',
-          data: {
-            id: '123',
-            name: 'Test Company',
-            value: 'example.com',
-            scope: 'DOMAIN',
-          },
+          data: { id: '123', target: 'Test Company', domain: 'example.com' },
         },
       };
       mockAxios.get.mockResolvedValue(mockResponse);
@@ -289,18 +281,14 @@ describe('Targets API Client', () => {
         data: {
           success: true,
           message: 'Target updated successfully',
-          data: {
-            id: '123',
-            name: 'Updated Company',
-            value: 'updated-example.com',
-          },
+          data: { id: '123', target: 'Updated Company', domain: 'updated.com' },
         },
       };
       mockAxios.put.mockResolvedValue(mockResponse);
 
       const updateData = {
-        name: 'Updated Company',
-        value: 'updated-example.com',
+        target: 'Updated Company',
+        domain: 'updated.com',
       };
 
       const result = await updateTarget('123', updateData);
@@ -317,11 +305,7 @@ describe('Targets API Client', () => {
       const errorMessage = 'API Error';
       mockAxios.put.mockRejectedValue(new Error(errorMessage));
 
-      const updateData = {
-        name: 'Updated Company',
-      };
-
-      await expect(updateTarget('123', updateData)).rejects.toThrow(errorMessage);
+      await expect(updateTarget('123', { target: 'Test' })).rejects.toThrow(errorMessage);
     });
   });
 
@@ -357,21 +341,25 @@ describe('Targets API Client', () => {
       const originalEnv = process.env.NEXT_PUBLIC_API_URL;
       process.env.NEXT_PUBLIC_API_URL = 'https://custom-api.com';
 
+      // The API module reads the env var at import time, so we need to import it *after* we change the env.
+      vi.resetModules();
+      const { createTarget: createTargetFresh } = await import('../targets');
+
       const mockResponse = {
         data: {
           success: true,
           message: 'Target created successfully',
-          data: { id: '123', name: 'Test Company' },
+          data: { id: '123', target: 'Test Company' },
         },
       };
       mockAxios.post.mockResolvedValue(mockResponse);
 
       const formData = {
-        name: 'Test Company',
+        target: 'Test Company',
         domain: 'example.com',
       };
 
-      await createTarget(formData);
+      await createTargetFresh(formData);
 
       expect(mockAxios.post).toHaveBeenCalledWith(
         'https://custom-api.com/api/targets/',
@@ -379,7 +367,11 @@ describe('Targets API Client', () => {
       );
 
       // Restore original environment
-      process.env.NEXT_PUBLIC_API_URL = originalEnv;
+      if (originalEnv) {
+        process.env.NEXT_PUBLIC_API_URL = originalEnv;
+      } else {
+        delete process.env.NEXT_PUBLIC_API_URL;
+      }
     });
 
     it('falls back to default API URL when environment variable is not set', async () => {
@@ -390,13 +382,13 @@ describe('Targets API Client', () => {
         data: {
           success: true,
           message: 'Target created successfully',
-          data: { id: '123', name: 'Test Company' },
+          data: { id: '123', target: 'Test Company' },
         },
       };
       mockAxios.post.mockResolvedValue(mockResponse);
 
       const formData = {
-        name: 'Test Company',
+        target: 'Test Company',
         domain: 'example.com',
       };
 
@@ -408,7 +400,9 @@ describe('Targets API Client', () => {
       );
 
       // Restore original environment
-      process.env.NEXT_PUBLIC_API_URL = originalEnv;
+      if (originalEnv) {
+        process.env.NEXT_PUBLIC_API_URL = originalEnv;
+      }
     });
   });
 }); 

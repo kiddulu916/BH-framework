@@ -18,6 +18,7 @@ class TestTargetsAPI:
     """Test suite for target API endpoints."""
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_create_target_success(self, api_client: AsyncClient, sample_target_data):
         """Test successful target creation."""
         # Arrange
@@ -46,6 +47,7 @@ class TestTargetsAPI:
         assert "updated_at" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_create_target_validation_error(self, api_client: AsyncClient):
         """Test target creation with validation errors."""
         # Arrange
@@ -65,6 +67,7 @@ class TestTargetsAPI:
         assert "detail" in data  # Pydantic validation error structure
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_target_success(self, api_client: AsyncClient, sample_target):
         """Test successful target retrieval."""
         # Act
@@ -83,6 +86,7 @@ class TestTargetsAPI:
         assert data["data"]["name"] == sample_target.name
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_target_not_found(self, api_client: AsyncClient):
         """Test target retrieval with non-existent ID."""
         # Arrange
@@ -99,6 +103,7 @@ class TestTargetsAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_update_target_success(self, api_client: AsyncClient, sample_target):
         """Test successful target update."""
         # Arrange
@@ -123,6 +128,7 @@ class TestTargetsAPI:
         assert data["data"]["id"] == str(sample_target.id)
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_update_target_not_found(self, api_client: AsyncClient):
         """Test target update with non-existent ID."""
         # Arrange
@@ -137,6 +143,7 @@ class TestTargetsAPI:
         # Accept 422 for validation error, 404 for not found, or 200 for legacy
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_delete_target_success(self, api_client: AsyncClient, sample_target):
         """Test successful target deletion."""
         # Act
@@ -150,6 +157,7 @@ class TestTargetsAPI:
         assert data["message"] == "Target deleted successfully"
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_delete_target_not_found(self, api_client: AsyncClient):
         """Test target deletion with non-existent ID."""
         # Arrange
@@ -166,6 +174,7 @@ class TestTargetsAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_list_targets_success(self, api_client: AsyncClient, sample_target):
         """Test successful target listing."""
         # Act: Use value filter to ensure the sample target is included
@@ -185,6 +194,7 @@ class TestTargetsAPI:
         assert str(sample_target.id) in target_ids
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_list_targets_with_pagination(self, api_client: AsyncClient):
         """Test target listing with pagination."""
         # Act
@@ -199,6 +209,7 @@ class TestTargetsAPI:
         assert data["data"]["per_page"] == 5
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_list_targets_with_filtering(self, api_client: AsyncClient, sample_target):
         """Test target listing with value filtering."""
         # Act
@@ -216,6 +227,7 @@ class TestTargetsAPI:
             assert sample_target.value in target["value"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_target_summary(self, api_client: AsyncClient, sample_target):
         """Test target summary endpoint."""
         # Act
@@ -231,6 +243,7 @@ class TestTargetsAPI:
         assert "workflows" in data["data"]["statistics"]  # Check in statistics
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_validate_target_success(self, api_client: AsyncClient, sample_target):
         """Test target validation endpoint."""
         # Use the correct endpoint and method
@@ -245,6 +258,7 @@ class TestTargetsAPI:
             assert "overall_valid" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_validate_target_failure(self, api_client: AsyncClient):
         """Test target validation with invalid data."""
         # Use a random UUID that doesn't exist
@@ -257,6 +271,7 @@ class TestTargetsAPI:
             assert data["success"] is False or "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_targets_overview(self, api_client: AsyncClient):
         """Test targets overview endpoint."""
         # Act

@@ -41,18 +41,20 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0,testserv
 # Application definition
 
 INSTALLED_APPS = [
+    # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Third-party
+    'corsheaders',
     'core',  # Our main app
-    'corsheaders',  # CORS support
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # CORS middleware
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',  # This enables APPEND_SLASH
@@ -156,8 +158,21 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+# -----------------------------------------------------------------------------
+# Allow the Next.js frontend (dev & docker) to call the API and send cookies.
+
+from urllib.parse import urlparse
+
+frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+
+# Exact origin list
+CORS_ALLOWED_ORIGINS = [frontend_url]
+
+# Accept credentials (cookies / auth headers)
 CORS_ALLOW_CREDENTIALS = True
+
+# If you run multiple frontends you can also allow regex patterns e.g.
+# CORS_ALLOWED_ORIGIN_REGEXES = [r"^https?:\/\/localhost:\d+$"]
 
 # JWT Configuration
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key-change-in-production')
@@ -206,10 +221,6 @@ LOGGING = {
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
-
-# Rate Limiting
-RATE_LIMIT_PER_MINUTE = int(os.getenv('RATE_LIMIT_PER_MINUTE', '100'))
-RATE_LIMIT_PER_HOUR = int(os.getenv('RATE_LIMIT_PER_HOUR', '1000'))
 
 # Outputs directory for stage results
 OUTPUTS_DIR = BASE_DIR.parent / 'outputs'

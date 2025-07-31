@@ -12,7 +12,8 @@ from sqlalchemy import Column, String, Text, Boolean, Enum, ForeignKey, Index, I
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, JSONB
 from sqlalchemy.orm import relationship
 
-from .base import BaseModel
+from .base import BaseModel, get_foreign_key, get_table_args, get_foreign_key
+from sqlalchemy.dialects.postgresql import JSONB as JSONType
 import enum
 
 
@@ -45,11 +46,10 @@ class KillChain(BaseModel):
     """
     
     __tablename__ = "kill_chains"
-    __table_args__ = (
+    __table_args__ = get_table_args(
         Index('idx_kill_chains_target', 'target_id'),
         Index('idx_kill_chains_execution', 'execution_id'),
         Index('idx_kill_chains_created', 'created_at'),
-        {'schema': 'public'}
     )
     
     # Analysis identification
@@ -66,22 +66,22 @@ class KillChain(BaseModel):
     
     # Analysis results - updated field names to match schema
     execution_time = Column(Float, nullable=True)  # Changed from String to Float
-    analysis_config = Column(JSONB, nullable=True)  # configuration in schema
-    raw_output = Column(JSONB, nullable=True)  # raw_analysis in schema
-    kill_chain_metadata = Column(JSONB, nullable=True)  # Additional metadata (renamed from metadata)
+    analysis_config = Column(JSONType, nullable=True)  # configuration in schema
+    raw_output = Column(JSONType, nullable=True)  # raw_analysis in schema
+    kill_chain_metadata = Column(JSONType, nullable=True)  # Additional metadata (renamed from metadata)
     
     # Legacy fields for backward compatibility
     analysis_type = Column(String(100), nullable=True)  # Type of kill chain analysis
     methodology = Column(String(255), nullable=True)  # Analysis methodology used
-    configuration = Column(JSONB, nullable=True)  # Configuration used for the analysis
+    configuration = Column(JSONType, nullable=True)  # Configuration used for the analysis
     exploitable_paths = Column(Integer, default=0, nullable=False)
     blocked_paths = Column(Integer, default=0, nullable=False)
-    raw_analysis = Column(JSONB, nullable=True)  # Raw analysis data
-    processed_paths = Column(JSONB, nullable=True)  # Processed attack paths
-    errors = Column(JSONB, nullable=True)  # Any errors encountered
+    raw_analysis = Column(JSONType, nullable=True)  # Raw analysis data
+    processed_paths = Column(JSONType, nullable=True)  # Processed attack paths
+    errors = Column(JSONType, nullable=True)  # Any errors encountered
     
     # Relationships
-    target_id = Column(PGUUID(as_uuid=True), ForeignKey("public.targets.id"), nullable=False)
+    target_id = Column(PGUUID(as_uuid=True), ForeignKey(get_foreign_key("targets", "id")), nullable=False)
     target = relationship("Target", back_populates="kill_chains")
     
     # Attack paths
@@ -121,13 +121,12 @@ class AttackPath(BaseModel):
     """
     
     __tablename__ = "attack_paths"
-    __table_args__ = (
+    __table_args__ = get_table_args(
         Index('idx_attack_paths_name', 'name'),
         Index('idx_attack_paths_status', 'status'),
         Index('idx_attack_paths_verified', 'is_verified'),
         Index('idx_attack_paths_exploitable', 'is_exploitable'),
         Index('idx_attack_paths_kill_chain', 'kill_chain_id'),
-        {'schema': 'public'}
     )
     
     # Path identification
@@ -138,47 +137,47 @@ class AttackPath(BaseModel):
     # Schema-compatible fields
     attack_path_type = Column(String(100), nullable=True)  # Type of attack path
     severity = Column(String(50), nullable=True)  # Attack path severity
-    stages = Column(JSONB, nullable=True)  # Kill chain stages involved (phases in schema)
-    entry_points = Column(JSONB, nullable=True)  # Entry points for the attack
-    exit_points = Column(JSONB, nullable=True)  # Exit points for the attack
-    prerequisites = Column(JSONB, nullable=True)  # Prerequisites for the attack
-    techniques = Column(JSONB, nullable=True)  # MITRE ATT&CK techniques
-    tools_required = Column(JSONB, nullable=True)  # Tools required for the attack
+    stages = Column(JSONType, nullable=True)  # Kill chain stages involved (phases in schema)
+    entry_points = Column(JSONType, nullable=True)  # Entry points for the attack
+    exit_points = Column(JSONType, nullable=True)  # Exit points for the attack
+    prerequisites = Column(JSONType, nullable=True)  # Prerequisites for the attack
+    techniques = Column(JSONType, nullable=True)  # MITRE ATT&CK techniques
+    tools_required = Column(JSONType, nullable=True)  # Tools required for the attack
     evidence = Column(Text, nullable=True)  # Evidence supporting this attack path
     proof_of_concept = Column(Text, nullable=True)  # Proof of concept for the attack
-    screenshots = Column(JSONB, nullable=True)  # Screenshot file paths
+    screenshots = Column(JSONType, nullable=True)  # Screenshot file paths
     risk_score = Column(Float, nullable=True)  # Overall risk score
     impact_assessment = Column(Text, nullable=True)  # Impact assessment
     remediation = Column(Text, nullable=True)  # Remediation recommendations
-    attack_path_metadata = Column(JSONB, nullable=True)  # Additional metadata (renamed from metadata)
+    attack_path_metadata = Column(JSONType, nullable=True)  # Additional metadata (renamed from metadata)
     
     # Legacy fields for backward compatibility
-    phases = Column(JSONB, nullable=True)  # Kill chain phases involved
-    tactics = Column(JSONB, nullable=True)  # MITRE ATT&CK tactics
-    intermediate_nodes = Column(JSONB, nullable=True)  # Intermediate nodes in the path
+    phases = Column(JSONType, nullable=True)  # Kill chain phases involved
+    tactics = Column(JSONType, nullable=True)  # MITRE ATT&CK tactics
+    intermediate_nodes = Column(JSONType, nullable=True)  # Intermediate nodes in the path
     likelihood = Column(String(50), nullable=True)  # Likelihood of success
     impact = Column(String(50), nullable=True)  # Potential impact
     
     # Verification
     is_verified = Column(Boolean, default=False, nullable=False, index=True)  # Whether manually verified
-    verification_evidence = Column(JSONB, nullable=True)  # Evidence from verification
+    verification_evidence = Column(JSONType, nullable=True)  # Evidence from verification
     verification_notes = Column(Text, nullable=True)  # Notes from verification
     
     # Exploitation
     is_exploitable = Column(Boolean, default=False, nullable=False, index=True)  # Whether path is exploitable
-    exploitation_evidence = Column(JSONB, nullable=True)  # Evidence from exploitation attempts
+    exploitation_evidence = Column(JSONType, nullable=True)  # Evidence from exploitation attempts
     exploitation_notes = Column(Text, nullable=True)  # Notes from exploitation
     
     # Mitigation
-    mitigation_controls = Column(JSONB, nullable=True)  # Existing mitigation controls
-    recommended_controls = Column(JSONB, nullable=True)  # Recommended additional controls
+    mitigation_controls = Column(JSONType, nullable=True)  # Existing mitigation controls
+    recommended_controls = Column(JSONType, nullable=True)  # Recommended additional controls
     
     # Additional information
-    tags = Column(JSONB, nullable=True)  # Tags for categorization
+    tags = Column(JSONType, nullable=True)  # Tags for categorization
     notes = Column(Text, nullable=True)  # Additional notes
     
     # Relationships
-    kill_chain_id = Column(PGUUID(as_uuid=True), ForeignKey("public.kill_chains.id"), nullable=False)
+    kill_chain_id = Column(PGUUID(as_uuid=True), ForeignKey(get_foreign_key("kill_chains", "id")), nullable=False)
     kill_chain = relationship("KillChain", back_populates="attack_paths")
     
     def __repr__(self) -> str:

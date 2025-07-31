@@ -107,11 +107,11 @@ alwaysApply: true
 - **Stage-specific**: `/outputs/<target>/<stage_name>/`
 
 ### 2. **File Naming Conventions**
-- **Raw files**: `<tool_name>_<target>.<extension>`
+- **Raw files**: `<tool_name>.<extension>`
 - **Parsed files**: `<tool_name>_<data_type>.txt` or `<tool_name>_<data_type>.json`
 - **Examples**:
-  - `sublist3r_example.com.txt`
-  - `amass_example.com.json`
+  - `sublist3r.txt`
+  - `amass.json`
   - `subfinder_subdomains.txt`
 
 ### 3. **Directory Setup Function**
@@ -205,10 +205,10 @@ alwaysApply: true
 - **Payload structure**:
   ```python
   payload = {
-      "name": domain,
-      "scope": "DOMAIN",  # Uppercase enum value
-      "value": domain,
-      "description": f"Target created automatically for {stage_name}: {domain}",
+      "target": domain,
+      "domain": domain,
+      "status": "ACTIVE",  # Uppercase enum value
+      "platform": "BUGBOUNTY",  # Uppercase enum value
       "is_primary": True
   }
   ```

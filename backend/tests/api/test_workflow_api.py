@@ -21,6 +21,7 @@ class TestWorkflowAPI:
     """Test suite for workflow API endpoints."""
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_create_workflow_success(self, api_client: AsyncClient, sample_target):
         """Test successful workflow creation."""
         # Arrange
@@ -51,6 +52,7 @@ class TestWorkflowAPI:
         assert "updated_at" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_create_workflow_validation_error(self, api_client: AsyncClient):
         """Test workflow creation with validation errors."""
         # Arrange
@@ -69,6 +71,7 @@ class TestWorkflowAPI:
         assert "detail" in data
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_create_workflow_target_not_found(self, api_client: AsyncClient):
         """Test workflow creation with non-existent target."""
         # Arrange
@@ -89,6 +92,7 @@ class TestWorkflowAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_workflow_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful workflow retrieval."""
         # Act
@@ -106,6 +110,7 @@ class TestWorkflowAPI:
         assert "settings" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_workflow_not_found(self, api_client: AsyncClient):
         """Test workflow retrieval with non-existent ID."""
         # Arrange
@@ -121,6 +126,7 @@ class TestWorkflowAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_list_workflows_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful workflow listing."""
         # Act
@@ -140,6 +146,7 @@ class TestWorkflowAPI:
         assert str(sample_workflow.id) in workflow_ids
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_list_workflows_with_filtering(self, api_client: AsyncClient, sample_workflow):
         """Test workflow listing with status filter."""
         # Act
@@ -153,6 +160,7 @@ class TestWorkflowAPI:
         assert "workflows" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_list_workflows_with_pagination(self, api_client: AsyncClient):
         """Test workflow listing with pagination."""
         # Act
@@ -168,6 +176,7 @@ class TestWorkflowAPI:
         assert data["data"]["pagination"]["offset"] == 0
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_update_workflow_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful workflow update."""
         # Arrange
@@ -193,6 +202,7 @@ class TestWorkflowAPI:
         assert data["data"]["id"] == str(sample_workflow.id)
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_update_workflow_not_found(self, api_client: AsyncClient):
         """Test workflow update with non-existent ID."""
         # Arrange
@@ -209,6 +219,7 @@ class TestWorkflowAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_delete_workflow_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful workflow deletion."""
         # Act
@@ -221,6 +232,7 @@ class TestWorkflowAPI:
         assert data["message"] == "Workflow deleted successfully"
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_delete_workflow_not_found(self, api_client: AsyncClient):
         """Test workflow deletion with non-existent ID."""
         # Arrange
@@ -236,6 +248,7 @@ class TestWorkflowAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_workflow_summary_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful workflow summary retrieval."""
         # Act
@@ -252,6 +265,7 @@ class TestWorkflowAPI:
         assert "statistics" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_execute_workflow_stage_success(self, api_client: AsyncClient, sample_workflow):
         """Test successful workflow stage execution."""
         # Arrange
@@ -311,6 +325,7 @@ class TestWorkflowAPI:
             assert data["message"] == "Stage execution completed"
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_execute_workflow_stage_invalid_stage(self, api_client: AsyncClient, sample_workflow):
         """Test workflow stage execution with invalid stage name."""
         # Arrange
@@ -332,6 +347,7 @@ class TestWorkflowAPI:
         assert "invalid" in data["message"].lower() or "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_execute_workflow_stage_workflow_not_found(self, api_client: AsyncClient):
         """Test workflow stage execution with non-existent workflow."""
         # Arrange
@@ -354,6 +370,7 @@ class TestWorkflowAPI:
         assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_workflow_statistics_success(self, api_client: AsyncClient):
         """Test successful workflow statistics retrieval."""
         # Act
@@ -370,6 +387,7 @@ class TestWorkflowAPI:
         assert "status_distribution" in data["data"]["statistics"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_list_running_containers_success(self, api_client: AsyncClient):
         """Test successful container listing."""
         # Mock Docker client
@@ -394,6 +412,7 @@ class TestWorkflowAPI:
             assert "containers" in data["data"]
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_container_status_success(self, api_client: AsyncClient):
         """Test successful container status retrieval."""
         # Mock Docker client
@@ -421,6 +440,7 @@ class TestWorkflowAPI:
             assert data["data"]["status"] == "running"
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_get_container_status_not_found(self, api_client: AsyncClient):
         """Test container status retrieval with non-existent container."""
         # Mock Docker client to raise exception
@@ -439,6 +459,7 @@ class TestWorkflowAPI:
             assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_stop_container_success(self, api_client: AsyncClient):
         """Test successful container stop."""
         # Mock Docker client
@@ -459,6 +480,7 @@ class TestWorkflowAPI:
             assert data["message"] == "Container stopped successfully"
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_stop_container_not_found(self, api_client: AsyncClient):
         """Test container stop with non-existent container."""
         # Mock Docker client to raise exception
@@ -479,6 +501,7 @@ class TestWorkflowAPI:
             assert "not found" in data["message"].lower()
     
     @pytest.mark.asyncio
+    @pytest.mark.django_db
     async def test_api_response_format_consistency(self, api_client: AsyncClient, sample_workflow):
         """Test that all API responses follow the standardized format."""
         # Test multiple endpoints to ensure consistent response format
