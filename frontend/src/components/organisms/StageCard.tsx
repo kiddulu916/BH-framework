@@ -13,7 +13,9 @@ interface StageCardProps {
   status?: StageStatus;
   results?: StageResult[];
   selectedTools?: string[];
+  isStageSelected?: boolean;
   onToolChange?: (tool: string, checked: boolean) => void;
+  onStageSelectionChange?: (checked: boolean) => void;
   onStartStage?: (stageName: string, selectedTools: string[], options?: Record<string, any>) => void;
   isRunning?: boolean;
 }
@@ -26,7 +28,9 @@ export function StageCard({
   status, 
   results = [], 
   selectedTools: propSelectedTools = [],
+  isStageSelected = true,
   onToolChange,
+  onStageSelectionChange,
   onStartStage,
   isRunning = false 
 }: StageCardProps) {
@@ -35,6 +39,12 @@ export function StageCard({
   const handleToolChange = (tool: string, checked: boolean) => {
     if (onToolChange) {
       onToolChange(tool, checked);
+    }
+  };
+
+  const handleStageSelectionChange = (checked: boolean) => {
+    if (onStageSelectionChange) {
+      onStageSelectionChange(checked);
     }
   };
 
@@ -87,16 +97,27 @@ export function StageCard({
 
   return (
     <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl hover:shadow-gray-900/20 group">
-      {/* Header with status indicator */}
+      {/* Header with status indicator and stage selection checkbox */}
       <div className="flex items-center justify-between mb-4">
-        <Link
-          href={`/stages/${id}`}
-          className="flex-1"
-        >
-          <h3 className="text-lg font-semibold text-white hover:text-blue-400 transition-colors duration-200 cursor-pointer group-hover:text-blue-400">
-            {title}
-          </h3>
-        </Link>
+        <div className="flex items-center space-x-3 flex-1">
+          {/* Stage selection checkbox */}
+          <input
+            type="checkbox"
+            checked={isStageSelected}
+            onChange={(e) => handleStageSelectionChange(e.target.checked)}
+            className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+          />
+          
+          {/* Stage title as link */}
+          <Link
+            href={`/stages/${id}`}
+            className="flex-1"
+          >
+            <h3 className="text-lg font-semibold text-white hover:text-blue-400 transition-colors duration-200 cursor-pointer group-hover:text-blue-400">
+              {title}
+            </h3>
+          </Link>
+        </div>
         
         {/* Status indicator */}
         <div className="flex items-center space-x-2">
@@ -188,13 +209,6 @@ export function StageCard({
             {isRunning || status?.status === 'running' ? 'Running...' : 'Start Stage'}
           </button>
         )}
-        
-        <Link
-          href={`/stages/${id}${targetId ? `?target=${targetId}` : ''}`}
-          className="bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-        >
-          View Details
-        </Link>
       </div>
 
       {/* Selected tools indicator */}

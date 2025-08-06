@@ -7,6 +7,18 @@ import { BugBountyPlatform } from '@/types/target';
 vi.mock('axios');
 const mockAxios = vi.mocked(axios);
 
+// Mock the getTargets function to return empty results for duplicate validation
+vi.mock('../targets', async () => {
+  const actual = await vi.importActual('../targets');
+  return {
+    ...actual,
+    getTargets: vi.fn().mockResolvedValue({
+      success: true,
+      data: { items: [] }
+    })
+  };
+});
+
 describe('Targets API Client', () => {
   beforeEach(() => {
     vi.clearAllMocks();

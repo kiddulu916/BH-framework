@@ -113,44 +113,44 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
 
 ### **Stage Containers**
 - **Base Image**: Python 3.11-slim
-  * Lightweight container images
-  * Security tool integration
-  * Custom execution scripts
-  * Environment-based configuration
+  * Lightweight container images with minimal font dependencies
+  * Comprehensive security tool integration
+  * Standardized execution scripts with argument parsing
+  * Environment-based configuration with `.env.template` files
+  * Resource management with stage-specific limits
+  * Health checks and dependency management
 
 - **Security Tools**
-  * Sublist3r for subdomain enumeration
-  * Amass for network mapping
-  * Subfinder for subdomain discovery
-  * Assetfinder for asset discovery
-  * Gau for URL discovery
-  * Waybackurls for historical URLs
-  * Trufflehog for secrets scanning
-  * Nmap for port scanning
-  * Httpx for HTTP probing
-  * Nuclei for vulnerability scanning
+  * **Passive Recon**: Sublist3r, Amass, Subfinder, Assetfinder, Gau, Waybackurls, Trufflehog
+  * **Active Recon**: Nmap, Httpx, Nuclei, Subfinder, Amass, Naabu, Katana, Feroxbuster
+  * **Vulnerability Scanning**: Nuclei, Nmap, Nikto, ZAP, Wapiti, Arachni
+  * **Vulnerability Testing**: SQLMap, Hydra, Dirb, Gobuster, FFuf, Wfuzz, WhatWeb, WAFW00F
+  * **AI/ML Integration**: PyTorch, TensorFlow, Transformers, Scikit-learn, OpenCV, Playwright
 
 - **Execution Pattern**
-  * Main script: `run_<stage_name>.py`
-  * Tool runners in `runners/` directory
-  * Standardized API integration
-  * JWT authentication
-  * Output directory structure
+  * Main script: `run_<stage_name>.py` with standardized argument parsing
+  * Tool runners in `runners/` directory with modular design
+  * Standardized API integration with JWT authentication
+  * Comprehensive error handling and logging
+  * Output directory structure: `/outputs/<target>/<stage>/`
+  * Environment configuration with `.env.template` files
 
 ### **Containerization**
 - **Docker Compose**: Multi-service orchestration
-  * Core services: db, backend, frontend
-  * Stage containers for each bug hunting stage
-  * Core services (db, backend, frontend)
-  * JWT rotation service
-  * Health checks and dependencies
+  * Core services: db, backend, frontend with health checks
+  * Stage containers for each bug hunting stage with resource limits
+  * Service dependencies: Database → Backend → Frontend → Stage containers
+  * JWT rotation service for secure token management
+  * Health checks and dependencies with configurable intervals
+  * Resource management with memory and CPU limits
 
 - **Service Architecture**
-  * PostgreSQL database with persistent storage
-  * Django backend with hot reloading
-  * Next.js frontend with development mode
-  * Custom network isolation
-  * Volume management for outputs
+  * PostgreSQL database with persistent storage and health checks
+  * Django backend with hot reloading and comprehensive monitoring
+  * Next.js frontend with development mode and optimization
+  * Custom network isolation with security hardening
+  * Volume management for outputs and persistent data
+  * Stage-specific resource allocation (2-4GB memory, 0.8-1.0 CPU cores)
 
 ### **Development Tools**
 - **Version Control**: Git
@@ -178,6 +178,43 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
   * JSDoc for JavaScript documentation
   * README files for components
   * Architecture documentation
+
+## AI/ML Integration
+
+### **AI/ML Framework Integration**
+- **Core Frameworks**: PyTorch 2.1.0+, TensorFlow 2.15.0+, Transformers 4.36.0+
+- **Traditional ML**: Scikit-learn 1.3.0+, NumPy 1.24.0+, Pandas 2.1.0+
+- **Computer Vision**: OpenCV 4.8.0+, Pillow 10.1.0+
+- **Visualization**: Matplotlib 3.7.0+, Seaborn 0.12.0+, Plotly 5.15.0+
+- **Browser Automation**: Playwright, Selenium, Chromium, Firefox
+
+### **AI/ML Model Architecture**
+- **Model Configuration**: Standardized `AIModelConfig` dataclass with confidence thresholds
+- **Model Loading**: Optimized loading with caching and quantization support
+- **Inference Pipeline**: Preprocessing → Model Prediction → Post-processing → Result Validation
+- **Performance Optimization**: CPU optimization, batch processing, async operations
+- **Resource Management**: Model caching, prediction caching, memory management
+
+### **AI/ML Integration Patterns**
+1. **Vulnerability Analysis**
+   - **Input**: Payload strings, context data, HTTP requests/responses
+   - **Processing**: Text preprocessing, feature extraction, model inference
+   - **Output**: Vulnerability classification, confidence scores, recommendations
+
+2. **Evidence Analysis**
+   - **Input**: Screenshots, logs, network captures, tool outputs
+   - **Processing**: Computer vision analysis, text extraction, anomaly detection
+   - **Output**: Evidence classification, suspicious element detection, confidence scores
+
+3. **Pattern Detection**
+   - **Input**: Historical findings, attack patterns, vulnerability data
+   - **Processing**: Clustering, anomaly detection, trend analysis
+   - **Output**: Pattern identification, anomaly scores, predictive insights
+
+4. **Report Generation**
+   - **Input**: Raw findings, analysis results, stakeholder requirements
+   - **Processing**: NLP analysis, content generation, visualization
+   - **Output**: Executive summaries, technical reports, stakeholder communications
 
 ## API Architecture
 - **Pattern**: Clean Architecture with dependency injection
@@ -219,18 +256,48 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
   * Log rotation and retention
   * Audit logging for security
 
+## Environment Configuration
+
+### **Standardized Environment Templates**
+- **Template Structure**: `.env.template` files for all stages with comprehensive documentation
+- **Stage-Specific Variables**: Tailored configuration for each stage's requirements
+- **JWT Management**: Secure token generation, rotation, and validation across all services
+- **Resource Limits**: Stage-specific memory and CPU allocation with monitoring
+- **Health Checks**: Configurable health check patterns with retry logic
+- **Logging**: Standardized logging configuration with correlation IDs
+
+### **Stage-Specific Configurations**
+1. **Vulnerability Scanning Stage**
+   - Scanning types and tool configurations
+   - Rate limiting and timeout settings
+   - Tool path configurations
+
+2. **Vulnerability Testing Stage**
+   - AI/ML model configurations
+   - Browser automation settings
+   - Evidence collection parameters
+   - Safety and ethical controls
+
+3. **Comprehensive Reporting Stage**
+   - Report format configurations
+   - Template and output settings
+   - Stakeholder communication settings
+
 ## Domain Architecture
 - **Bug Hunting Domain**
-  * Stage Management (passive_recon, active_recon, vuln_scan, vuln_test, kill_chain, report)
+  * Stage Management (passive_recon, active_recon, vuln_scan, vuln_test, kill_chain, comprehensive_reporting)
   * Workflow Management (target → stages → results)
   * Data Collection (raw outputs, parsed results)
   * Target Management (domains, IPs, scope)
+  * AI/ML Integration (vulnerability analysis, evidence processing)
 
 - **Bug Reporting Domain**
   * Report Templates
   * Report Generation
   * Platform Formatting
   * Export Management
+  * Stakeholder Communication
+  * AI-Powered Insights
 
 - **User Management Domain**
   * Authentication (JWT tokens)
@@ -243,6 +310,8 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
   * Success Statistics
   * Trend Analysis
   * Reporting Dashboards
+  * AI-Powered Pattern Detection
+  * Predictive Analytics
 
 ## Critical Patterns & Conventions
 
@@ -439,6 +508,11 @@ Build a scalable, secure, robust, and maintainable, fully automated full-stack a
 
 ## Changelog
 <!-- The agent prepends the latest summary here as a new list item after each VALIDATE phase -->
+- [2025-01-27] [AI] [MAJOR] - Added comprehensive AI/ML Integration section with framework integration, model architecture, and integration patterns
+- [2025-01-27] [AI] [MAJOR] - Added Environment Configuration section with standardized templates and stage-specific configurations
+- [2025-01-27] [AI] [MAJOR] - Enhanced Stage Containers with comprehensive security tools, resource management, and health checks
+- [2025-01-27] [AI] [MAJOR] - Updated Containerization with service dependencies, resource limits, and security hardening
+- [2025-01-27] [AI] [MAJOR] - Enhanced Domain Architecture to include AI/ML integration and stakeholder communication
 - [2025-01-27] [AI] [MAJOR] - Updated project configuration to reflect actual codebase patterns including specific tech stack versions, API response patterns, testing standards, and stage container patterns
 - [2024-12-19] [AI] [MAJOR] - Updated JWT authentication with 30-minute access token expiration and modern datetime handling
 - [2024-03-21] [AI] [MAJOR] - Updated project configuration with comprehensive security, testing, and deployment standards

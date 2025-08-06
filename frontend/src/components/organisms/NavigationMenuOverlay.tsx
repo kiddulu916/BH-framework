@@ -3,26 +3,61 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { getTargets } from '@/lib/api/targets';
+import { TargetStatus } from '@/types/target';
 
 interface NavigationMenuOverlayProps {
   onClose: () => void;
 }
 
-const navigationItems = [
-  { name: 'Dashboard', href: '/dashboard' },
-  { name: 'Target Profile', href: '/target-profile' },
-  { name: 'Passive Recon', href: '/stages/passive-recon' },
-  { name: 'Active Recon', href: '/stages/active-recon' },
-  { name: 'Vulnerability Scanning', href: '/stages/vulnerability-scanning' },
-  { name: 'Vulnerability Testing', href: '/stages/vulnerability-testing' },
-  { name: 'Kill Chain', href: '/stages/kill-chain' },
-  { name: 'Report Generation', href: '/stages/report-generation' },
-  { name: 'Progress/Results', href: '/progress' },
-  { name: 'Database', href: '/database' },
-  { name: 'Terminal', href: '/terminal' },
-];
+interface Target {
+  id: string;
+  target: string;
+  domain: string;
+  status: TargetStatus;
+  is_primary: boolean;
+}
 
 export function NavigationMenuOverlay({ onClose }: NavigationMenuOverlayProps) {
+  const [hasActiveTarget, setHasActiveTarget] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkActiveTarget();
+  }, []);
+
+  const checkActiveTarget = async () => {
+    try {
+      const response = await getTargets();
+      if (response.success && response.data?.items) {
+        const hasActive = response.data.items.some((t: Target) => t.status === TargetStatus.ACTIVE);
+        setHasActiveTarget(hasActive);
+      }
+    } catch (error) {
+      console.error('Failed to check active target:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const navigationItems = [
+    { name: 'Dashboard', href: '/dashboard' },
+    { 
+      name: 'Target Profile', 
+      href: hasActiveTarget ? '/target-profile' : '/target-select' 
+    },
+    { name: 'Passive Recon', href: '/stages/passive-recon' },
+    { name: 'Active Recon', href: '/stages/active-recon' },
+    { name: 'Vulnerability Scanning', href: '/stages/vulnerability-scanning' },
+    { name: 'Vulnerability Testing', href: '/stages/vulnerability-testing' },
+    { name: 'Kill Chain', href: '/stages/kill-chain' },
+    { name: 'Report Generation', href: '/stages/report-generation' },
+    { name: 'Progress/Results', href: '/progress' },
+    { name: 'Database', href: '/database' },
+    { name: 'Terminal', href: '/terminal' },
+  ];
+
   return (
     <motion.div
       initial={{ 
@@ -87,6 +122,9 @@ export function NavigationMenuOverlay({ onClose }: NavigationMenuOverlayProps) {
                 className="block px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 hover:shadow-md"
               >
                 {item.name}
+                {item.name === 'Target Profile' && loading && (
+                  <span className="ml-2 text-xs text-gray-500">Loading...</span>
+                )}
               </Link>
             </motion.li>
           ))}

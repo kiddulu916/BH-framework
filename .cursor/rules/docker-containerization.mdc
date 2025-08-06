@@ -200,19 +200,151 @@ stage_name:
     context: ./stages/stage_name
     dockerfile: Dockerfile
   container_name: bug-hunting-stage-name
+  ports:
+    - "800X:800X"  # Stage-specific port
   restart: unless-stopped
   depends_on:
     backend:
       condition: service_healthy
+    previous_stage:
+      condition: service_started
   environment:
-    - BACKEND_API_URL=http://backend:8000/api/results/stage-name
-    - BACKEND_JWT_TOKEN=${JWT_SECRET_KEY}
-    - TARGET=${TARGET}
+    - BACKEND_API_URL=${BACKEND_API_URL}
+    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+    - STAGE_TIMEOUT_SECONDS=${STAGE_TIMEOUT_SECONDS:-1800}
+    - PYTHONPATH=/app
+    - TARGET=${TARGET:-example.com}
+    - STAGE_NAME=stage_name
   volumes:
-    - ./outputs:/outputs
-    - ./stages/stage_name/.env:/app/.env
+    - ./stages/stage_name:/app
+    - ./outputs:/app/outputs
+    - /var/run/docker.sock:/var/run/docker.sock
   networks:
     - bug-hunting-network
+  deploy:
+    resources:
+      limits:
+        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+        cpus: '0.8'
+      reservations:
+        memory: 1024M
+        cpus: '0.4'
+```
+
+### 4. **Stage-Specific Service Configurations**
+
+#### **Vulnerability Scanning Stage (vuln_scan)**
+```yaml
+vuln_scan:
+  build:
+    context: ./stages/vuln_scan
+    dockerfile: Dockerfile
+  container_name: bug-hunting-vuln-scan
+  ports:
+    - "8003:8003"
+  restart: unless-stopped
+  depends_on:
+    backend:
+      condition: service_healthy
+    active_recon:
+      condition: service_started
+  environment:
+    - BACKEND_API_URL=${BACKEND_API_URL}
+    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+    - STAGE_TIMEOUT_SECONDS=${VULN_SCAN_TIMEOUT:-1800}
+    - PYTHONPATH=/app
+    - TARGET=${TARGET:-example.com}
+    - STAGE_NAME=vuln_scan
+  volumes:
+    - ./stages/vuln_scan:/app
+    - ./outputs:/app/outputs
+    - /var/run/docker.sock:/var/run/docker.sock
+  networks:
+    - bug-hunting-network
+  deploy:
+    resources:
+      limits:
+        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+        cpus: '0.8'
+      reservations:
+        memory: 1024M
+        cpus: '0.4'
+```
+
+#### **Vulnerability Testing Stage (vuln_test)**
+```yaml
+vuln_test:
+  build:
+    context: ./stages/vuln_test
+    dockerfile: Dockerfile
+  container_name: bug-hunting-vuln-test
+  ports:
+    - "8004:8004"
+  restart: unless-stopped
+  depends_on:
+    backend:
+      condition: service_healthy
+    vuln_scan:
+      condition: service_started
+  environment:
+    - BACKEND_API_URL=${BACKEND_API_URL}
+    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+    - STAGE_TIMEOUT_SECONDS=${VULN_TEST_TIMEOUT:-2400}
+    - PYTHONPATH=/app
+    - TARGET=${TARGET:-example.com}
+    - STAGE_NAME=vuln_test
+  volumes:
+    - ./stages/vuln_test:/app
+    - ./outputs:/app/outputs
+    - /var/run/docker.sock:/var/run/docker.sock
+  networks:
+    - bug-hunting-network
+  deploy:
+    resources:
+      limits:
+        memory: ${STAGE_MAX_MEMORY_MB:-4096}M
+        cpus: '1.0'
+      reservations:
+        memory: 2048M
+        cpus: '0.5'
+```
+
+#### **Comprehensive Reporting Stage (comprehensive_reporting)**
+```yaml
+comprehensive_reporting:
+  build:
+    context: ./stages/comprehensive_reporting
+    dockerfile: Dockerfile
+  container_name: bug-hunting-comprehensive-reporting
+  ports:
+    - "8007:8007"
+  restart: unless-stopped
+  depends_on:
+    backend:
+      condition: service_healthy
+    kill_chain:
+      condition: service_started
+  environment:
+    - BACKEND_API_URL=${BACKEND_API_URL}
+    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+    - STAGE_TIMEOUT_SECONDS=${COMPREHENSIVE_REPORTING_TIMEOUT:-3600}
+    - PYTHONPATH=/app
+    - TARGET=${TARGET:-example.com}
+    - STAGE_NAME=comprehensive_reporting
+  volumes:
+    - ./stages/comprehensive_reporting:/app
+    - ./outputs:/app/outputs
+    - /var/run/docker.sock:/var/run/docker.sock
+  networks:
+    - bug-hunting-network
+  deploy:
+    resources:
+      limits:
+        memory: ${STAGE_MAX_MEMORY_MB:-4096}M
+        cpus: '1.0'
+      reservations:
+        memory: 2048M
+        cpus: '0.5'
 ```
 
 ## Environment Configuration

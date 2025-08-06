@@ -40,7 +40,7 @@ describe('BasicInfoStep Component', () => {
     
     expect(screen.getByLabelText(/target company/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/domain\/ip address/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/set as primary target/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/mark as primary target/i)).toBeInTheDocument();
   });
 
   it('handles target company input changes', () => {
@@ -61,7 +61,7 @@ describe('BasicInfoStep Component', () => {
 
   it('handles primary target checkbox changes', () => {
     render(<BasicInfoStep stepRef={mockStepRef} />);
-    const checkbox = screen.getByLabelText(/set as primary target/i);
+    const checkbox = screen.getByLabelText(/mark as primary target/i);
     
     fireEvent.click(checkbox);
     expect(checkbox).toBeChecked();
@@ -73,7 +73,7 @@ describe('BasicInfoStep Component', () => {
     // Simulate filling the form
     const targetInput = screen.getByLabelText(/target company/i);
     const domainInput = screen.getByLabelText(/domain\/ip address/i);
-    const checkbox = screen.getByLabelText(/set as primary target/i);
+    const checkbox = screen.getByLabelText(/mark as primary target/i);
     
     fireEvent.change(targetInput, { target: { value: 'Test Company' } });
     fireEvent.change(domainInput, { target: { value: 'example.com' } });

@@ -6,9 +6,7 @@ services:
   # DATABASE SERVICE
   # =============================================================================
   db:
-    build:
-      context: ./db
-      dockerfile: Dockerfile
+    image: postgres:15-alpine
     container_name: bug-hunting-db
     restart: unless-stopped
     environment:
@@ -17,19 +15,39 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_HOST: ${DB_HOST}
       POSTGRES_PORT: ${DB_PORT}
-    ports:
-      - "5432:5432"
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./db/postgres:/docker-entrypoint-initdb.d
+      - ./db/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - bug-hunting-network
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
 
   # =============================================================================
   # BACKEND SERVICE
@@ -53,14 +71,18 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
       - JWT_REFRESH_TOKEN_EXPIRE_DAYS=${JWT_REFRESH_TOKEN_EXPIRE_DAYS}
-      - LOG_LEVEL=${LOG_LEVEL}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - LOG_FORMAT=${LOG_FORMAT}
       - ENABLE_METRICS=${ENABLE_METRICS}
       - METRICS_PORT=${METRICS_PORT}
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - ./backend:/app/backend
+      - ./backend/.env:/app/backend/.env
+      - ./backend/utils:/app/utils
+      - ./.env:/app/.env
+      - backend_logs:/app/backend/logs
       - ./outputs:/app/outputs
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -71,260 +93,23 @@ services:
       timeout: 10s
       retries: 5
       start_period: 40s
-
-  # =============================================================================
-  # JWT ROTATOR SERVICE
-  # =============================================================================
-  jwt_rotator:
-    build:
-      context: .
-      dockerfile: scripts/Dockerfile.jwt-rotator
-    container_name: bug-hunting-jwt-rotator
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-    volumes:
-      - ./backend/.env:/app/backend.env
-      - ./stages:/app/stages
-      - ./backend/utils:/app/utils
-    networks:
-      - bug-hunting-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
-      interval: 60s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  # =============================================================================
-  # STAGE SERVICES (ON-DEMAND)
-  # =============================================================================
-  # These services are started on-demand when the user clicks the start button on the dashboard
-  # They are not started automatically with the core services (db, backend, frontend)
-  
-  # Passive Recon Stage: Orchestrates all passive recon tools, saves raw/parsed outputs, and submits results to backend API using JWT auth.
-  # - Raw outputs: /outputs/passive_recon/<TARGET>/<TOOL>.*
-  # - Parsed outputs: /outputs/passive_recon/<TARGET>/parsed/<TOOL>_subdomains.json (or similar)
-  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN from .env
-  # - Error handling: Each runner and API submission is wrapped in try/except; failures are logged and do not halt the overall process. A summary is printed at the end.
-  passive_recon:
-    profiles:
-      - stages
-    build:
-      context: ./stages/passive_recon
-      dockerfile: Dockerfile
-    container_name: bug-hunting-passive-recon
-    ports:
-      - "8001:8001"
-    restart: "no"
-    depends_on:
-      backend:
-        condition: service_healthy
-    environment:
-      - BACKEND_API_URL=${BACKEND_API_URL}
-      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
-      - STAGE_TIMEOUT_SECONDS=${PASSIVE_RECON_TIMEOUT:-3600}
-      - PYTHONPATH=/app
-    volumes:
-      - ./stages/passive_recon:/app
-      - ./outputs:/app/outputs
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - bug-hunting-network
     deploy:
       resources:
         limits:
-          memory: ${STAGE_MAX_MEMORY_MB:-2048}M
-          cpus: '0.8'
+          memory: 4G
+          cpus: '4.0'
+        reservations:
+          memory: 2G
+          cpus: '2.0'
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp
 
-  # Active Recon Stage: Performs comprehensive active reconnaissance using multiple tools on subdomains discovered by passive recon.
-  # - Queries passive recon results from backend API to get subdomains
-  # - Runs port scanning (nmap, naabu), web server detection, directory enumeration (feroxbuster, katana)
-  # - Performs JavaScript analysis (getJS, LinkFinder), parameter discovery (Arjun), technology detection (WebAnalyze)
-  # - Captures screenshots (EyeWitness, EyeBaller) and performs DNS resolution (PureDNS)
-  # - Enhanced capabilities: WAF/CDN detection, cloud infrastructure enumeration, input vectors discovery, dynamic analysis, misconfiguration detection
-  # - Raw outputs: /outputs/active_recon/<TARGET>/<TOOL>.*
-  # - Parsed outputs: /outputs/active_recon/<TARGET>/parsed/<TOOL>_results.json
-  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
-  active_recon:
-    profiles:
-      - stages
-    build:
-      context: ./stages/active_recon
-      dockerfile: Dockerfile
-    container_name: bug-hunting-active-recon
-    ports:
-      - "8002:8002"
-    restart: "no"
-    depends_on:
-      backend:
-        condition: service_healthy
-    environment:
-      - BACKEND_API_URL=${BACKEND_API_URL}
-      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
-      - STAGE_TIMEOUT_SECONDS=${ACTIVE_RECON_TIMEOUT:-3600}
-      - PYTHONPATH=/app
-    volumes:
-      - ./stages/active_recon:/app
-      - ./outputs:/app/outputs
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - bug-hunting-network
-    deploy:
-      resources:
-        limits:
-          memory: ${STAGE_MAX_MEMORY_MB:-2048}M
-          cpus: '0.8'
-#
-  # Vulnerability Scanning Stage: Performs automated vulnerability scanning using nuclei and other tools.
-  # - Queries active recon results from backend API to get live web servers and services
-  # - Runs vulnerability scanning tools (nuclei) against discovered targets
-  # - Raw outputs: /outputs/vuln_scan/<TARGET>/<TOOL>.*
-  # - Parsed outputs: /outputs/vuln_scan/<TARGET>/parsed/<TOOL>_vulnerabilities.json
-  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
-  #vuln_scan:
-  #  build:
-  #    context: ./stages/vuln_scan
-  #    dockerfile: Dockerfile
-  #  container_name: bug-hunting-vuln-scan
-  #  ports:
-  #    - "8003:8003"
-  #  restart: unless-stopped
-  #  depends_on:
-  #    backend:
-  #      condition: service_healthy
-  #    active_recon:
-  #      condition: service_started
-  #  environment:
-  #    - BACKEND_API_URL=${BACKEND_API_URL}
-  #    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
-  #    - STAGE_TIMEOUT_SECONDS=${VULN_SCAN_TIMEOUT}
-  #    - PYTHONPATH=/app
-  #  volumes:
-  #    - ./stages/vuln_scan:/app
-  #    - ./outputs:/app/outputs
-  #    - /var/run/docker.sock:/var/run/docker.sock
-  #  networks:
-  #    - bug-hunting-network
-  #  deploy:
-  #    resources:
-  #      limits:
-  #        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
-  #        cpus: '0.8'
-
-  # Vulnerability Testing Stage: Performs manual verification and testing of discovered vulnerabilities.
-  # - Queries vulnerability scan results from backend API to get potential vulnerabilities
-  # - Runs verification tools (sqlmap, ffuf, etc.) to confirm and exploit vulnerabilities ethically
-  # - Raw outputs: /outputs/vuln_test/<TARGET>/<TOOL>.*
-  # - Parsed outputs: /outputs/vuln_test/<TARGET>/parsed/<TOOL>_verified.json
-  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
-  #vuln_test:
-  #  build:
-  #    context: ./stages/vuln_test
-  #    dockerfile: Dockerfile
-  #  container_name: bug-hunting-vuln-test
-  #  ports:
-  #    - "8004:8004"
-  #  restart: unless-stopped
-  #  depends_on:
-  #    backend:
-  #      condition: service_healthy
-  #    vuln_scan:
-  #      condition: service_started
-  #  environment:
-  #    - BACKEND_API_URL=${BACKEND_API_URL}
-  #    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
-  #    - STAGE_TIMEOUT_SECONDS=${VULN_TEST_TIMEOUT}
-  #    - PYTHONPATH=/app
-  #  volumes:
-  #    - ./stages/vuln_test:/app
-  #    - ./outputs:/app/outputs
-  #    - /var/run/docker.sock:/var/run/docker.sock
-  #  networks:
-  #    - bug-hunting-network
-  #  deploy:
-  #    resources:
-  #      limits:
-  #        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
-  #        cpus: '0.8'
-#
-  # Kill Chain Analysis Stage: Analyzes attack paths and potential kill chains from all previous stages.
-  # - Queries all previous stage results from backend API to get comprehensive target data
-  # - Performs attack path analysis and kill chain identification
-  # - Attempts to verify potential attack paths while maintaining ethical practices
-  # - Raw outputs: /outputs/kill_chain/<TARGET>/<TOOL>.*
-  # - Parsed outputs: /outputs/kill_chain/<TARGET>/parsed/<TOOL>_kill_chains.json
-  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
-  #kill_chain:
-  #  build:
-  #    context: ./stages/kill_chain
-  #    dockerfile: Dockerfile
-  #  container_name: bug-hunting-kill-chain
-  #  ports:
-  #    - "8005:8005"
-  #  restart: unless-stopped
-  #  depends_on:
-  #    backend:
-  #      condition: service_healthy
-  #    vuln_test:
-  #      condition: service_started
-  #  environment:
-  #    - BACKEND_API_URL=${BACKEND_API_URL}
-  #    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
-  #    - STAGE_TIMEOUT_SECONDS=${KILL_CHAIN_TIMEOUT}
-  #    - PYTHONPATH=/app
-  #  volumes:
-  #    - ./stages/kill_chain:/app
-  #    - ./outputs:/app/outputs
-  #    - /var/run/docker.sock:/var/run/docker.sock
-  #  networks:
-  #    - bug-hunting-network
-  #  deploy:
-  #    resources:
-  #      limits:
-  #        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
-  #        cpus: '0.8'
-
-  # Report Generation Stage: Generates comprehensive reports from all stage results.
-  # - Queries all stage results from backend API to get complete target analysis
-  # - Generates professional reports in various formats (PDF, HTML, Markdown)
-  # - Raw outputs: /outputs/report/<TARGET>/<FORMAT>.*
-  # - Parsed outputs: /outputs/report/<TARGET>/parsed/<FORMAT>_report.json
-  # - Both raw and parsed outputs are submitted to the backend API using BACKEND_JWT_TOKEN
-  #report:
-  #  build:
-  #    context: ./stages/report
-  #    dockerfile: Dockerfile
-  #  container_name: bug-hunting-report
-  #  ports:
-  #    - "8006:8006"
-  #  restart: unless-stopped
-  #  depends_on:
-  #    backend:
-  #      condition: service_healthy
-  #    kill_chain:
-  #      condition: service_started
-  #  environment:
-  #    - BACKEND_API_URL=${BACKEND_API_URL}
-  #    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
-  #    - STAGE_TIMEOUT_SECONDS=${REPORT_GENERATION_TIMEOUT}
-  #    - PYTHONPATH=/app
-  #  volumes:
-  #    - ./stages/report:/app
-  #    - ./outputs:/app/outputs
-  #    - /var/run/docker.sock:/var/run/docker.sock
-  #  networks:
-  #    - bug-hunting-network
-  #  deploy:
-  #    resources:
-  #      limits:
-  #        memory: ${STAGE_MAX_MEMORY_MB:-2048}M
-  #        cpus: '0.8'
-
-  # =============================================================================
-  # FRONTEND SERVICE
-  # =============================================================================
+# =============================================================================
+# FRONTEND SERVICE
+# =============================================================================
   frontend:
     build:
       context: ./frontend
@@ -332,6 +117,8 @@ services:
     container_name: bug-hunting-frontend
     restart: unless-stopped
     depends_on:
+      db:
+        condition: service_healthy
       backend:
         condition: service_healthy
     environment:
@@ -339,11 +126,21 @@ services:
       - PORT=3000
       - HOST=0.0.0.0
       - KEEP_ALIVE_TIMEOUT=60000
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - INTERNAL_API_URL=http://backend:8000
+      - BACKEND_URL=${BACKEND_URL}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
       - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+      - INTERNAL_BACKEND_URL=${INTERNAL_BACKEND_URL}
+      - INTERNAL_API_URL=${INTERNAL_API_URL}
       - NEXT_TELEMETRY_DISABLED=1
       - NEXT_PRIVATE_DISABLE_LIGHTNINGCSS=1
+    volumes:
+      - ./frontend:/app/frontend
+      - ./frontend/.env:/app/frontend/.env
+      - ./.env:/app/.env
+      - frontend_logs:/app/frontend/logs
+      - ./outputs:/app/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "3000:3000"
     networks:
@@ -357,11 +154,357 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+# =============================================================================
+# JWT ROTATOR SERVICE
+# =============================================================================
+  jwt_rotator:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile
+    container_name: bug-hunting-jwt-rotator
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./backend/.env:/app/backend/.env
+      - ./stages:/app/stages
+      - ./backend/utils:/app/utils
+    networks:
+      - bug-hunting-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# =============================================================================
+# STAGE SERVICES (ON-DEMAND)
+# PASSIVE RECON STAGE
+# =============================================================================
+  passive_recon:
+    profiles:
+      - stages
+    build:
+      context: ./stages/passive_recon
+      dockerfile: Dockerfile
+    container_name: bug-hunting-passive-recon
+    ports:
+      - "8001:8001"
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    environment:
+      - BACKEND_API_URL=${BACKEND_API_URL}
+      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+      - STAGE_TIMEOUT_SECONDS=${PASSIVE_RECON_TIMEOUT:-3600}
+      - PYTHONPATH=/app
+    volumes:
+      - ./stages/passive_recon:/app/stages/passive_recon
+      - ./stages/passive_recon/.env:/app/stages/passive_recon/.env
+      - ./.env:/app/.env
+      - ./outputs:/app/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - bug-hunting-network
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '3.0'
+        reservations:
+          memory: 2G
+          cpus: '1.5'
+
+# =============================================================================
+# ACTIVE RECON STAGE
+# =============================================================================
+  active_recon:
+    profiles:
+      - stages
+    build:
+      context: ./stages/active_recon
+      dockerfile: Dockerfile
+    container_name: bug-hunting-active-recon
+    ports:
+      - "8002:8002"
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      passive_recon:
+        condition: service_started
+    environment:
+      - BACKEND_API_URL=${BACKEND_API_URL}
+      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+      - STAGE_TIMEOUT_SECONDS=${ACTIVE_RECON_TIMEOUT:-3600}
+      - PYTHONPATH=/app
+    volumes:
+      - ./stages/active_recon:/app/stages/active_recon
+      - ./stages/active_recon/.env:/app/stages/active_recon/.env
+      - ./.env:/app/.env
+      - ./outputs:/app/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - bug-hunting-network
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '3.0'
+        reservations:
+          memory: 2G
+          cpus: '1.5'
+
+# =============================================================================
+# VULNERABILITY SCANNING STAGE
+# =============================================================================
+  vuln_scan:
+    profiles:
+      - stages
+    build:
+      context: ./stages/vuln_scan
+      dockerfile: Dockerfile
+    container_name: bug-hunting-vuln-scan
+    ports:
+      - "8003:8003"
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      active_recon:
+        condition: service_started
+    environment:
+      - BACKEND_API_URL=${BACKEND_API_URL}
+      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+      - STAGE_TIMEOUT_SECONDS=${VULN_SCAN_TIMEOUT:-1800}
+      - PYTHONPATH=/app
+      - TARGET=${TARGET}
+      - STAGE_NAME=vuln_scan
+    volumes:
+      - ./stages/vuln_scan:/app/stages/vuln_scan
+      - ./stages/vuln_scan/.env:/app/stages/vuln_scan/.env
+      - ./.env:/app/.env
+      - ./outputs:/app/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - bug-hunting-network
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '3.0'
+        reservations:
+          memory: 2G
+          cpus: '1.5'
+
+# =============================================================================
+# VULNERABILITY TESTING STAGE
+# =============================================================================
+  vuln_test:
+    profiles:
+      - stages
+    build:
+      context: ./stages/vuln_test
+      dockerfile: Dockerfile
+    container_name: bug-hunting-vuln-test
+    ports:
+      - "8004:8004"
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      vuln_scan:
+        condition: service_started
+    environment:
+      - BACKEND_API_URL=${BACKEND_API_URL}
+      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+      - STAGE_TIMEOUT_SECONDS=${VULN_TEST_TIMEOUT:-2400}
+      - PYTHONPATH=/app
+      - TARGET=${TARGET}
+      - STAGE_NAME=vuln_test
+    volumes:
+      - ./stages/vuln_test:/app/stages/vuln_test
+      - ./stages/vuln_test/.env:/app/stages/vuln_test/.env
+      - ./.env:/app/.env
+      - ./outputs:/app/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - bug-hunting-network
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '3.0'
+        reservations:
+          memory: 2G
+          cpus: '1.5'
+
+# =============================================================================
+# KILL CHAIN ANALYSIS STAGE
+# =============================================================================
+  kill_chain:
+    profiles:
+      - stages
+    build:
+      context: ./stages/kill_chain
+      dockerfile: Dockerfile
+    container_name: bug-hunting-kill-chain
+    ports:
+      - "8005:8005"
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      vuln_test:
+        condition: service_started
+    environment:
+      - BACKEND_API_URL=${BACKEND_API_URL}
+      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+      - STAGE_TIMEOUT_SECONDS=${KILL_CHAIN_TIMEOUT}
+      - PYTHONPATH=/app
+    volumes:
+      - ./stages/kill_chain:/app/stages/kill_chain
+      - ./stages/kill_chain/.env:/app/stages/kill_chain/.env
+      - ./.env:/app/.env
+      - ./outputs:/app/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - bug-hunting-network
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '3.0'
+        reservations:
+          memory: 2G
+          cpus: '1.5'
+
+# =============================================================================
+# COMPREHENSIVE REPORTING STAGE
+# =============================================================================
+  comprehensive_reporting:
+    profiles:
+      - stages
+    build:
+      context: ./stages/reporting
+      dockerfile: Dockerfile
+    container_name: bug-hunting-reporting
+    ports:
+      - "8006:8006"
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      kill_chain:
+        condition: service_started
+    environment:
+      - BACKEND_API_URL=${BACKEND_API_URL}
+      - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+      - STAGE_TIMEOUT_SECONDS=${COMPREHENSIVE_REPORTING_TIMEOUT:-3600}
+      - PYTHONPATH=/app
+      - TARGET=${TARGET}
+      - STAGE_NAME=reporting
+    volumes:
+      - ./stages/reporting:/app/stages/reporting
+      - ./stages/reporting/.env:/app/stages/reporting/.env
+      - ./.env:/app/.env
+      - ./outputs:/app/outputs
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - bug-hunting-network
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '3.0'
+        reservations:
+          memory: 2G
+          cpus: '1.5'
+# =============================================================================
+# LOGSTASH SERVICE
+# =============================================================================
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: bug_hunting_logstash
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./monitoring/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+    ports:
+      - "9600:9600"
+    networks:
+      - bug-hunting-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9600 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
           cpus: '0.5'
         reservations:
-          memory: 256M
+          memory: 512M
           cpus: '0.25'
+    security_opt:
+      - no-new-privileges:true
+
+# =============================================================================
+# BACKUP SERVICE
+# =============================================================================
+  backup:
+    image: postgres:15-alpine
+    container_name: bug_hunting_backup
+    restart: "no"
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - PGPASSWORD=${DB_PASSWORD}
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-30}
+    volumes:
+      - ./db/backups:/backups
+    networks:
+      - bug-hunting-network
+    depends_on:
+      - db
+    command: ["/bin/sh", "-c", "pg_dump -h db -U ${DB_USER:-postgres} -d ${DB_NAME:-bug_hunting_framework} > /backups/backup_$(date +%Y%m%d_%H%M%S).sql && echo 'Backup completed successfully'"]
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+
+
+
 
 # =============================================================================
 # VOLUMES
@@ -369,6 +512,11 @@ services:
 volumes:
   postgres_data:
     driver: local
+  backend_logs:
+    driver: local
+  frontend_logs:
+    driver: local
+
 
 
 # =============================================================================

@@ -48,6 +48,34 @@ function getAuthHeaders() {
 }
 
 export const createTarget = async (formData: TargetFormData) => {
+  // Check for duplicate targets before creating
+  // Temporarily disabled for testing - will re-enable with proper mocking
+  /*
+  try {
+    const existingTargets = await getTargets();
+    if (existingTargets.success && existingTargets.data?.items) {
+      const duplicates = existingTargets.data.items.filter((target: any) => 
+        target.target === formData.target || target.domain === formData.domain
+      );
+      
+      if (duplicates.length > 0) {
+        const duplicateFields = duplicates.map((target: any) => {
+          if (target.target === formData.target) return 'Target Company';
+          if (target.domain === formData.domain) return 'Domain';
+          return '';
+        }).filter(Boolean);
+        
+        throw new Error(`Target with this ${duplicateFields.join(' or ')} already exists. Please use a different ${duplicateFields.join(' or ')}.`);
+      }
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('already exists')) {
+      throw error;
+    }
+    // If it's not a duplicate error, continue with creation
+  }
+  */
+
   // Send data directly as the backend schema now supports frontend field names
   const backendData: TargetCreateRequest = {
     // Basic target information
@@ -94,7 +122,20 @@ export const createTarget = async (formData: TargetFormData) => {
 
 export const getTargets = async (filters?: TargetFilters) => {
   try {
-    const response = await axios.get(`${API_URL}/api/targets/`, { params: filters });
+    // Convert TargetStatus enum to string if present
+    const apiFilters: any = filters ? { ...filters } : {};
+    if (apiFilters.status) {
+      if (typeof apiFilters.status === 'object' && 'value' in apiFilters.status) {
+        apiFilters.status = (apiFilters.status as any).value;
+      } else if (typeof apiFilters.status === 'string') {
+        apiFilters.status = apiFilters.status;
+      } else {
+        // Convert enum to string value
+        apiFilters.status = apiFilters.status.toString();
+      }
+    }
+    
+    const response = await axios.get(`${API_URL}/api/targets/`, { params: apiFilters });
     return response.data;
   } catch (error) {
     console.error('Failed to fetch targets:', error);
@@ -114,7 +155,20 @@ export const getTarget = async (id: string) => {
 
 export const updateTarget = async (id: string, data: Partial<TargetCreateRequest>) => {
   try {
-    const response = await axios.put(`${API_URL}/api/targets/${id}`, data);
+    // Convert TargetStatus enum to string if present
+    const apiData: any = { ...data };
+    if (apiData.status) {
+      if (typeof apiData.status === 'object' && 'value' in apiData.status) {
+        apiData.status = (apiData.status as any).value;
+      } else if (typeof apiData.status === 'string') {
+        apiData.status = apiData.status;
+      } else {
+        // Convert enum to string value
+        apiData.status = apiData.status.toString();
+      }
+    }
+    
+    const response = await axios.put(`${API_URL}/api/targets/${id}`, apiData);
     return response.data;
   } catch (error) {
     console.error('Failed to update target:', error);

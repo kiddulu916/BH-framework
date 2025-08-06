@@ -1,59 +1,56 @@
 # Multi-stage build for optimized Docker container
 # Stage 1: Dependencies
-FROM node:20-bullseye AS deps
+FROM node:20-alpine as builder
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package*.json ./
 
 # Install all dependencies (including dev dependencies for build)
 RUN npm ci && npm cache clean --force
 
-# Stage 2: Builder
-FROM node:20-bullseye AS builder
-
-# Set working directory
-WORKDIR /app
-
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-
 # Copy source code
 COPY . .
-
-# Set environment variables for build optimization
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOST=0.0.0.0
-ENV KEEP_ALIVE_TIMEOUT=60000
-ENV DOCKER_ENV=true
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NEXT_PRIVATE_DISABLE_LIGHTNINGCSS=1
 
 # Build the application with optimizations
 RUN npm run build
 
-# Stage 3: Production runner
-FROM node:20-bullseye AS runner
+FROM node:20-alpine as production
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init curl
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S appuser && adduser -S appuser -G appuser
+
+# Copy necessary files from builder
+COPY --from=builder /app/.next /app/.next
+COPY --from=builder /app/public /app/public
+COPY --from=builder /app/package.json /app/package.json
+COPY --from=builder /app/package-lock.json /app/package-lock.json
 
 # Set working directory
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
-RUN apt-get update && apt-get install -y dumb-init curl && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-
-# Copy necessary files from builder
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Install only production dependencies
+RUN npm ci --only=production && npm cache clean --force
 
 # Set proper permissions
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /app/logs /app/tmp \
+    && chown -R appuser:appuser /app \
+    && chmod -R 755 /app
+
+# Create health check script
+RUN echo '#!/bin/sh\ncurl -f http://localhost:3000/health || exit 1' > /app/healthcheck.sh \
+    && chmod +x /app/healthcheck.sh
+
+# Security hardening
+RUN chmod -R 755 /app \
+    && find /app -type f -name "*.js" -exec chmod 644 {} \; \
+    && find /app -type f -name "*.css" -exec chmod 644 {} \; \
+    && find /app -type f -name "*.html" -exec chmod 644 {} \;
 
 # Switch to non-root user
 USER appuser
@@ -68,9 +65,9 @@ ENV HOST=0.0.0.0
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD ["/app/healthcheck.sh"]
 
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]
 
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

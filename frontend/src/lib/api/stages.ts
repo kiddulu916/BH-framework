@@ -76,7 +76,7 @@ function getAuthHeaders() {
 // Passive Reconnaissance API functions
 export const getPassiveReconResults = async (targetId: string): Promise<StageResult[]> => {
   try {
-    const response = await axios.get(`${API_URL}/api/results/passive-recon/${targetId}`, {
+    const response = await axios.get(`${API_URL}/api/results/${targetId}/passive-recon`, {
       headers: getAuthHeaders(),
     });
     return response.data.data || [];
@@ -86,13 +86,42 @@ export const getPassiveReconResults = async (targetId: string): Promise<StageRes
   }
 };
 
-export const startPassiveRecon = async (request: StageExecutionRequest): Promise<any> => {
+export const getPassiveReconStatus = async (targetId: string): Promise<StageStatus | null> => {
   try {
-    const response = await axios.post(`${API_URL}/api/stages/passive-recon/start`, request, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders(),
-      },
+    const response = await axios.get(`${API_URL}/api/results/${targetId}/summary`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (response.data.success && response.data.data) {
+      const summary = response.data.data;
+      return {
+        stage_name: 'passive-recon',
+        target_id: targetId,
+        status: summary.passive_recon?.status || 'pending',
+        total_tools: summary.passive_recon?.total_tools || 0,
+        completed_tools: summary.passive_recon?.completed_tools || 0,
+        failed_tools: summary.passive_recon?.failed_tools || 0,
+        progress: summary.passive_recon?.progress || 0,
+        start_time: summary.passive_recon?.start_time,
+        end_time: summary.passive_recon?.end_time,
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to fetch passive recon status:', error);
+    return null;
+  }
+};
+
+export const startPassiveRecon = async (request: {
+  target_id: string;
+  stage_name: string;
+  tools?: string[];
+  options?: any;
+}): Promise<any> => {
+  try {
+    const response = await axios.post(`${API_URL}/api/execution/start-stage`, request, {
+      headers: getAuthHeaders(),
     });
     return response.data;
   } catch (error) {
@@ -101,22 +130,10 @@ export const startPassiveRecon = async (request: StageExecutionRequest): Promise
   }
 };
 
-export const getPassiveReconStatus = async (targetId: string): Promise<StageStatus> => {
-  try {
-    const response = await axios.get(`${API_URL}/api/stages/passive-recon/status/${targetId}`, {
-      headers: getAuthHeaders(),
-    });
-    return response.data.data;
-  } catch (error) {
-    console.error('Failed to fetch passive recon status:', error);
-    throw error;
-  }
-};
-
 // Active Reconnaissance API functions
 export const getActiveReconResults = async (targetId: string): Promise<StageResult[]> => {
   try {
-    const response = await axios.get(`${API_URL}/api/results/active-recon/${targetId}`, {
+    const response = await axios.get(`${API_URL}/api/results/${targetId}/active-recon`, {
       headers: getAuthHeaders(),
     });
     return response.data.data || [];
@@ -126,13 +143,42 @@ export const getActiveReconResults = async (targetId: string): Promise<StageResu
   }
 };
 
-export const startActiveRecon = async (request: StageExecutionRequest): Promise<any> => {
+export const getActiveReconStatus = async (targetId: string): Promise<StageStatus | null> => {
   try {
-    const response = await axios.post(`${API_URL}/api/stages/active-recon/start`, request, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders(),
-      },
+    const response = await axios.get(`${API_URL}/api/results/${targetId}/summary`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (response.data.success && response.data.data) {
+      const summary = response.data.data;
+      return {
+        stage_name: 'active-recon',
+        target_id: targetId,
+        status: summary.active_recon?.status || 'pending',
+        total_tools: summary.active_recon?.total_tools || 0,
+        completed_tools: summary.active_recon?.completed_tools || 0,
+        failed_tools: summary.active_recon?.failed_tools || 0,
+        progress: summary.active_recon?.progress || 0,
+        start_time: summary.active_recon?.start_time,
+        end_time: summary.active_recon?.end_time,
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to fetch active recon status:', error);
+    return null;
+  }
+};
+
+export const startActiveRecon = async (request: {
+  target_id: string;
+  stage_name: string;
+  tools?: string[];
+  options?: any;
+}): Promise<any> => {
+  try {
+    const response = await axios.post(`${API_URL}/api/execution/start-stage`, request, {
+      headers: getAuthHeaders(),
     });
     return response.data;
   } catch (error) {
@@ -141,25 +187,12 @@ export const startActiveRecon = async (request: StageExecutionRequest): Promise<
   }
 };
 
-export const getActiveReconStatus = async (targetId: string): Promise<StageStatus> => {
-  try {
-    const response = await axios.get(`${API_URL}/api/stages/active-recon/status/${targetId}`, {
-      headers: getAuthHeaders(),
-    });
-    return response.data.data;
-  } catch (error) {
-    console.error('Failed to fetch active recon status:', error);
-    throw error;
-  }
-};
-
-// Recursive Reconnaissance API functions
+// Recursive Reconnaissance API functions - This endpoint doesn't exist, so we'll return null
 export const getRecursiveReconResults = async (targetId: string): Promise<RecursiveReconResult | null> => {
   try {
-    const response = await axios.get(`${API_URL}/api/results/recursive-recon/${targetId}`, {
-      headers: getAuthHeaders(),
-    });
-    return response.data.data;
+    // This endpoint doesn't exist in the backend, so we'll return null for now
+    console.warn('Recursive recon endpoint not implemented in backend');
+    return null;
   } catch (error) {
     console.error('Failed to fetch recursive recon results:', error);
     return null;

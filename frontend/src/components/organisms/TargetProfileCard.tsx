@@ -27,6 +27,24 @@ export function TargetProfileCard({ target }: Props) {
     researcher: target.researcher_email ?? '—'
   };
 
+  // Format custom headers properly - ensure single colon format
+  const formatCustomHeaders = (headers: string) => {
+    if (headers === '—') return headers;
+    
+    return headers.split(';').map(header => {
+      const trimmed = header.trim();
+      // Fix double colon issue and ensure proper format
+      if (trimmed.includes('::')) {
+        return trimmed.replace('::', ':');
+      }
+      // Ensure proper format if missing colon
+      if (!trimmed.includes(':')) {
+        return trimmed;
+      }
+      return trimmed;
+    }).join('; ');
+  };
+
   return (
     <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-lg">
       <div className="flex items-center justify-between mb-6">
@@ -40,7 +58,7 @@ export function TargetProfileCard({ target }: Props) {
         {/* Basic Info */}
         <div className="space-y-2">
           <div className="text-sm text-gray-400 font-medium">Target Company</div>
-          <div className="text-white font-semibold">{targetInfo.company}</div>
+          <div className="text-white font-semibold capitalize">{targetInfo.company}</div>
         </div>
         
         <div className="space-y-2">
@@ -62,11 +80,15 @@ export function TargetProfileCard({ target }: Props) {
         <div className="space-y-2">
           <div className="text-sm text-gray-400 font-medium">In-Scope</div>
           <div className="space-y-1">
-            {targetInfo.inScope.map((item, index) => (
-              <div key={index} className="text-sm text-white bg-gray-700 px-2 py-1 rounded">
-                {item}
-              </div>
-            ))}
+            {targetInfo.inScope.length > 0 ? (
+              targetInfo.inScope.map((item, index) => (
+                <div key={index} className="text-sm text-white bg-gray-700 px-2 py-1 rounded inline-block">
+                  {item}
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-gray-500 italic">No in-scope items</div>
+            )}
           </div>
         </div>
 
@@ -74,19 +96,23 @@ export function TargetProfileCard({ target }: Props) {
         <div className="space-y-2">
           <div className="text-sm text-gray-400 font-medium">Out-of-Scope</div>
           <div className="space-y-1">
-            {targetInfo.outOfScope.map((item, index) => (
-              <div key={index} className="text-sm text-gray-300 bg-gray-700 px-2 py-1 rounded">
-                {item}
-              </div>
-            ))}
+            {targetInfo.outOfScope.length > 0 ? (
+              targetInfo.outOfScope.map((item, index) => (
+                <div key={index} className="text-sm text-gray-300 bg-gray-700 px-2 py-1 rounded inline-block">
+                  {item}
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-gray-500 italic">No out-of-scope items</div>
+            )}
           </div>
         </div>
 
         {/* Custom Headers */}
         <div className="space-y-2 lg:col-span-2">
           <div className="text-sm text-gray-400 font-medium">Custom Headers</div>
-          <div className="text-sm text-white bg-gray-700 px-3 py-2 rounded font-mono">
-            {targetInfo.customHeaders}
+          <div className="text-sm text-white bg-gray-700 px-3 py-2 rounded font-mono inline-block">
+            {formatCustomHeaders(targetInfo.customHeaders)}
           </div>
         </div>
       </div>

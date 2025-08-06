@@ -1,0 +1,325 @@
+# Alert Rules for Bug Hunting Framework
+# Comprehensive monitoring and alerting for production environment
+
+groups:
+  # System Health Alerts
+  - name: system_health
+    rules:
+      # Service Down Alerts
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute"
+          runbook_url: "https://runbooks.bughunting.local/service-down"
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% for more than 5 minutes"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 85% for more than 5 minutes"
+
+      # High Disk Usage
+      - alert: HighDiskUsage
+        expr: (node_filesystem_size_bytes - node_filesystem_avail_bytes) / node_filesystem_size_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage on {{ $labels.instance }}"
+          description: "Disk usage is above 85% for more than 5 minutes"
+
+  # Application Performance Alerts
+  - name: application_performance
+    rules:
+      # High Response Time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time for {{ $labels.job }}"
+          description: "95th percentile response time is above 2 seconds"
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate for {{ $labels.job }}"
+          description: "Error rate is above 5% for more than 5 minutes"
+
+      # Database Connection Issues
+      - alert: DatabaseConnectionIssues
+        expr: pg_stat_database_numbackends > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connections on {{ $labels.instance }}"
+          description: "Database has more than 80 active connections"
+
+      # Redis Connection Issues
+      - alert: RedisConnectionIssues
+        expr: redis_connected_clients > 100
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Redis connections on {{ $labels.instance }}"
+          description: "Redis has more than 100 connected clients"
+
+  # Security Alerts
+  - name: security_alerts
+    rules:
+      # Failed Authentication Attempts
+      - alert: HighFailedAuthAttempts
+        expr: rate(auth_failed_attempts_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High number of failed authentication attempts"
+          description: "More than 10 failed authentication attempts per minute"
+
+      # Suspicious IP Activity
+      - alert: SuspiciousIPActivity
+        expr: rate(http_requests_total[5m]) by (remote_addr) > 100
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Suspicious activity from IP {{ $labels.remote_addr }}"
+          description: "More than 100 requests per minute from single IP"
+
+      # SSL Certificate Expiry
+      - alert: SSLCertificateExpiry
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL certificate expiring soon for {{ $labels.instance }}"
+          description: "SSL certificate will expire in less than 30 days"
+
+  # Business Metrics Alerts
+  - name: business_metrics
+    rules:
+      # Low Workflow Completion Rate
+      - alert: LowWorkflowCompletionRate
+        expr: rate(workflow_completed_total[1h]) / rate(workflow_started_total[1h]) * 100 < 80
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low workflow completion rate"
+          description: "Workflow completion rate is below 80% for the last hour"
+
+      # High Stage Failure Rate
+      - alert: HighStageFailureRate
+        expr: rate(stage_failed_total[1h]) / rate(stage_started_total[1h]) * 100 > 20
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High stage failure rate"
+          description: "Stage failure rate is above 20% for the last hour"
+
+      # No New Targets Created
+      - alert: NoNewTargetsCreated
+        expr: increase(targets_created_total[1h]) == 0
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "No new targets created in the last hour"
+          description: "No new targets have been created for more than 1 hour"
+
+  # Infrastructure Alerts
+  - name: infrastructure_alerts
+    rules:
+      # Container Restart Rate
+      - alert: HighContainerRestartRate
+        expr: increase(container_restarts_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High container restart rate"
+          description: "More than 5 container restarts in the last 5 minutes"
+
+      # Docker Daemon Issues
+      - alert: DockerDaemonIssues
+        expr: docker_daemon_healthy == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Docker daemon is unhealthy"
+          description: "Docker daemon health check is failing"
+
+      # Network Connectivity Issues
+      - alert: NetworkConnectivityIssues
+        expr: up{job=~"backend|frontend|db|redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Network connectivity issues detected"
+          description: "One or more services are unreachable"
+
+  # Backup and Recovery Alerts
+  - name: backup_recovery_alerts
+    rules:
+      # Backup Failure
+      - alert: BackupFailure
+        expr: backup_last_success_timestamp < time() - 86400
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backup failure detected"
+          description: "No successful backup in the last 24 hours"
+
+      # Database Backup Size Anomaly
+      - alert: DatabaseBackupSizeAnomaly
+        expr: abs(backup_size_bytes - avg_over_time(backup_size_bytes[7d])) / avg_over_time(backup_size_bytes[7d]) > 0.5
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database backup size anomaly"
+          description: "Backup size differs by more than 50% from 7-day average"
+
+  # Monitoring System Alerts
+  - name: monitoring_system_alerts
+    rules:
+      # Prometheus Target Down
+      - alert: PrometheusTargetDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus target is down"
+          description: "Prometheus monitoring target is unreachable"
+
+      # Grafana Service Down
+      - alert: GrafanaServiceDown
+        expr: up{job="grafana"} == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Grafana service is down"
+          description: "Grafana dashboard service is unreachable"
+
+      # Elasticsearch Cluster Health
+      - alert: ElasticsearchClusterHealth
+        expr: elasticsearch_cluster_health_status > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Elasticsearch cluster health degraded"
+          description: "Elasticsearch cluster is not in green status"
+
+  # Rate Limiting Alerts
+  - name: rate_limiting_alerts
+    rules:
+      # API Rate Limit Exceeded
+      - alert: APIRateLimitExceeded
+        expr: rate(rate_limit_exceeded_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API rate limit exceeded"
+          description: "API rate limiting is being triggered"
+
+      # Brute Force Attack Detected
+      - alert: BruteForceAttackDetected
+        expr: rate(auth_failed_attempts_total[1m]) > 50
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Potential brute force attack detected"
+          description: "More than 50 failed authentication attempts per minute"
+
+  # Compliance and Audit Alerts
+  - name: compliance_audit_alerts
+    rules:
+      # Audit Log Failure
+      - alert: AuditLogFailure
+        expr: rate(audit_log_failures_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Audit logging failure detected"
+          description: "Audit log entries are failing to be written"
+
+      # Data Retention Violation
+      - alert: DataRetentionViolation
+        expr: data_retention_days > 90
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Data retention policy violation"
+          description: "Data retention exceeds 90 days"
+
+  # Custom Application Alerts
+  - name: custom_application_alerts
+    rules:
+      # Stage Execution Timeout
+      - alert: StageExecutionTimeout
+        expr: stage_execution_duration_seconds > 3600
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Stage execution timeout"
+          description: "Stage execution is taking longer than 1 hour"
+
+      # Vulnerability Scan Failure
+      - alert: VulnerabilityScanFailure
+        expr: rate(vulnerability_scan_failed_total[1h]) / rate(vulnerability_scan_started_total[1h]) * 100 > 30
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High vulnerability scan failure rate"
+          description: "More than 30% of vulnerability scans are failing"
+
+      # Report Generation Failure
+      - alert: ReportGenerationFailure
+        expr: rate(report_generation_failed_total[1h]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Report generation failures detected"
+          description: "Report generation is failing" 

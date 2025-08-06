@@ -1,0 +1,429 @@
+# Environment Configuration Patterns
+
+## Overview
+
+This rule defines standardized patterns for environment configuration across all components of the bug hunting framework, including stages, services, and containers.
+
+## Environment File Structure
+
+### 1. **Standard Environment Template Pattern**
+```bash
+# Backend API Configuration
+BACKEND_API_URL=http://backend:8000/api/results/stage-name
+BACKEND_JWT_TOKEN=your_jwt_token_here
+
+# JWT Configuration (must match backend)
+JWT_SECRET=your_jwt_secret_here
+JWT_ALGORITHM=HS256
+
+# Stage Configuration
+STAGE_NAME=stage_name
+TARGET=example.com
+STAGE_TIMEOUT_SECONDS=1800
+
+# Output Configuration
+OUTPUT_DIR=/app/outputs
+LOG_DIR=/app/logs
+
+# Stage-specific Configuration
+# ... stage-specific variables
+
+# Font Configuration (minimal fonts for smaller image size)
+FONT_PACKAGES=fonts-liberation,fonts-dejavu-core,fonts-dejavu-extra
+
+# Resource Limits
+MAX_MEMORY_MB=2048
+MAX_CPU_CORES=0.8
+
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+LOG_FILE=stage_name.log
+
+# Health Check Configuration
+HEALTH_CHECK_URL=http://localhost:8000/health/
+HEALTH_CHECK_INTERVAL=30
+HEALTH_CHECK_TIMEOUT=10
+HEALTH_CHECK_RETRIES=3
+```
+
+### 2. **Stage-Specific Environment Variables**
+
+#### **Vulnerability Scanning Stage (vuln_scan)**
+```bash
+# Scanning Configuration
+SCAN_TYPES=nuclei,nmap,nikto,zap,wapiti,arachni
+NUCLEI_TEMPLATES=all
+NMAP_SCAN_TYPES=syn,connect,udp
+ZAP_SCAN_MODE=api
+WAPITI_MODULES=blindsql,exec,file,perlxss,shellshock,sql,xss
+
+# Tool Configuration
+NUCLEI_PATH=/root/go/bin/nuclei
+NMAP_PATH=/usr/bin/nmap
+NIKTO_PATH=/usr/bin/nikto
+ZAP_PATH=/opt/zap/zap.sh
+WAPITI_PATH=/usr/bin/wapiti
+ARACHNI_PATH=/usr/bin/arachni
+HTTPX_PATH=/root/go/bin/httpx
+SUBFINDER_PATH=/root/go/bin/subfinder
+AMASS_PATH=/root/go/bin/amass
+
+# Scanning Limits
+MAX_CONCURRENT_SCANS=5
+RATE_LIMIT=10
+TIMEOUT_PER_SCAN=300
+```
+
+#### **Vulnerability Testing Stage (vuln_test)**
+```bash
+# AI/ML Configuration
+AI_MODEL_PATH=/app/models/vulnerability_analyzer
+AI_CONFIDENCE_THRESHOLD=0.8
+ENABLE_AI_ANALYSIS=true
+MODEL_TYPE=transformer
+BATCH_SIZE=32
+
+# Browser Automation Configuration
+ENABLE_BROWSER_SCANNING=true
+BROWSER_TYPE=playwright
+HEADLESS=true
+SCREENSHOT_EVIDENCE=true
+VIDEO_RECORDING=false
+BROWSER_TIMEOUT=30000
+
+# API Scanning Configuration
+ENABLE_API_SCANNING=true
+API_FUZZING_ENABLED=true
+OPENAPI_IMPORT_ENABLED=true
+GRAPHQL_SCANNING_ENABLED=true
+REST_API_SCANNING_ENABLED=true
+
+# Network Scanning Configuration
+ENABLE_NETWORK_SCANNING=true
+PORT_SCANNING_ENABLED=true
+SERVICE_DETECTION_ENABLED=true
+VULNERABILITY_SCANNING_ENABLED=true
+
+# Exploit Testing Configuration
+ENABLE_EXPLOIT_TESTING=true
+SAFE_EXPLOIT_MODE=true
+MAX_EXPLOIT_ATTEMPTS=3
+EXPLOIT_TIMEOUT=60
+RATE_LIMIT=10
+
+# Evidence Collection Configuration
+ENABLE_EVIDENCE_COLLECTION=true
+SCREENSHOT_QUALITY=high
+VIDEO_RECORDING=false
+EVIDENCE_COMPRESSION=true
+
+# Safety and Ethical Controls
+RATE_LIMIT=10
+MAX_CONCURRENT_TESTS=5
+SCOPE_BOUNDARIES=
+SAFE_MODE=true
+ETHICAL_HACKING_MODE=true
+```
+
+#### **Comprehensive Reporting Stage (comprehensive_reporting)**
+```bash
+# Reporting Configuration
+REPORT_FORMATS=pdf,html,markdown,docx,pptx
+EXECUTIVE_SUMMARY_ENABLED=true
+TECHNICAL_DOCS_ENABLED=true
+COMPLIANCE_MAPPING_ENABLED=true
+REMEDIATION_ROADMAP_ENABLED=true
+STAKEHOLDER_COMMUNICATION_ENABLED=true
+
+# Output Configuration
+OUTPUT_DIR=/app/outputs
+TEMPLATE_DIR=/app/templates
+REPORT_DIR=/app/reports
+
+# Font Configuration (minimal fonts for smaller image size)
+FONT_PACKAGES=fonts-liberation,fonts-dejavu-core,fonts-dejavu-extra
+
+# Resource Limits
+MAX_MEMORY_MB=4096
+MAX_CPU_CORES=1.0
+```
+
+## Docker Compose Environment Patterns
+
+### 1. **Core Services Environment Configuration**
+```yaml
+# Database Service
+db:
+  environment:
+    POSTGRES_DB: ${DB_NAME}
+    POSTGRES_USER: ${DB_USER}
+    POSTGRES_PASSWORD: ${DB_PASSWORD}
+    POSTGRES_HOST: ${DB_HOST}
+    POSTGRES_PORT: ${DB_PORT}
+
+# Backend Service
+backend:
+  environment:
+    - DATABASE_URL=${DATABASE_URL}
+    - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+    - DEBUG=${DEBUG}
+    - SECRET_KEY=${SECRET_KEY}
+    - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+    - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+    - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
+    - JWT_REFRESH_TOKEN_EXPIRE_DAYS=${JWT_REFRESH_TOKEN_EXPIRE_DAYS}
+    - LOG_LEVEL=${LOG_LEVEL}
+    - LOG_FORMAT=${LOG_FORMAT}
+    - ENABLE_METRICS=${ENABLE_METRICS}
+    - METRICS_PORT=${METRICS_PORT}
+
+# Frontend Service
+frontend:
+  environment:
+    - NODE_ENV=production
+    - PORT=3000
+    - HOST=0.0.0.0
+    - KEEP_ALIVE_TIMEOUT=60000
+    - NEXT_PUBLIC_API_URL=http://localhost:8000
+    - INTERNAL_API_URL=http://backend:8000
+    - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+    - NEXT_TELEMETRY_DISABLED=1
+    - NEXT_PRIVATE_DISABLE_LIGHTNINGCSS=1
+```
+
+### 2. **Stage Services Environment Configuration**
+```yaml
+# Stage Service Pattern
+stage_name:
+  environment:
+    - BACKEND_API_URL=${BACKEND_API_URL}
+    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+    - STAGE_TIMEOUT_SECONDS=${STAGE_TIMEOUT_SECONDS:-1800}
+    - PYTHONPATH=/app
+    - TARGET=${TARGET:-example.com}
+    - STAGE_NAME=stage_name
+```
+
+### 3. **Stage-Specific Service Configurations**
+
+#### **Vulnerability Scanning Stage**
+```yaml
+vuln_scan:
+  environment:
+    - BACKEND_API_URL=${BACKEND_API_URL}
+    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+    - STAGE_TIMEOUT_SECONDS=${VULN_SCAN_TIMEOUT:-1800}
+    - PYTHONPATH=/app
+    - TARGET=${TARGET:-example.com}
+    - STAGE_NAME=vuln_scan
+```
+
+#### **Vulnerability Testing Stage**
+```yaml
+vuln_test:
+  environment:
+    - BACKEND_API_URL=${BACKEND_API_URL}
+    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+    - STAGE_TIMEOUT_SECONDS=${VULN_TEST_TIMEOUT:-2400}
+    - PYTHONPATH=/app
+    - TARGET=${TARGET:-example.com}
+    - STAGE_NAME=vuln_test
+```
+
+#### **Comprehensive Reporting Stage**
+```yaml
+comprehensive_reporting:
+  environment:
+    - BACKEND_API_URL=${BACKEND_API_URL}
+    - BACKEND_JWT_TOKEN=${BACKEND_JWT_TOKEN}
+    - STAGE_TIMEOUT_SECONDS=${COMPREHENSIVE_REPORTING_TIMEOUT:-3600}
+    - PYTHONPATH=/app
+    - TARGET=${TARGET:-example.com}
+    - STAGE_NAME=comprehensive_reporting
+```
+
+## Dockerfile Environment Patterns
+
+### 1. **Standard Environment Variables**
+```dockerfile
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PATH="/app/tools:/usr/local/go/bin:${PATH}"
+
+# Set tool paths (stage-specific)
+ENV NMAP_PATH=/usr/bin/nmap
+ENV NIKTO_PATH=/usr/bin/nikto
+ENV NUCLEI_PATH=/root/go/bin/nuclei
+ENV HTTPX_PATH=/root/go/bin/httpx
+ENV SUBFINDER_PATH=/root/go/bin/subfinder
+ENV AMASS_PATH=/root/go/bin/amass
+```
+
+### 2. **Stage-Specific Environment Variables**
+
+#### **Vulnerability Testing Stage**
+```dockerfile
+# Browser Configuration
+ENV DISPLAY=:99
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
+ENV FIREFOX_BIN=/usr/bin/firefox-esr
+ENV GECKODRIVER_PATH=/usr/bin/geckodriver
+
+# AI/ML Configuration
+ENV AI_MODEL_PATH=/app/models/vulnerability_analyzer
+ENV AI_CONFIDENCE_THRESHOLD=0.8
+ENV ENABLE_AI_ANALYSIS=true
+```
+
+#### **Comprehensive Reporting Stage**
+```dockerfile
+# Report Generation Configuration
+ENV REPORT_FORMATS=pdf,html,markdown,docx,pptx
+ENV TEMPLATE_DIR=/app/templates
+ENV REPORT_DIR=/app/reports
+
+# Font Configuration
+ENV FONT_PACKAGES=fonts-liberation,fonts-dejavu-core,fonts-dejavu-extra
+```
+
+## JWT Token Management
+
+### 1. **JWT Token Generation Pattern**
+```bash
+# Generate JWT for stage
+python stages/utils/generate_jwt.py --sub stage_name_stage --env-path stages/stage_name/.env
+```
+
+### 2. **JWT Configuration Requirements**
+- **Secret Consistency**: All services must use the same `JWT_SECRET`
+- **Token Rotation**: Regular token rotation for security
+- **Short-lived Tokens**: Service tokens should be short-lived (1 hour)
+- **User Tokens**: User tokens with 30-minute expiration
+
+### 3. **JWT Environment Variables**
+```bash
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_here
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+```
+
+## Resource Management
+
+### 1. **Memory and CPU Limits**
+```yaml
+deploy:
+  resources:
+    limits:
+      memory: ${STAGE_MAX_MEMORY_MB:-2048}M
+      cpus: '0.8'
+    reservations:
+      memory: 1024M
+      cpus: '0.4'
+```
+
+### 2. **Stage-Specific Resource Requirements**
+- **Database**: 1GB memory, 0.5 CPU cores
+- **Backend**: 512MB memory, 0.5 CPU cores
+- **Frontend**: 512MB memory, 0.5 CPU cores
+- **Vulnerability Scanning**: 2GB memory, 0.8 CPU cores
+- **Vulnerability Testing**: 4GB memory, 1.0 CPU cores
+- **Comprehensive Reporting**: 4GB memory, 1.0 CPU cores
+
+## Health Check Configuration
+
+### 1. **Health Check Environment Variables**
+```bash
+# Health Check Configuration
+HEALTH_CHECK_URL=http://localhost:8000/health/
+HEALTH_CHECK_INTERVAL=30
+HEALTH_CHECK_TIMEOUT=10
+HEALTH_CHECK_RETRIES=3
+```
+
+### 2. **Docker Health Check Pattern**
+```dockerfile
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/health/', timeout=5)" || exit 1
+```
+
+## Logging Configuration
+
+### 1. **Standard Logging Environment Variables**
+```bash
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+LOG_FILE=stage_name.log
+```
+
+### 2. **Logging Pattern**
+```python
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('stage_name.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+```
+
+## Best Practices
+
+### 1. **Environment File Management**
+- **Template Files**: Always provide `.env.template` files
+- **Documentation**: Document all environment variables
+- **Validation**: Validate environment variables at startup
+- **Defaults**: Provide sensible defaults for all variables
+
+### 2. **Security Considerations**
+- **Secret Management**: Never commit secrets to version control
+- **Token Rotation**: Regular JWT token rotation
+- **Access Control**: Limit access to environment files
+- **Encryption**: Encrypt sensitive environment variables
+
+### 3. **Configuration Patterns**
+- **Consistency**: Use consistent naming conventions
+- **Hierarchy**: Organize variables by category
+- **Documentation**: Document all configuration options
+- **Validation**: Validate configuration at startup
+
+### 4. **Development vs Production**
+- **Environment Separation**: Separate dev and prod configurations
+- **Override Mechanism**: Allow environment variable overrides
+- **Validation**: Validate production configurations
+- **Monitoring**: Monitor configuration usage
+
+## Troubleshooting
+
+### 1. **Common Issues**
+- **Missing Variables**: Check for required environment variables
+- **Invalid Values**: Validate environment variable values
+- **Permission Issues**: Check file permissions for environment files
+- **Network Issues**: Verify network connectivity for external services
+
+### 2. **Debug Commands**
+```bash
+# Check environment variables
+docker-compose exec service_name env
+
+# Check configuration
+docker-compose exec service_name python -c "import os; print(os.environ)"
+
+# Validate JWT token
+python stages/utils/generate_jwt.py --validate --env-path stages/stage_name/.env
+```
+description:
+globs:
+alwaysApply: false
+---

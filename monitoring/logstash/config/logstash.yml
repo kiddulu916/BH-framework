@@ -1,0 +1,5 @@
+# Logstash Configuration for Bug Hunting Framework
+http.host: "0.0.0.0"
+# Note: Elasticsearch monitoring disabled since elasticsearch service is not running
+# xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
+# xpack.monitoring.enabled: true 

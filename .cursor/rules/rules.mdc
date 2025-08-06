@@ -86,10 +86,37 @@ IMPORTANT: If below rules get larger than 500 lines, break up the rules into mea
   - Integration testing patterns
 - **Usage**: Follow when writing tests or modifying test infrastructure
 
+### AI/ML Security Patterns
+- **File**: `.cursor/rules/ai-ml-security-patterns.mdc`
+- **Scope**: AI/ML integration in security testing and analysis
+- **Key Patterns**:
+  - AI/ML framework integration (PyTorch, TensorFlow, Transformers)
+  - Vulnerability analysis with AI models
+  - Browser automation with AI integration
+  - Evidence collection with AI analysis
+  - Comprehensive reporting with AI insights
+  - Performance optimization for AI/ML workloads
+- **Usage**: Follow when implementing AI/ML features in security testing stages
+
+### Environment Configuration Patterns
+- **File**: `.cursor/rules/environment-configuration.mdc`
+- **Scope**: Environment configuration across all components
+- **Key Patterns**:
+  - Standardized environment file templates
+  - Stage-specific environment variables
+  - Docker Compose environment patterns
+  - JWT token management
+  - Resource management and limits
+  - Health check configuration
+  - Logging configuration
+- **Usage**: Follow when configuring environment variables, Docker services, or stage containers
+
 ## Cross-Reference Rules
 - When implementing backend features, reference both backend-architecture.mdc and testing-patterns.mdc
-- When creating stage containers, reference stage-container-patterns.mdc and docker-containerization.mdc
-- When modifying Docker configuration, reference docker-containerization.mdc and ensure compatibility with existing services
-- When writing tests, reference testing-patterns.mdc and ensure alignment with backend-architecture.mdc patterns 
+- When creating stage containers, reference stage-container-patterns.mdc, docker-containerization.mdc, and environment-configuration.mdc
+- When implementing AI/ML features, reference ai-ml-security-patterns.mdc and ensure compatibility with stage-container-patterns.mdc
+- When modifying Docker configuration, reference docker-containerization.mdc and environment-configuration.mdc
+- When writing tests, reference testing-patterns.mdc and ensure alignment with backend-architecture.mdc patterns
+- When configuring environments, reference environment-configuration.mdc and ensure consistency across all stages 
 
  

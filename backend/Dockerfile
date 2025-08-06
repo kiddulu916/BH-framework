@@ -1,5 +1,5 @@
 # Django Ninja Backend Container for Bug Hunting Framework
-FROM python:3.11-slim
+FROM python:3.11-slim as builder
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -22,6 +22,10 @@ RUN apt-get update \
         lsb-release \
     && rm -rf /var/lib/apt/lists/*
 
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 # Install Docker CLI
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
@@ -29,10 +33,15 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /
     && apt-get install -y docker-ce-cli \
     && rm -rf /var/lib/apt/lists/*
 
+# Create docker group and add user to it
+RUN groupadd -r docker || true \
+    && usermod -aG docker root || true
+
 # Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir gunicorn uvicorn[standard]
+    && pip install --no-cache-dir gunicorn uvicorn[standard] \
+    && pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # Copy project code
 COPY . .
@@ -42,6 +51,9 @@ RUN mkdir -p /app/outputs /app/logs /app/staticfiles /app/media
 
 # Set permissions
 RUN chmod +x /app/manage.py
+RUN chmod 777 /app/logs
+RUN touch /app/logs/django.log
+RUN chmod 666 /app/logs/django.log
 
 # Expose port
 EXPOSE 8000

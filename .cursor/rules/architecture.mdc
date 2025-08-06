@@ -51,24 +51,29 @@ The Bug Hunting Framework is a modular, full-stack application designed for auto
 - **Backend:** Django + Django Ninja (async REST API, Pydantic validation, OpenAPI docs)
 - **Database:** PostgreSQL with SQLAlchemy ORM (asyncpg, Alembic migrations, JSONB, full-text search)
 - **Authentication:** JWT (HTTP-only cookies, access/refresh tokens, session management)
-- **Frontend:** Next.js 14+, React, Zustand, React Query, Tailwind CSS, shadcn/ui, Radix UI
-- **Containerization:** Docker, Docker Compose (multi-container orchestration)
+- **Frontend:** Next.js 15.4.2, React 19.1.0, Zustand 5.0.6, React Query, Tailwind CSS 4.0, shadcn/ui, Radix UI
+- **Containerization:** Docker, Docker Compose (multi-container orchestration with health checks)
+- **AI/ML Integration:** PyTorch, TensorFlow, Transformers, Scikit-learn, OpenCV, Playwright
+- **Security Tools:** Nuclei, Nmap, Nikto, ZAP, Wapiti, Arachni, SQLMap, Hydra, Dirb, Gobuster, FFuf
 - **Dev Tools:** Black, Flake8, MyPy, Pytest, HTTPX, Sphinx, Prometheus/Grafana, Bandit, Safety, Locust
 - **CI/CD:** GitHub Actions (conventional commits, PR review, test/lint pipeline)
 
 ### **Deployment Architecture**
-- **Local Development:** Docker Compose orchestrates `db`, `backend`, `frontend`, and stage containers. Volumes for persistent data and outputs. `.env` for config.
-- **Production:** Containerized deployment, shared bridge network, health checks, monitoring (Prometheus/Grafana), backup and disaster recovery, security hardening.
+- **Local Development:** Docker Compose orchestrates `db`, `backend`, `frontend`, and stage containers with health checks and dependencies. Volumes for persistent data and outputs. Standardized `.env` configuration.
+- **Stage Containers:** Individual containers for each bug hunting stage (passive_recon, active_recon, vuln_scan, vuln_test, kill_chain, comprehensive_reporting) with resource limits and security hardening.
+- **Production:** Containerized deployment, shared bridge network, comprehensive health checks, monitoring (Prometheus/Grafana), backup and disaster recovery, security hardening.
+- **Resource Management:** Stage-specific resource allocation (2-4GB memory, 0.8-1.0 CPU cores) based on computational requirements.
 
 ---
 
 ## **Domain Architecture**
 
 ### **Application Domains**
-- **Bug Hunting Domain:** Stage management, workflow, data collection, target management
-- **Bug Reporting Domain:** Report templates, report generation, export management
-- **User Management Domain:** Authentication, profile, session handling
-- **Analytics Domain:** Performance metrics, statistics, dashboards
+- **Bug Hunting Domain:** Stage management, workflow, data collection, target management, AI/ML integration
+- **Bug Reporting Domain:** Report templates, report generation, export management, stakeholder communication
+- **User Management Domain:** Authentication, profile, session handling, JWT token management
+- **Analytics Domain:** Performance metrics, statistics, dashboards, AI-powered insights
+- **AI/ML Domain:** Vulnerability analysis, evidence processing, pattern detection, automated reporting
 
 Domains are mapped to epics and phases as tracked in `epics.mdc`. Each domain is implemented as a set of Django apps/modules, with clear boundaries and interfaces.
 
@@ -97,14 +102,101 @@ Domains are mapped to epics and phases as tracked in `epics.mdc`. Each domain is
 - **Error Handling:** Standardized APIResponse model, global exception handlers
 - **Docs:** OpenAPI/Swagger auto-generated
 
+### **Stage Container Architecture**
+
+#### **Container Orchestration Pattern**
+- **Base Image:** `python:3.11-slim` with minimal font dependencies (Liberation, DejaVu)
+- **Service Dependencies:** Database → Backend → Frontend → Stage containers
+- **Health Checks:** Comprehensive monitoring with configurable intervals and retries
+- **Resource Management:** Stage-specific memory and CPU limits with reservations
+- **Security:** Non-root user execution, minimal attack surface, regular security updates
+
+#### **Stage Container Types**
+1. **Passive Reconnaissance (`passive_recon`)**
+   - **Tools:** Sublist3r, Amass, Subfinder, Assetfinder, Gau, Waybackurls, Trufflehog
+   - **Resources:** 2GB memory, 0.8 CPU cores
+   - **Output:** Subdomain enumeration, asset discovery, historical data
+
+2. **Active Reconnaissance (`active_recon`)**
+   - **Tools:** Nmap, Httpx, Nuclei, Subfinder, Amass, Naabu, Katana, Feroxbuster
+   - **Resources:** 2GB memory, 0.8 CPU cores
+   - **Output:** Live service discovery, port scanning, service fingerprinting
+
+3. **Vulnerability Scanning (`vuln_scan`)**
+   - **Tools:** Nuclei, Nmap, Nikto, ZAP, Wapiti, Arachni
+   - **Resources:** 2GB memory, 0.8 CPU cores
+   - **Output:** Automated vulnerability detection, security assessment
+
+4. **Vulnerability Testing (`vuln_test`)**
+   - **Tools:** AI/ML models, browser automation, exploit verification
+   - **AI/ML:** PyTorch, TensorFlow, Transformers, Scikit-learn, OpenCV
+   - **Browser:** Playwright, Selenium, Chromium, Firefox
+   - **Resources:** 4GB memory, 1.0 CPU cores
+   - **Output:** AI-powered vulnerability analysis, evidence collection
+
+5. **Kill Chain Analysis (`kill_chain`)**
+   - **Tools:** Attack path analysis, exploit chaining, impact assessment
+   - **Resources:** 2GB memory, 0.8 CPU cores
+   - **Output:** Attack scenarios, risk assessment, mitigation strategies
+
+6. **Comprehensive Reporting (`comprehensive_reporting`)**
+   - **Tools:** Report generation, visualization, stakeholder communication
+   - **AI/ML:** Pattern detection, trend analysis, predictive insights
+   - **Resources:** 4GB memory, 1.0 CPU cores
+   - **Output:** Executive summaries, technical reports, compliance mapping
+
+#### **Stage Container Patterns**
+- **Execution Script:** `run_<stage_name>.py` with standardized argument parsing
+- **API Integration:** JWT authentication with `BACKEND_JWT_TOKEN`
+- **Output Structure:** `/outputs/<target>/<stage>/` with raw and parsed data
+- **Error Handling:** Comprehensive try/except with logging and summary reporting
+- **Environment Configuration:** Standardized `.env.template` files with stage-specific variables
+
 ### **Frontend Architecture**
-- **Framework:** Next.js 14+, React, Zustand, React Query
+- **Framework:** Next.js 15.4.2, React 19.1.0, Zustand 5.0.6, React Query
 - **Component Library:** shadcn/ui, Radix UI
-- **Styling:** Tailwind CSS
+- **Styling:** Tailwind CSS 4.0
 - **State Management:** Zustand (global), React Query (async)
 - **Real-time:** WebSocket client for live updates
 - **Pages:** Dashboard, target management, stage views, reporting, user profile
 - **Testing:** Vitest, Testing Library, Playwright
+
+### **AI/ML Integration Architecture**
+
+#### **AI/ML Framework Integration**
+- **Core Frameworks:** PyTorch 2.1.0+, TensorFlow 2.15.0+, Transformers 4.36.0+
+- **Traditional ML:** Scikit-learn 1.3.0+, NumPy 1.24.0+, Pandas 2.1.0+
+- **Computer Vision:** OpenCV 4.8.0+, Pillow 10.1.0+
+- **Visualization:** Matplotlib 3.7.0+, Seaborn 0.12.0+, Plotly 5.15.0+
+- **Browser Automation:** Playwright, Selenium, Chromium, Firefox
+
+#### **AI/ML Model Architecture**
+- **Model Configuration:** Standardized `AIModelConfig` dataclass with confidence thresholds
+- **Model Loading:** Optimized loading with caching and quantization support
+- **Inference Pipeline:** Preprocessing → Model Prediction → Post-processing → Result Validation
+- **Performance Optimization:** CPU optimization, batch processing, async operations
+- **Resource Management:** Model caching, prediction caching, memory management
+
+#### **AI/ML Integration Patterns**
+1. **Vulnerability Analysis**
+   - **Input:** Payload strings, context data, HTTP requests/responses
+   - **Processing:** Text preprocessing, feature extraction, model inference
+   - **Output:** Vulnerability classification, confidence scores, recommendations
+
+2. **Evidence Analysis**
+   - **Input:** Screenshots, logs, network captures, tool outputs
+   - **Processing:** Computer vision analysis, text extraction, anomaly detection
+   - **Output:** Evidence classification, suspicious element detection, confidence scores
+
+3. **Pattern Detection**
+   - **Input:** Historical findings, attack patterns, vulnerability data
+   - **Processing:** Clustering, anomaly detection, trend analysis
+   - **Output:** Pattern identification, anomaly scores, predictive insights
+
+4. **Report Generation**
+   - **Input:** Raw findings, analysis results, stakeholder requirements
+   - **Processing:** NLP analysis, content generation, visualization
+   - **Output:** Executive summaries, technical reports, stakeholder communications
 
 ### **Backend Architecture**
 - **Layered Structure:**
@@ -120,10 +212,18 @@ Domains are mapped to epics and phases as tracked in `epics.mdc`. Each domain is
 
 ## **Infrastructure Architecture**
 
+### **Environment Configuration Architecture**
+- **Standardized Templates:** `.env.template` files for all stages with comprehensive documentation
+- **Stage-Specific Variables:** Tailored configuration for each stage's requirements
+- **JWT Management:** Secure token generation, rotation, and validation across all services
+- **Resource Limits:** Stage-specific memory and CPU allocation with monitoring
+- **Health Checks:** Configurable health check patterns with retry logic
+- **Logging:** Standardized logging configuration with correlation IDs
+
 ### **Development Environment**
-- **Local Dev:** Docker Compose, hot reloading, .env config, persistent volumes for db and outputs
+- **Local Dev:** Docker Compose with health checks and dependencies, hot reloading, standardized .env configuration, persistent volumes for db and outputs
 - **Testing:** Pytest, HTTPX (ASGITransport), coverage, performance/load testing (Locust)
-- **Monitoring:** Prometheus/Grafana, Sentry for error tracking
+- **Monitoring:** Prometheus/Grafana, Sentry for error tracking, comprehensive health monitoring
 
 ### **Production Environment**
 - **Deployment:** Containerized, shared bridge network, health checks
@@ -196,9 +296,15 @@ Domains are mapped to epics and phases as tracked in `epics.mdc`. Each domain is
 
 ## **Architecture Changelog**
 <!-- AI/User: Log all significant architecture changes here -->
-*Architecture changes will be logged here with timestamps and descriptions.*
 
 **Format**: [YYYY-MM-DD] [AI/USER] [ADD/MODIFY/REMOVE] - Description
+
+- [2025-01-27] [AI] [MAJOR] - Added comprehensive Stage Container Architecture with detailed container types, resource management, and orchestration patterns
+- [2025-01-27] [AI] [MAJOR] - Added AI/ML Integration Architecture with framework integration, model architecture, and integration patterns
+- [2025-01-27] [AI] [MAJOR] - Added Environment Configuration Architecture with standardized templates and JWT management
+- [2025-01-27] [AI] [UPDATE] - Updated Technology Stack with specific versions and AI/ML integration capabilities
+- [2025-01-27] [AI] [UPDATE] - Enhanced Application Domains to include AI/ML and stakeholder communication
+- [2025-01-27] [AI] [UPDATE] - Updated Deployment Architecture with stage container details and resource management
 
 ---
 

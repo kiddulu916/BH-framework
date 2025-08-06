@@ -1,0 +1,241 @@
+{{ define "email.subject" }}
+[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.alertname }}
+{{ end }}
+
+{{ define "email.html" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bug Hunting Framework Alert</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .alert { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .firing { background-color: #fff3cd; border-color: #ffeaa7; }
+        .resolved { background-color: #d4edda; border-color: #c3e6cb; }
+        .critical { border-left: 5px solid #dc3545; }
+        .high { border-left: 5px solid #fd7e14; }
+        .warning { border-left: 5px solid #ffc107; }
+        .info { border-left: 5px solid #17a2b8; }
+        .header { background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px; }
+        .details { margin-top: 10px; }
+        .label { font-weight: bold; color: #495057; }
+        .value { color: #6c757d; }
+        .link { color: #007bff; text-decoration: none; }
+        .link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Bug Hunting Framework Alert</h2>
+        <p><strong>Status:</strong> {{ .Status | toUpper }}</p>
+        <p><strong>Group:</strong> {{ .GroupLabels.alertname }}</p>
+        <p><strong>Time:</strong> {{ .StartsAt | since }}</p>
+    </div>
+
+    {{ range .Alerts }}
+    <div class="alert {{ .Status }} {{ .Labels.severity }}">
+        <h3>{{ .Annotations.summary | default .Labels.alertname }}</h3>
+        <p>{{ .Annotations.description | default "No description provided" }}</p>
+        
+        <div class="details">
+            <p><span class="label">Severity:</span> <span class="value">{{ .Labels.severity | default "unknown" }}</span></p>
+            <p><span class="label">Instance:</span> <span class="value">{{ .Labels.instance | default "unknown" }}</span></p>
+            <p><span class="label">Service:</span> <span class="value">{{ .Labels.service | default "unknown" }}</span></p>
+            {{ if .Annotations.value }}
+            <p><span class="label">Value:</span> <span class="value">{{ .Annotations.value }}</span></p>
+            {{ end }}
+            {{ if .Annotations.grafana_url }}
+            <p><a href="{{ .Annotations.grafana_url }}" class="link">View in Grafana</a></p>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+
+    <div style="margin-top: 20px; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+        <p><small>This alert was sent by the Bug Hunting Framework monitoring system.</small></p>
+        <p><small>To manage your alert preferences, please contact the system administrator.</small></p>
+    </div>
+</body>
+</html>
+{{ end }}
+
+{{ define "email.critical.html" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CRITICAL ALERT - Bug Hunting Framework</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .alert { border: 1px solid #dc3545; padding: 15px; margin: 10px 0; border-radius: 5px; background-color: #f8d7da; }
+        .header { background-color: #dc3545; color: white; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .details { margin-top: 10px; }
+        .label { font-weight: bold; color: #721c24; }
+        .value { color: #721c24; }
+        .link { color: #007bff; text-decoration: none; }
+        .link:hover { text-decoration: underline; }
+        .urgent { background-color: #fff3cd; border: 2px solid #ffc107; padding: 10px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>🚨 CRITICAL ALERT - IMMEDIATE ACTION REQUIRED</h2>
+        <p><strong>Status:</strong> {{ .Status | toUpper }}</p>
+        <p><strong>Group:</strong> {{ .GroupLabels.alertname }}</p>
+        <p><strong>Time:</strong> {{ .StartsAt | since }}</p>
+    </div>
+
+    <div class="urgent">
+        <h3>⚠️ URGENT: This is a CRITICAL alert requiring immediate attention!</h3>
+        <p>Please investigate and resolve this issue as soon as possible.</p>
+    </div>
+
+    {{ range .Alerts }}
+    <div class="alert">
+        <h3>{{ .Annotations.summary | default .Labels.alertname }}</h3>
+        <p>{{ .Annotations.description | default "No description provided" }}</p>
+        
+        <div class="details">
+            <p><span class="label">Severity:</span> <span class="value">{{ .Labels.severity | default "critical" }}</span></p>
+            <p><span class="label">Instance:</span> <span class="value">{{ .Labels.instance | default "unknown" }}</span></p>
+            <p><span class="label">Service:</span> <span class="value">{{ .Labels.service | default "unknown" }}</span></p>
+            {{ if .Annotations.value }}
+            <p><span class="label">Value:</span> <span class="value">{{ .Annotations.value }}</span></p>
+            {{ end }}
+            {{ if .Annotations.grafana_url }}
+            <p><a href="{{ .Annotations.grafana_url }}" class="link">View in Grafana</a></p>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+
+    <div style="margin-top: 20px; padding: 10px; background-color: #f8d7da; border-radius: 5px;">
+        <p><strong>CRITICAL ALERT - IMMEDIATE ACTION REQUIRED</strong></p>
+        <p>This alert was sent by the Bug Hunting Framework monitoring system.</p>
+        <p>Please investigate and resolve this issue immediately.</p>
+    </div>
+</body>
+</html>
+{{ end }}
+
+{{ define "email.high.html" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>HIGH ALERT - Bug Hunting Framework</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .alert { border: 1px solid #fd7e14; padding: 15px; margin: 10px 0; border-radius: 5px; background-color: #fff3cd; }
+        .header { background-color: #fd7e14; color: white; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .details { margin-top: 10px; }
+        .label { font-weight: bold; color: #856404; }
+        .value { color: #856404; }
+        .link { color: #007bff; text-decoration: none; }
+        .link:hover { text-decoration: underline; }
+        .important { background-color: #fff3cd; border: 2px solid #ffc107; padding: 10px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>⚠️ HIGH ALERT - ATTENTION REQUIRED</h2>
+        <p><strong>Status:</strong> {{ .Status | toUpper }}</p>
+        <p><strong>Group:</strong> {{ .GroupLabels.alertname }}</p>
+        <p><strong>Time:</strong> {{ .StartsAt | since }}</p>
+    </div>
+
+    <div class="important">
+        <h3>⚠️ IMPORTANT: This is a HIGH priority alert requiring attention!</h3>
+        <p>Please investigate this issue within the next few hours.</p>
+    </div>
+
+    {{ range .Alerts }}
+    <div class="alert">
+        <h3>{{ .Annotations.summary | default .Labels.alertname }}</h3>
+        <p>{{ .Annotations.description | default "No description provided" }}</p>
+        
+        <div class="details">
+            <p><span class="label">Severity:</span> <span class="value">{{ .Labels.severity | default "high" }}</span></p>
+            <p><span class="label">Instance:</span> <span class="value">{{ .Labels.instance | default "unknown" }}</span></p>
+            <p><span class="label">Service:</span> <span class="value">{{ .Labels.service | default "unknown" }}</span></p>
+            {{ if .Annotations.value }}
+            <p><span class="label">Value:</span> <span class="value">{{ .Annotations.value }}</span></p>
+            {{ end }}
+            {{ if .Annotations.grafana_url }}
+            <p><a href="{{ .Annotations.grafana_url }}" class="link">View in Grafana</a></p>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+
+    <div style="margin-top: 20px; padding: 10px; background-color: #fff3cd; border-radius: 5px;">
+        <p><strong>HIGH ALERT - ATTENTION REQUIRED</strong></p>
+        <p>This alert was sent by the Bug Hunting Framework monitoring system.</p>
+        <p>Please investigate this issue within the next few hours.</p>
+    </div>
+</body>
+</html>
+{{ end }}
+
+{{ define "email.security.html" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SECURITY ALERT - Bug Hunting Framework</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .alert { border: 1px solid #dc3545; padding: 15px; margin: 10px 0; border-radius: 5px; background-color: #f8d7da; }
+        .header { background-color: #dc3545; color: white; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .details { margin-top: 10px; }
+        .label { font-weight: bold; color: #721c24; }
+        .value { color: #721c24; }
+        .link { color: #007bff; text-decoration: none; }
+        .link:hover { text-decoration: underline; }
+        .security { background-color: #f8d7da; border: 2px solid #dc3545; padding: 10px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>🛡️ SECURITY ALERT - IMMEDIATE INVESTIGATION REQUIRED</h2>
+        <p><strong>Status:</strong> {{ .Status | toUpper }}</p>
+        <p><strong>Group:</strong> {{ .GroupLabels.alertname }}</p>
+        <p><strong>Time:</strong> {{ .StartsAt | since }}</p>
+    </div>
+
+    <div class="security">
+        <h3>🛡️ SECURITY INCIDENT: This is a security-related alert requiring immediate investigation!</h3>
+        <p>Please investigate this security incident immediately and take appropriate action.</p>
+    </div>
+
+    {{ range .Alerts }}
+    <div class="alert">
+        <h3>{{ .Annotations.summary | default .Labels.alertname }}</h3>
+        <p>{{ .Annotations.description | default "No description provided" }}</p>
+        
+        <div class="details">
+            <p><span class="label">Severity:</span> <span class="value">{{ .Labels.severity | default "critical" }}</span></p>
+            <p><span class="label">Instance:</span> <span class="value">{{ .Labels.instance | default "unknown" }}</span></p>
+            <p><span class="label">Service:</span> <span class="value">{{ .Labels.service | default "unknown" }}</span></p>
+            {{ if .Annotations.value }}
+            <p><span class="label">Value:</span> <span class="value">{{ .Annotations.value }}</span></p>
+            {{ end }}
+            {{ if .Annotations.grafana_url }}
+            <p><a href="{{ .Annotations.grafana_url }}" class="link">View in Grafana</a></p>
+            {{ end }}
+            {{ if .Annotations.investigate_url }}
+            <p><a href="{{ .Annotations.investigate_url }}" class="link">Investigate Security Incident</a></p>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+
+    <div style="margin-top: 20px; padding: 10px; background-color: #f8d7da; border-radius: 5px;">
+        <p><strong>SECURITY ALERT - IMMEDIATE INVESTIGATION REQUIRED</strong></p>
+        <p>This security alert was sent by the Bug Hunting Framework monitoring system.</p>
+        <p>Please investigate this security incident immediately and take appropriate action.</p>
+    </div>
+</body>
+</html>
+{{ end }} 

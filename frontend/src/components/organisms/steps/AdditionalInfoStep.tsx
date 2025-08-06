@@ -54,7 +54,8 @@ export default function AdditionalInfoStep({ stepRef }: { stepRef: React.RefObje
 
   const handleHeaderNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    const sanitizedValue = rawValue; // No sanitization needed here as per new validation
+    // Remove any colons from the input to prevent double colon issues
+    const sanitizedValue = rawValue.replace(/:/g, '');
     setNewHeaderName(sanitizedValue);
     
     // Validate input field
@@ -146,8 +147,14 @@ export default function AdditionalInfoStep({ stepRef }: { stepRef: React.RefObje
 
   const handleAddCustomHeader = () => {
     if (newHeaderName.trim() && newHeaderValue.trim() && !headerNameError && !headerValueError) {
+      // Ensure header name doesn't already have a colon and format properly
+      let headerName = newHeaderName.trim();
+      if (!headerName.endsWith(':')) {
+        headerName = headerName + ':';
+      }
+      
       const newHeader: CustomHeader = {
-        name: newHeaderName.trim() + ':', // Add colon at the end
+        name: headerName,
         value: newHeaderValue.trim(),
       };
       setCustomHeaders([...customHeaders, newHeader]);
@@ -189,7 +196,7 @@ export default function AdditionalInfoStep({ stepRef }: { stepRef: React.RefObje
           <div className="group relative">
             <HelpCircle size={16} className="text-gray-400 cursor-help" />
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-zinc-900 text-gray-200 text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-              Headers that need to be included with every request to the target's web pages
+              Headers that need to be included with every request. Format: "Header-Name: value". Colons are added automatically.
             </div>
           </div>
         </div>
@@ -197,7 +204,7 @@ export default function AdditionalInfoStep({ stepRef }: { stepRef: React.RefObje
           <div className="flex items-center gap-2 flex-1">
             <Input
               label=""
-              placeholder="Header name (e.g. Authorization, User-Agent)"
+              placeholder="Header name (e.g. Authorization, User-Agent) - no colon needed"
               value={newHeaderName}
               onChange={handleHeaderNameChange}
             />

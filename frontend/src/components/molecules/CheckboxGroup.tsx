@@ -7,8 +7,16 @@ interface CheckboxGroupProps {
 }
 
 export function CheckboxGroup({ tools, selectedTools, onToolChange }: CheckboxGroupProps) {
+  // "All" is selected when selectedTools is empty (meaning all tools will run)
   const isAllSelected = selectedTools.length === 0;
-  const isAllUnselected = selectedTools.length === tools.length;
+
+  const handleAllChange = (checked: boolean) => {
+    onToolChange('All', checked);
+  };
+
+  const handleToolChange = (tool: string, checked: boolean) => {
+    onToolChange(tool, checked);
+  };
 
   return (
     <div className="space-y-4">
@@ -17,7 +25,7 @@ export function CheckboxGroup({ tools, selectedTools, onToolChange }: CheckboxGr
         <input
           type="checkbox"
           checked={isAllSelected}
-          onChange={(e) => onToolChange('All', e.target.checked)}
+          onChange={(e) => handleAllChange(e.target.checked)}
           className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200"
         />
         <span className="text-gray-300 text-sm font-medium group-hover:text-white transition-colors duration-200">
@@ -32,7 +40,7 @@ export function CheckboxGroup({ tools, selectedTools, onToolChange }: CheckboxGr
             <input
               type="checkbox"
               checked={selectedTools.includes(tool)}
-              onChange={(e) => onToolChange(tool, e.target.checked)}
+              onChange={(e) => handleToolChange(tool, e.target.checked)}
               disabled={isAllSelected}
               className={`w-3.5 h-3.5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2 focus:ring-offset-1 focus:ring-offset-gray-800 transition-all duration-200 ${
                 isAllSelected ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-500'

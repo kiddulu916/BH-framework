@@ -1,0 +1,146 @@
+# AlertManager Configuration for Bug Hunting Framework
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@bug-hunting-framework.com'
+  smtp_auth_username: 'alerts@bug-hunting-framework.com'
+  smtp_auth_password: 'your_smtp_password'
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'email-notifications'
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      continue: true
+      group_wait: 0s
+      group_interval: 5s
+      repeat_interval: 30m
+    
+    # High severity alerts - notify within 5 minutes
+    - match:
+        severity: high
+      receiver: 'high-alerts'
+      continue: true
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+    
+    # Security alerts - immediate notification
+    - match:
+        alertname: HighFailedAuthAttempts
+      receiver: 'security-alerts'
+      continue: true
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 15m
+    
+    # Database alerts - notify via email
+    - match:
+        service: database
+      receiver: 'email-notifications'
+      continue: true
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 1h
+    
+    # Performance alerts - notify via email
+    - match:
+        alertname: HighResponseTime
+      receiver: 'email-notifications'
+      continue: true
+      group_wait: 1m
+      group_interval: 5m
+      repeat_interval: 30m
+
+inhibit_rules:
+  # Inhibit critical alerts when service is down
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']
+  
+  # Inhibit high CPU when service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match:
+      alertname: 'HighCPUUsage'
+    equal: ['instance']
+  
+  # Inhibit high memory when service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match:
+      alertname: 'HighMemoryUsage'
+    equal: ['instance']
+
+receivers:
+  - name: 'email-notifications'
+    email_configs:
+      - to: 'dat1kidd916@gmail.com'
+        send_resolved: true
+        headers:
+          subject: 'Bug Hunting Framework Alert: {{ template "email.subject" . }}'
+        html: '{{ template "email.html" . }}'
+
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'dat1kidd916@gmail.com'
+        send_resolved: true
+        headers:
+          subject: '🚨 CRITICAL ALERT - Bug Hunting Framework: {{ template "email.subject" . }}'
+        html: '{{ template "email.critical.html" . }}'
+
+  - name: 'high-alerts'
+    email_configs:
+      - to: 'dat1kidd916@gmail.com'
+        send_resolved: true
+        headers:
+          subject: '⚠️ HIGH ALERT - Bug Hunting Framework: {{ template "email.subject" . }}'
+        html: '{{ template "email.high.html" . }}'
+
+  - name: 'security-alerts'
+    email_configs:
+      - to: 'dat1kidd916@gmail.com'
+        send_resolved: true
+        headers:
+          subject: '🛡️ SECURITY ALERT - Bug Hunting Framework: {{ template "email.subject" . }}'
+        html: '{{ template "email.security.html" . }}'
+
+templates:
+  - '/etc/alertmanager/template/*.tmpl'
+
+# Time intervals for different notification schedules
+time_intervals:
+  - name: workdays
+    time_intervals:
+      - weekdays: ['monday:friday']
+        times:
+          - start_time: 09:00
+            end_time: 17:00
+        location: 'America/New_York'
+  
+  - name: weekends
+    time_intervals:
+      - weekdays: ['saturday', 'sunday']
+  
+  - name: holidays
+    time_intervals:
+      - months: ['january:1', 'july:4', 'december:25']
+        weekdays: ['monday:sunday']
+
+# Mute time intervals for maintenance windows
+mute_time_intervals:
+  - name: maintenance_window
+    time_intervals:
+      - weekdays: ['sunday']
+        times:
+          - start_time: 02:00
+            end_time: 06:00
+        location: 'America/New_York' 

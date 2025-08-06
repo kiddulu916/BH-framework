@@ -15,6 +15,8 @@ import {
   StageStatus,
   StageResult
 } from '@/lib/api/stages';
+import { getTargets, updateTarget } from '@/lib/api/targets';
+import { TargetStatus } from '@/types/target';
 
 export function DashboardPage({ target }: { target?: any }) {
   const [activeOverlay, setActiveOverlay] = useState<'navigation' | 'settings' | null>(null);
@@ -32,22 +34,46 @@ export function DashboardPage({ target }: { target?: any }) {
   const [selectedTools, setSelectedTools] = useState<{
     'passive-recon': string[];
     'active-recon': string[];
+    'vulnerability-scanning': string[];
+    'vulnerability-testing': string[];
+    'kill-chain': string[];
+    'report-generation': string[];
   }>({
     'passive-recon': [],
-    'active-recon': []
+    'active-recon': [],
+    'vulnerability-scanning': [],
+    'vulnerability-testing': [],
+    'kill-chain': [],
+    'report-generation': []
   });
+  const [selectedStages, setSelectedStages] = useState<{
+    'passive-recon': boolean;
+    'active-recon': boolean;
+    'vulnerability-scanning': boolean;
+    'vulnerability-testing': boolean;
+    'kill-chain': boolean;
+    'report-generation': boolean;
+  }>({
+    'passive-recon': true,
+    'active-recon': true,
+    'vulnerability-scanning': true,
+    'vulnerability-testing': true,
+    'kill-chain': true,
+    'report-generation': true
+  });
+  const [primaryTarget, setPrimaryTarget] = useState<any>(null);
 
   const stages = [
     {
       id: 'passive-recon',
       title: 'Passive Recon',
-             tools: [
-         'Sublist3r', 'Amass', 'Subfinder', 'Assetfinder', 'Gau', 'Waybackurls',
-         'Httpx', 'Nuclei', 'Naabu', 'Katana', 'Feroxbuster', 'Gobuster',
-         'LinkFinder', 'GetJS', 'EyeWitness', 'EyeBaller', 'WebAnalyze',
-         'WhatWeb', 'FingerprintX', 'Arjun', 'MassDNS', 'PureDNS', 'FFuf',
-         'WAFW00F', 'CloudFail', 'CloudEnum', 'S3Enum'
-       ]
+      tools: [
+        'Sublist3r', 'Amass', 'Subfinder', 'Assetfinder', 'Gau', 'Waybackurls',
+        'Httpx', 'Nuclei', 'Naabu', 'Katana', 'Feroxbuster', 'Gobuster',
+        'LinkFinder', 'GetJS', 'EyeWitness', 'EyeBaller', 'WebAnalyze',
+        'WhatWeb', 'FingerprintX', 'Arjun', 'MassDNS', 'PureDNS', 'FFuf',
+        'WAFW00F', 'CloudFail', 'CloudEnum', 'S3Enum'
+      ]
     },
     {
       id: 'active-recon',
@@ -82,46 +108,66 @@ export function DashboardPage({ target }: { target?: any }) {
     }
   ];
 
+  // Fetch primary target info
+  const fetchPrimaryTarget = async () => {
+    try {
+      const response = await getTargets({ is_primary: true, status: TargetStatus.ACTIVE });
+      if (response.success && response.data?.items?.length > 0) {
+        const primary = response.data.items[0];
+        setPrimaryTarget(primary);
+        
+        // Set the target as active if it's not already
+        if (primary.status !== TargetStatus.ACTIVE) {
+          await updateTarget(primary.id, { status: TargetStatus.ACTIVE });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch primary target:', error);
+    }
+  };
+
   // Fetch stage data and status
   const fetchStageData = async () => {
-    if (!target?.id) return;
+    if (!primaryTarget?.id) return;
     
     try {
       setLoading(true);
       setError(null);
       
       const [summaryData, passiveStatus, activeStatus] = await Promise.allSettled([
-        getStageSummary(target.id),
-        getPassiveReconStatus(target.id),
-        getActiveReconStatus(target.id)
+        getStageSummary(primaryTarget.id),
+        getPassiveReconStatus(primaryTarget.id),
+        getActiveReconStatus(primaryTarget.id)
       ]);
 
       if (summaryData.status === 'fulfilled') {
         setStageData(summaryData.value);
       }
 
-      setStageStatus({
-        passive_recon: passiveStatus.status === 'fulfilled' ? passiveStatus.value : undefined,
-        active_recon: activeStatus.status === 'fulfilled' ? activeStatus.value : undefined,
-      });
+      if (passiveStatus.status === 'fulfilled' && passiveStatus.value) {
+        setStageStatus(prev => ({ ...prev, passive_recon: passiveStatus.value as StageStatus }));
+      }
+
+      if (activeStatus.status === 'fulfilled' && activeStatus.value) {
+        setStageStatus(prev => ({ ...prev, active_recon: activeStatus.value as StageStatus }));
+      }
     } catch (err) {
       console.error('Failed to fetch stage data:', err);
-      setError('Failed to load stage data');
+      setError('Failed to fetch stage data');
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle stage execution
   const handleStartStage = async (stageName: string, toolsToRun: string[], options?: Record<string, any>) => {
-    if (!target?.id) return;
+    if (!primaryTarget?.id) return;
     
     try {
       setLoading(true);
       setError(null);
       
       const request = {
-        target_id: target.id,
+        target_id: primaryTarget.id,
         stage_name: stageName,
         tools: toolsToRun.length > 0 ? toolsToRun : undefined,
         options: options || {}
@@ -154,11 +200,19 @@ export function DashboardPage({ target }: { target?: any }) {
       const currentStageTools = prev[stageName as keyof typeof prev] || [];
       
       if (tool === 'All') {
-        // If "All" is checked, clear the selection (empty array means all tools)
-        return {
-          ...prev,
-          [stageName]: checked ? [] : currentStageTools
-        };
+        if (checked) {
+          // If "All" is checked, clear the selection (empty array means all tools)
+          return {
+            ...prev,
+            [stageName]: []
+          };
+        } else {
+          // If "All" is unchecked, keep current selection (allows individual tool selection)
+          return {
+            ...prev,
+            [stageName]: currentStageTools
+          };
+        }
       } else {
         // Handle individual tool selection
         let newTools: string[];
@@ -176,15 +230,65 @@ export function DashboardPage({ target }: { target?: any }) {
     });
   };
 
+  // Handle stage selection changes
+  const handleStageSelectionChange = (stageName: string, checked: boolean) => {
+    setSelectedStages(prev => ({
+      ...prev,
+      [stageName]: checked
+    }));
+  };
+
+  // Handle workflow start
+  const handleStartWorkflow = async () => {
+    if (!primaryTarget?.id) {
+      setError('No primary target found');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Get selected stages
+      const selectedStageNames = Object.entries(selectedStages)
+        .filter(([_, isSelected]) => isSelected)
+        .map(([stageName, _]) => stageName);
+
+      if (selectedStageNames.length === 0) {
+        setError('Please select at least one stage to run');
+        return;
+      }
+
+      // Start each selected stage
+      for (const stageName of selectedStageNames) {
+        const stageTools = selectedTools[stageName as keyof typeof selectedTools] || [];
+        await handleStartStage(stageName, stageTools);
+      }
+
+      console.log('Started workflow with stages:', selectedStageNames);
+    } catch (err) {
+      console.error('Failed to start workflow:', err);
+      setError('Failed to start workflow');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Set up polling for status updates
   useEffect(() => {
-    fetchStageData();
-    
-    // Poll for status updates every 5 seconds
-    const interval = setInterval(fetchStageData, 5000);
-    
-    return () => clearInterval(interval);
-  }, [target?.id]);
+    fetchPrimaryTarget();
+  }, []);
+
+  useEffect(() => {
+    if (primaryTarget?.id) {
+      fetchStageData();
+      
+      // Poll for status updates every 5 seconds
+      const interval = setInterval(fetchStageData, 5000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [primaryTarget?.id]);
 
   const getStageData = (stageId: string) => {
     if (!stageData) return { results: [], status: undefined };
@@ -220,7 +324,7 @@ export function DashboardPage({ target }: { target?: any }) {
         
         <main className="container mx-auto px-6 py-8 space-y-8">
           {/* Target Profile Summary */}
-          <TargetProfileCard target={target} />
+          <TargetProfileCard target={primaryTarget || target} />
           
           {/* Error message */}
           {error && (
@@ -235,6 +339,7 @@ export function DashboardPage({ target }: { target?: any }) {
               const { results, status } = getStageData(stage.id);
               const isRunning = isStageRunning(stage.id);
               const stageSelectedTools = selectedTools[stage.id as keyof typeof selectedTools] || [];
+              const isStageSelected = selectedStages[stage.id as keyof typeof selectedStages] || false;
               
               return (
                 <StageCard
@@ -242,11 +347,13 @@ export function DashboardPage({ target }: { target?: any }) {
                   id={stage.id}
                   title={stage.title}
                   tools={stage.tools}
-                  targetId={target?.id}
+                  targetId={primaryTarget?.id}
                   status={status}
                   results={results}
                   selectedTools={stageSelectedTools}
+                  isStageSelected={isStageSelected}
                   onToolChange={(tool, checked) => handleToolSelectionChange(stage.id, tool, checked)}
+                  onStageSelectionChange={(checked) => handleStageSelectionChange(stage.id, checked)}
                   onStartStage={handleStartStage}
                   isRunning={isRunning}
                 />
@@ -287,9 +394,9 @@ export function DashboardPage({ target }: { target?: any }) {
             </div>
           )}
           
-          {/* Start Button */}
-          <div className="flex justify-end pt-8">
-            <StartButton />
+          {/* Start Button - Moved closer to stage cards */}
+          <div className="flex justify-center pt-4">
+            <StartButton onClick={handleStartWorkflow} disabled={loading || !primaryTarget?.id} />
           </div>
         </main>
       </OverlayManager>
